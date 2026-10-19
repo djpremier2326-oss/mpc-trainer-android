@@ -9,88 +9,19 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-/** Decodes Android-supported compressed audio (including MP3) to 16-bit PCM WAV. */
+/** Normalizes Android-supported audio to an editable PCM16 WAV when needed. */
 object AudioImport {
-    fun toEditableWav(input:File,output:File):File {
-        if(input.extension.equals("wav",true)) return input
-        output.parentFile?.mkdirs()
-        val temp=File(output.parentFile ?: output.absoluteFile.parentFile,".${output.name}.pcm.tmp")
-        val extractor=MediaExtractor()
-        var codecToRelease:MediaCodec?=null
-        try {
-            extractor.setDataSource(input.absolutePath)
-            var track=-1
-            var source:MediaFormat?=null
-            for(i in 0 until extractor.trackCount){
-                val f=extractor.getTrackFormat(i)
-                val mime=f.getString(MediaFormat.KEY_MIME).orEmpty()
-                if(mime.startsWith("audio/")){track=i;source=f;break}
-            }
-            require(track>=0 && source!=null){"No audio track"}
-            extractor.selectTrack(track)
-            val src=source!!
-            val mime=src.getString(MediaFormat.KEY_MIME) ?: error("Unknown audio format")
-            val decoder=MediaCodec.createDecoderByType(mime)
-            codecToRelease=decoder
-            decoder.configure(src,null,null,0)
-            decoder.start()
-            var sampleRate=src.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-            var channels=src.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-            var pcmEncoding=AudioFormat.ENCODING_PCM_16BIT
-            var inputDone=false
-            var outputDone=false
-            var total=0L
-            val info=MediaCodec.BufferInfo()
-            FileOutputStream(temp).use { pcmOut ->
-                while(!outputDone){
-                    if(!inputDone){
-                        val ix=decoder.dequeueInputBuffer(10_000)
-                        if(ix>=0){
-                            val buf=decoder.getInputBuffer(ix) ?: error("Decoder input buffer unavailable")
-                            val size=extractor.readSampleData(buf,0)
-                            if(size<0){decoder.queueInputBuffer(ix,0,0,0,MediaCodec.BUFFER_FLAG_END_OF_STREAM);inputDone=true}
-                            else{decoder.queueInputBuffer(ix,0,size,extractor.sampleTime,0);extractor.advance()}
-                        }
-                    }
-                    val ox=decoder.dequeueOutputBuffer(info,10_000)
-                    when {
-                        ox>=0 -> {
-                            if(info.size>0){
-                                val b=decoder.getOutputBuffer(ox) ?: error("Decoder output buffer unavailable")
-                                b.position(info.offset);b.limit(info.offset+info.size)
-                                val data=ByteArray(info.size);b.get(data);pcmOut.write(data);total+=data.size
-                                if(total>512L*1024L*1024L) error("Audio is too large for basic Sample Edit")
-                            }
-                            outputDone=info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
-                            decoder.releaseOutputBuffer(ox,false)
-                        }
-                        ox==MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                            val f=decoder.outputFormat
-                            sampleRate=f.getInteger(MediaFormat.KEY_SAMPLE_RATE)
-                            channels=f.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
-                            if(f.containsKey(MediaFormat.KEY_PCM_ENCODING)) pcmEncoding=f.getInteger(MediaFormat.KEY_PCM_ENCODING)
-                        }
-                    }
-                }
-            }
-            if(pcmEncoding!=AudioFormat.ENCODING_PCM_16BIT) error("This audio decoder did not return 16-bit PCM")
-            if(channels !in 1..2 || sampleRate<=0) error("Unsupported decoded audio format")
-            if(total<=0L || total>Int.MAX_VALUE) error("Decoded audio is empty or too large")
-            FileOutputStream(output).use { out ->
-                val bytes=total.toInt()
-                val header=ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
-                header.put("RIFF".toByteArray(Charsets.US_ASCII));header.putInt(36+bytes);header.put("WAVE".toByteArray(Charsets.US_ASCII))
-                header.put("fmt ".toByteArray(Charsets.US_ASCII));header.putInt(16);header.putShort(1);header.putShort(channels.toShort())
-                header.putInt(sampleRate);header.putInt(sampleRate*channels*2);header.putShort((channels*2).toShort());header.putShort(16)
-                header.put("data".toByteArray(Charsets.US_ASCII));header.putInt(bytes);out.write(header.array())
-                temp.inputStream().use { it.copyTo(out) }
-            }
-            return output
-        } finally {
-            try{codecToRelease?.stop()}catch(_:Exception){}
-            try{codecToRelease?.release()}catch(_:Exception){}
-            try{extractor.release()}catch(_:Exception){}
-            temp.delete()
-        }
-    }
+ fun toEditableWav(input:File,output:File):File{
+  if(input.extension.equals("wav",true)){try{val i=WavSlicer.inspect(input);if(i.bits==16)return input}catch(_:Exception){}}
+  output.parentFile?.mkdirs();val temp=File(output.parentFile?:output.absoluteFile.parentFile,".${output.name}.pcm.tmp");val ex=MediaExtractor();var dec:MediaCodec?=null
+  try{
+   ex.setDataSource(input.absolutePath);var track=-1;var src:MediaFormat?=null
+   for(i in 0 until ex.trackCount){val f=ex.getTrackFormat(i);if(f.getString(MediaFormat.KEY_MIME).orEmpty().startsWith("audio/")){track=i;src=f;break}}
+   require(track>=0&&src!=null){"Не удалось прочитать аудиофайл"};ex.selectTrack(track);val fmt=src!!;val mime=fmt.getString(MediaFormat.KEY_MIME)?:error("Неизвестный аудиоформат")
+   dec=MediaCodec.createDecoderByType(mime);dec.configure(fmt,null,null,0);dec.start();var rate=fmt.getInteger(MediaFormat.KEY_SAMPLE_RATE);var channels=fmt.getInteger(MediaFormat.KEY_CHANNEL_COUNT);var enc=AudioFormat.ENCODING_PCM_16BIT;var inDone=false;var outDone=false;var total=0L;val info=MediaCodec.BufferInfo()
+   FileOutputStream(temp).use{out->while(!outDone){if(!inDone){val ix=dec.dequeueInputBuffer(10000);if(ix>=0){val b=dec.getInputBuffer(ix)?:error("Ошибка декодера");val n=ex.readSampleData(b,0);if(n<0){dec.queueInputBuffer(ix,0,0,0,MediaCodec.BUFFER_FLAG_END_OF_STREAM);inDone=true}else{dec.queueInputBuffer(ix,0,n,ex.sampleTime,0);ex.advance()}}};val ox=dec.dequeueOutputBuffer(info,10000);if(ox>=0){if(info.size>0){val b=dec.getOutputBuffer(ox)?:error("Ошибка декодера");b.position(info.offset);b.limit(info.offset+info.size);val data=ByteArray(info.size);b.get(data);out.write(data);total+=data.size;if(total>512L*1024L*1024L)error("Сэмпл слишком большой для Sample Edit")};outDone=info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM!=0;dec.releaseOutputBuffer(ox,false)}else if(ox==MediaCodec.INFO_OUTPUT_FORMAT_CHANGED){val f=dec.outputFormat;rate=f.getInteger(MediaFormat.KEY_SAMPLE_RATE);channels=f.getInteger(MediaFormat.KEY_CHANNEL_COUNT);if(f.containsKey(MediaFormat.KEY_PCM_ENCODING))enc=f.getInteger(MediaFormat.KEY_PCM_ENCODING)}}}
+   if(enc!=AudioFormat.ENCODING_PCM_16BIT)error("Телефон не смог преобразовать этот аудиофайл в PCM16");if(channels !in 1..2||rate<=0||total<=0||total>Int.MAX_VALUE)error("Неподдерживаемый формат аудио")
+   FileOutputStream(output).use{out->val bytes=total.toInt();val h=ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN);h.put("RIFF".toByteArray());h.putInt(36+bytes);h.put("WAVEfmt ".toByteArray());h.putInt(16);h.putShort(1);h.putShort(channels.toShort());h.putInt(rate);h.putInt(rate*channels*2);h.putShort((channels*2).toShort());h.putShort(16);h.put("data".toByteArray());h.putInt(bytes);out.write(h.array());temp.inputStream().use{it.copyTo(out)}};return output
+  }finally{try{dec?.stop()}catch(_:Exception){};try{dec?.release()}catch(_:Exception){};try{ex.release()}catch(_:Exception){};temp.delete()}
+ }
 }
