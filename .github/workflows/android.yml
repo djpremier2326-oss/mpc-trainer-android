@@ -33,6 +33,8 @@ jobs:
         run: python3 scripts/integrate_learn_highlight.py
       - name: Integrate pad gain compensation
         run: python3 scripts/integrate_pad_gain.py
+      - name: Integrate foundation challenge reset
+        run: python3 scripts/integrate_challenge_reset.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
