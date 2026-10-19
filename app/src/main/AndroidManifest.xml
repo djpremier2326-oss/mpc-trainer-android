@@ -4,7 +4,6 @@
         android:allowBackup="true"
         android:label="MPC Trainer"
         android:theme="@style/Theme.MPCTrainer">
-        <activity android:name=".MainActivity" android:screenOrientation="portrait" android:exported="false" />
         <activity
             android:name=".TrainerActivity"
             android:screenOrientation="portrait"
