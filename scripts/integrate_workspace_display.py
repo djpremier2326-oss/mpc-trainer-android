@@ -4,35 +4,46 @@ p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt')
 s=p.read_text()
 
 old='private var metronome=false;private var countIn=true;private var lastBeat=-1L;private var lastClockTick=-1L;private var countInToken=0'
-new=old+'\n private var workspaceMode="MAIN"'
 if 'private var workspaceMode=' not in s:
     if old not in s: raise SystemExit('workspace state anchor not found')
-    s=s.replace(old,new,1)
+    s=s.replace(old,old+'\n private var workspaceMode="MAIN"',1)
 
 old='btn("MAIN"){report("main");refreshStatus()},btn("BROWSE"){report("browse");browse()},btn("SAMPLE EDIT"){sampleEdit()}'
 new='btn("MAIN"){setWorkspaceMode("MAIN");report("main")},btn("BROWSE"){setWorkspaceMode("BROWSE");report("browse");browse()},btn("SAMPLE EDIT"){setWorkspaceMode("SAMPLE EDIT");sampleEdit()}'
 if new not in s:
     if old not in s: raise SystemExit('top mode buttons anchor not found')
     s=s.replace(old,new,1)
-
 old='btn("STEP SEQ"){steps()}'
 new='btn("STEP SEQ"){setWorkspaceMode("STEP SEQ");steps()}'
 if new not in s:
     if old not in s: raise SystemExit('step mode anchor not found')
     s=s.replace(old,new,1)
 
-# Locate refreshStatus structurally. It may sit before any of several helpers after prior integrations.
-marker=' private fun refreshStatus(){'
-pos=s.find(marker)
-if pos<0: raise SystemExit('refreshStatus function not found')
-next_positions=[]
-for anchor in ('\n private fun loopTicks()', '\n private fun position()', '\n private fun refreshPads()', '\n private fun onDestroy()', '\n private fun name('):
-    q=s.find(anchor,pos+len(marker))
-    if q>=0: next_positions.append(q)
-if not next_positions: raise SystemExit('refreshStatus structural end not found')
-end=min(next_positions)
-block=''' private fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}\n private fun stepPattern(bar:Int):String{\n  val start=bar*384L\n  return (0 until 16).joinToString(""){step->val t=start+step*24L;if(events.any{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t})"■" else "·"}\n }\n private fun workspaceText():String{\n  val selected=pads[bank][pad]\n  val transport=if(recording)if(overdub)"OVERDUB" else "REC" else if(playing)"PLAY" else "STOP"\n  return when(workspaceMode){\n   "BROWSE"->"BROWSE  •  BANK ${'A'+bank} / PAD ${pad+1}\\n${selected?.name?:"EMPTY"}\\nВыбери WAV или MP3 • PREVIEW → LOAD TO PAD"\n   "SAMPLE EDIT"->"SAMPLE EDIT  •  BANK ${'A'+bank} / PAD ${pad+1}\\n${selected?.name?:"EMPTY"}\\nSTART / END • PREVIEW • CHOP → PADS"\n   "STEP SEQ"->"STEP SEQ • TRACK ${track+1} • ${'A'+bank}${pad+1}\\n1 ${stepPattern(0)}\\n2 ${stepPattern(1)}"\n   "MIXER"->"MIXER  •  MASTER / PROJECT\\nBANK ${'A'+bank} • PAD ${pad+1} • ${selected?.name?:"EMPTY"}\\nГромкость проекта и выбранного пэда"\n   else->"MAIN  •  SEQ 01  •  TRACK ${track+1}${if(mute[track])" MUTE" else ""}\\nBANK ${'A'+bank} • PAD ${pad+1} • ${position()} • $transport\\n$bpm BPM • TC 1/$tc • SWING $swing% • MET ${if(metronome)"ON" else "OFF"} • COUNT ${if(countIn)"ON" else "OFF"}"\n  }\n }\n private fun refreshStatus(){TrainerUiState.publish(bank,pad,track,playing,recording,overdub,noteRepeat,fullLevel,levels16,mute[track]);status.text=workspaceText()}'''
-s=s[:pos]+block+s[end:]
+# refreshStatus is a one-line Kotlin function after UI-state integration. Replace that line only.
+lines=s.splitlines()
+idx=next((i for i,line in enumerate(lines) if line.lstrip().startswith('private fun refreshStatus(){')),None)
+if idx is None: raise SystemExit('refreshStatus function not found')
+if lines[idx].count('{') != lines[idx].count('}'):
+    raise SystemExit('refreshStatus is no longer one-line; update integrator deliberately')
+block=''' private fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}
+ private fun stepPattern(bar:Int):String{
+  val start=bar*384L
+  return (0 until 16).joinToString(""){step->val t=start+step*24L;if(events.any{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t})"■" else "·"}
+ }
+ private fun workspaceText():String{
+  val selected=pads[bank][pad]
+  val transport=if(recording)if(overdub)"OVERDUB" else "REC" else if(playing)"PLAY" else "STOP"
+  return when(workspaceMode){
+   "BROWSE"->"BROWSE  •  BANK ${'A'+bank} / PAD ${pad+1}\\n${selected?.name?:"EMPTY"}\\nВыбери WAV или MP3 • PREVIEW → LOAD TO PAD"
+   "SAMPLE EDIT"->"SAMPLE EDIT  •  BANK ${'A'+bank} / PAD ${pad+1}\\n${selected?.name?:"EMPTY"}\\nSTART / END • PREVIEW • CHOP → PADS"
+   "STEP SEQ"->"STEP SEQ • TRACK ${track+1} • ${'A'+bank}${pad+1}\\n1 ${stepPattern(0)}\\n2 ${stepPattern(1)}"
+   "MIXER"->"MIXER  •  MASTER / PROJECT\\nBANK ${'A'+bank} • PAD ${pad+1} • ${selected?.name?:"EMPTY"}\\nГромкость проекта и выбранного пэда"
+   else->"MAIN  •  SEQ 01  •  TRACK ${track+1}${if(mute[track])" MUTE" else ""}\\nBANK ${'A'+bank} • PAD ${pad+1} • ${position()} • $transport\\n$bpm BPM • TC 1/$tc • SWING $swing% • MET ${if(metronome)"ON" else "OFF"} • COUNT ${if(countIn)"ON" else "OFF"}"
+  }
+ }
+ private fun refreshStatus(){TrainerUiState.publish(bank,pad,track,playing,recording,overdub,noteRepeat,fullLevel,levels16,mute[track]);status.text=workspaceText()}'''
+lines[idx:idx+1]=block.splitlines()
+s='\n'.join(lines)+'\n'
 
 needle='saveProject();redrawSteps(page,label,bs)}}}'
 if needle in s:s=s.replace(needle,'saveProject();redrawSteps(page,label,bs);refreshStatus()}}}',1)
