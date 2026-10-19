@@ -1,97 +1,67 @@
 package com.bytbeat.mpctrainer
 
 import java.io.File
+import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 /** Small offline PCM-WAV slicer for the foundation Sample Edit lesson. */
 object WavSlicer {
-    data class Info(
-        val channels:Int,
-        val sampleRate:Int,
-        val bits:Int,
-        val dataOffset:Long,
-        val dataSize:Int,
-        val blockAlign:Int
-    ) { val frames:Int get() = if(blockAlign<=0) 0 else dataSize/blockAlign }
+    data class Info(val channels:Int,val sampleRate:Int,val bits:Int,val dataOffset:Long,val dataSize:Int,val blockAlign:Int){val frames:Int get()=if(blockAlign<=0)0 else dataSize/blockAlign}
 
-    fun inspect(file:File):Info {
-        RandomAccessFile(file,"r").use { r ->
-            if(r.length()<44) error("WAV file is too short")
-            if(readAscii(r,4)!="RIFF") error("Not a RIFF WAV")
-            readLE32(r)
-            if(readAscii(r,4)!="WAVE") error("Not a WAV file")
-            var channels=0; var rate=0; var bits=0; var align=0; var pcm=false
-            var dataOffset=-1L; var declaredDataSize=0L
-            while(r.filePointer+8<=r.length()) {
-                val id=readAscii(r,4)
-                val size=readLE32(r)
-                val start=r.filePointer
-                if(size<0 || start+size<start) error("Invalid WAV chunk")
-                when(id) {
-                    "fmt " -> if(size>=16) {
-                        val format=readLE16(r); channels=readLE16(r); rate=readLE32(r).toInt()
-                        readLE32(r); align=readLE16(r); bits=readLE16(r); pcm=format==1
-                    }
-                    "data" -> { dataOffset=start; declaredDataSize=size; break }
+    fun inspect(file:File):Info{
+        RandomAccessFile(file,"r").use{r->
+            if(r.length()<44)error("WAV file is too short")
+            if(readAscii(r,4)!="RIFF")error("Not a RIFF WAV")
+            readLE32(r);if(readAscii(r,4)!="WAVE")error("Not a WAV file")
+            var channels=0;var rate=0;var bits=0;var align=0;var pcm=false;var dataOffset=-1L;var declaredDataSize=0L
+            while(r.filePointer+8<=r.length()){
+                val id=readAscii(r,4);val size=readLE32(r);val start=r.filePointer
+                if(start+size<start)error("Invalid WAV chunk")
+                when(id){
+                    "fmt "->if(size>=16){val format=readLE16(r);channels=readLE16(r);rate=readLE32(r).toInt();readLE32(r);align=readLE16(r);bits=readLE16(r);pcm=format==1}
+                    "data"->{dataOffset=start;declaredDataSize=size;break}
                 }
-                val next=start+size+(size and 1L)
-                if(next>r.length()) break
-                r.seek(next)
+                val next=start+size+(size and 1L);if(next>r.length())break;r.seek(next)
             }
-            if(!pcm) error("Only PCM WAV is supported in basic Sample Edit")
-            if(channels !in 1..2 || rate<=0 || bits !in setOf(8,16,24,32) || align<=0 || dataOffset<0) error("Unsupported WAV format")
-            val safeBytes=minOf(declaredDataSize,(r.length()-dataOffset).coerceAtLeast(0L))
-            if(safeBytes<=0L) error("WAV contains no audio data")
-            if(safeBytes>Int.MAX_VALUE) error("WAV is too large for basic Sample Edit")
-            val safeSize=safeBytes.toInt()
-            val info=Info(channels,rate,bits,dataOffset,safeSize,align)
-            if(info.frames<2) error("WAV is too short to edit")
-            return info
+            if(!pcm)error("Only PCM WAV is supported in basic Sample Edit")
+            if(channels !in 1..2||rate<=0||bits !in setOf(8,16,24,32)||align<=0||dataOffset<0)error("Unsupported WAV format")
+            val safeBytes=minOf(declaredDataSize,(r.length()-dataOffset).coerceAtLeast(0L));if(safeBytes<=0)error("WAV contains no audio data");if(safeBytes>Int.MAX_VALUE)error("WAV is too large for basic Sample Edit")
+            val info=Info(channels,rate,bits,dataOffset,safeBytes.toInt(),align);if(info.frames<2)error("WAV is too short to edit");return info
         }
     }
 
-    fun slice(source:File,target:File,startFraction:Float,endFraction:Float):File {
-        val info=inspect(source)
-        val lo=startFraction.coerceIn(0f,.999f)
-        val hi=endFraction.coerceIn(lo+.001f,1f)
-        val startFrame=(info.frames*lo).toInt().coerceIn(0,info.frames-1)
-        val endFrame=(info.frames*hi).toInt().coerceIn(startFrame+1,info.frames)
-        val byteCount=(endFrame-startFrame)*info.blockAlign
-        val pcm=ByteArray(byteCount)
-        RandomAccessFile(source,"r").use { r ->
-            r.seek(info.dataOffset+startFrame.toLong()*info.blockAlign)
-            r.readFully(pcm)
-        }
+    fun slice(source:File,target:File,startFraction:Float,endFraction:Float):File{
+        val info=inspect(source);val lo=startFraction.coerceIn(0f,.999f);val hi=endFraction.coerceIn(lo+.001f,1f)
+        val startFrame=(info.frames*lo).toInt().coerceIn(0,info.frames-1);val endFrame=(info.frames*hi).toInt().coerceIn(startFrame+1,info.frames)
+        val byteCount=(endFrame-startFrame).toLong()*info.blockAlign;require(byteCount in 1..Int.MAX_VALUE.toLong()){ "Selected range is too large" }
         target.parentFile?.mkdirs()
-        writePcm(target,info,pcm)
+        RandomAccessFile(source,"r").use{input->FileOutputStream(target).use{out->
+            writeHeader(out,info,byteCount.toInt());input.seek(info.dataOffset+startFrame.toLong()*info.blockAlign)
+            val buffer=ByteArray(64*1024);var remaining=byteCount
+            while(remaining>0){val want=minOf(buffer.size.toLong(),remaining).toInt();val n=input.read(buffer,0,want);if(n<=0)error("Unexpected end of WAV");out.write(buffer,0,n);remaining-=n}
+        }}
         return target
     }
 
-    fun chop(source:File,dir:File,startFraction:Float,endFraction:Float,pieces:Int,baseName:String):List<File> {
-        require(pieces in 2..16) { "Chops must be between 2 and 16" }
-        inspect(source)
-        dir.mkdirs()
-        val lo=startFraction.coerceIn(0f,.999f)
-        val hi=endFraction.coerceIn(lo+.001f,1f)
-        return (0 until pieces).map { i ->
-            val a=lo+(hi-lo)*(i.toFloat()/pieces)
-            val b=lo+(hi-lo)*((i+1f)/pieces)
-            slice(source,File(dir,"${baseName}_slice_${i+1}.wav"),a,b)
-        }
+    fun chop(source:File,dir:File,startFraction:Float,endFraction:Float,pieces:Int,baseName:String):List<File>{
+        require(pieces in 2..16){"Chops must be between 2 and 16"};val info=inspect(source);val lo=startFraction.coerceIn(0f,.999f);val hi=endFraction.coerceIn(lo+.001f,1f)
+        val startFrame=(info.frames*lo).toInt().coerceIn(0,info.frames-1);val endFrame=(info.frames*hi).toInt().coerceIn(startFrame+1,info.frames);val selected=endFrame-startFrame
+        require(selected>=pieces){"Selected range is too short for $pieces chops"};dir.mkdirs()
+        return (0 until pieces).map{i->val a=startFrame+(selected.toLong()*i/pieces).toInt();val b=startFrame+(selected.toLong()*(i+1)/pieces).toInt();sliceFrames(source,File(dir,"${baseName}_slice_${i+1}.wav"),info,a,b)}
     }
 
-    private fun writePcm(target:File,info:Info,pcm:ByteArray) {
-        val byteRate=info.sampleRate*info.blockAlign
-        val out=ByteBuffer.allocate(44+pcm.size).order(ByteOrder.LITTLE_ENDIAN)
-        out.put("RIFF".toByteArray(Charsets.US_ASCII));out.putInt(36+pcm.size);out.put("WAVE".toByteArray(Charsets.US_ASCII))
-        out.put("fmt ".toByteArray(Charsets.US_ASCII));out.putInt(16);out.putShort(1);out.putShort(info.channels.toShort());out.putInt(info.sampleRate);out.putInt(byteRate);out.putShort(info.blockAlign.toShort());out.putShort(info.bits.toShort())
-        out.put("data".toByteArray(Charsets.US_ASCII));out.putInt(pcm.size);out.put(pcm)
-        target.writeBytes(out.array())
+    private fun sliceFrames(source:File,target:File,info:Info,startFrame:Int,endFrame:Int):File{
+        val byteCount=(endFrame-startFrame).toLong()*info.blockAlign;require(byteCount in 1..Int.MAX_VALUE.toLong()){ "Slice is too large" };target.parentFile?.mkdirs()
+        RandomAccessFile(source,"r").use{input->FileOutputStream(target).use{out->writeHeader(out,info,byteCount.toInt());input.seek(info.dataOffset+startFrame.toLong()*info.blockAlign);val buffer=ByteArray(64*1024);var remaining=byteCount;while(remaining>0){val want=minOf(buffer.size.toLong(),remaining).toInt();val n=input.read(buffer,0,want);if(n<=0)error("Unexpected end of WAV");out.write(buffer,0,n);remaining-=n}}};return target
     }
 
+    private fun writeHeader(out:FileOutputStream,info:Info,pcmBytes:Int){
+        val byteRate=info.sampleRate*info.blockAlign;val h=ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN)
+        h.put("RIFF".toByteArray(Charsets.US_ASCII));h.putInt(36+pcmBytes);h.put("WAVE".toByteArray(Charsets.US_ASCII));h.put("fmt ".toByteArray(Charsets.US_ASCII));h.putInt(16);h.putShort(1);h.putShort(info.channels.toShort());h.putInt(info.sampleRate);h.putInt(byteRate);h.putShort(info.blockAlign.toShort());h.putShort(info.bits.toShort());h.put("data".toByteArray(Charsets.US_ASCII));h.putInt(pcmBytes);out.write(h.array())
+    }
     private fun readAscii(r:RandomAccessFile,n:Int)=String(ByteArray(n).also{r.readFully(it)},Charsets.US_ASCII)
-    private fun readLE16(r:RandomAccessFile):Int { val a=r.read();val b=r.read();if(a<0||b<0) error("Unexpected end of WAV");return a or (b shl 8) }
-    private fun readLE32(r:RandomAccessFile):Long { var v=0L;repeat(4){i->val b=r.read();if(b<0) error("Unexpected end of WAV");v=v or (b.toLong() shl (8*i))};return v and 0xffffffffL }
+    private fun readLE16(r:RandomAccessFile):Int{val a=r.read();val b=r.read();if(a<0||b<0)error("Unexpected end of WAV");return a or(b shl 8)}
+    private fun readLE32(r:RandomAccessFile):Long{var v=0L;repeat(4){i->val b=r.read();if(b<0)error("Unexpected end of WAV");v=v or(b.toLong() shl(8*i))};return v and 0xffffffffL}
 }
