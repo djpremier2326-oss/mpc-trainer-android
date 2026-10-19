@@ -9,7 +9,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 
-/** Keeps Learn mode compact and points at the real control instead of behaving like a manual page. */
+/** Keeps Learn mode compact. Lessons point at controls; the final challenge deliberately removes guidance. */
 object LearnSurfaceStyler {
     private var lastTarget: Button? = null
     private var styledCard: TextView? = null
@@ -37,6 +37,11 @@ object LearnSurfaceStyler {
             }
         }
         val text = card.text?.toString().orEmpty()
+        // Foundation Challenge is the exam: no glowing answer button.
+        if ("CHALLENGE •" in text) {
+            clearTarget()
+            return
+        }
         val label = targetLabel(text)
         val target = label?.let { findButton(root, it) }
         if (target !== lastTarget) {
@@ -53,15 +58,15 @@ object LearnSurfaceStyler {
     private fun targetLabel(t: String): String? = when {
         "Press MAIN" in t -> "MAIN"
         "BROWSE" in t -> "BROWSE"
-        "REC →" in t || "REC a pattern" in t -> "REC"
+        "REC →" in t -> "REC"
         "OVERDUB" in t -> "OVERDUB"
-        "Change TC" in t || "change TC" in t -> "TC"
+        "Change TC" in t -> "TC"
         "Change Swing" in t -> "SWING"
         "NOTE REPEAT" in t -> "NOTE REPEAT"
         "FULL LEVEL" in t -> "FULL LEVEL"
         "16 LEVELS" in t -> "16 LEVELS"
-        "STEP SEQ" in t || "Step Seq" in t -> "STEP SEQ"
-        "Change TRACK" in t || "another TRACK" in t -> "TRACK +"
+        "STEP SEQ" in t -> "STEP SEQ"
+        "Change TRACK" in t -> "TRACK +"
         "TRACK MUTE" in t -> "TRACK MUTE"
         "SAMPLE EDIT" in t -> "SAMPLE EDIT"
         else -> null
