@@ -19,13 +19,12 @@ if new not in s:
     if old not in s: raise SystemExit('step mode anchor not found')
     s=s.replace(old,new,1)
 
-# refreshStatus is a one-line Kotlin function after UI-state integration. Replace that line only.
 lines=s.splitlines()
 idx=next((i for i,line in enumerate(lines) if line.lstrip().startswith('private fun refreshStatus(){')),None)
 if idx is None: raise SystemExit('refreshStatus function not found')
 if lines[idx].count('{') != lines[idx].count('}'):
     raise SystemExit('refreshStatus is no longer one-line; update integrator deliberately')
-block=''' private fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}
+block=''' fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}
  private fun stepPattern(bar:Int):String{
   val start=bar*384L
   return (0 until 16).joinToString(""){step->val t=start+step*24L;if(events.any{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t})"■" else "·"}
