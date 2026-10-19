@@ -51,8 +51,12 @@ jobs:
         run: python3 scripts/integrate_phone_ui_audit.py
       - name: Bridge manual playback for pitch
         run: python3 scripts/bridge_pitch_anchor.py
+      - name: Bridge monitored recording for pitch
+        run: python3 scripts/bridge_record_anchor.py
       - name: Add pitch and post-record quantize
         run: python3 scripts/integrate_pitch_quantize.py
+      - name: Restore live recording monitoring
+        run: python3 scripts/restore_record_monitoring_after_pitch.py
       - name: Harden rapid pad playback
         run: python3 scripts/integrate_pad_stability.py
       - name: Test trainer core
