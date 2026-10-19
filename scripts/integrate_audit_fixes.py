@@ -38,11 +38,14 @@ load_anchor='pads[bank][pad]=PadSample(pool.load(f.absolutePath,1),pendingName.s
 load_new='unloadPadSound(pads[bank][pad]);pads[bank][pad]=PadSample(pool.load(f.absolutePath,1),pendingName.substringBeforeLast(\'.\'),f.absolutePath);padVolumes[bank][pad]=1f;saveVolumes();savePads();refreshPads();report("loaded")'
 if load_anchor in s:s=s.replace(load_anchor,load_new,1)
 elif 'unloadPadSound(pads[bank][pad]);pads[bank][pad]=PadSample' not in s: raise SystemExit('pad replacement anchor missing')
-# Generated editor has changed several times. Match the stable assignment prefix rather than the label formatting.
-chop_prefix='pads[bank][pi]=PadSample(pool.load(f.absolutePath,1),'
-if 'unloadPadSound(pads[bank][pi]);pads[bank][pi]=PadSample' not in s:
+# CHOP uses pp=pad+i as its destination. Replacing an occupied destination must unload its old sound and reset slice level.
+chop_prefix='pads[bank][pp]=PadSample(pool.load(f.absolutePath,1),'
+if 'unloadPadSound(pads[bank][pp]);pads[bank][pp]=PadSample' not in s:
     if chop_prefix not in s: raise SystemExit('chop replacement anchor missing')
-    s=s.replace(chop_prefix,'unloadPadSound(pads[bank][pi]);'+chop_prefix,1)
+    s=s.replace(chop_prefix,'unloadPadSound(pads[bank][pp]);'+chop_prefix,1)
+# A newly created slice should start at unity instead of inheriting the overwritten pad's old volume.
+chop_done=';assigned++}};savePads();refreshPads();report("sample_edit_chop")'
+if chop_done in s:s=s.replace(chop_done,';padVolumes[bank][pp]=1f;assigned++}};saveVolumes();savePads();refreshPads();report("sample_edit_chop")',1)
 hit_sig='private fun hit(i:Int,user:Boolean){'
 if hit_sig in s and 'if(user)displayOverride=null;' not in s:s=s.replace(hit_sig,'private fun hit(i:Int,user:Boolean){if(user)displayOverride=null;',1)
 play_sig='private fun play(){if(playing)return;'
@@ -54,4 +57,4 @@ for old,new in [('btn("TC"){tc=','btn("TC"){displayOverride=null;tc='),('btn("SW
 destroy='override fun onDestroy(){'
 if destroy in s and 'readySounds.clear();pendingAuditions.clear();' not in s:s=s.replace(destroy,'override fun onDestroy(){readySounds.clear();pendingAuditions.clear();',1)
 p.write_text(s)
-print('Audit fixes applied; stale replaced sounds unload, manual first taps queue safely, sequencer stays on-grid')
+print('Audit fixes applied; stale replaced sounds unload, chopped pads reset to unity, sequencer stays on-grid')
