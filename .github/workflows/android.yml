@@ -53,6 +53,8 @@ jobs:
         run: python3 scripts/bridge_pitch_anchor.py
       - name: Bridge monitored recording for pitch
         run: python3 scripts/bridge_record_anchor.py
+      - name: Bridge Step Sequencer for pitch
+        run: python3 scripts/bridge_step_anchor.py
       - name: Add pitch and post-record quantize
         run: python3 scripts/integrate_pitch_quantize.py
       - name: Restore live recording monitoring
