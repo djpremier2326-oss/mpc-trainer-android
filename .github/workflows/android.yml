@@ -37,6 +37,8 @@ jobs:
         run: python3 scripts/integrate_challenge_reset.py
       - name: Integrate pad and master volume
         run: python3 scripts/integrate_volume_controls.py
+      - name: Fix live recording monitoring
+        run: python3 scripts/integrate_record_monitoring.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
