@@ -10,7 +10,7 @@ class LearnEngineTest {
 
     @Test fun performanceLessonsNeedPadUse(){val repeat=LearnEngine(7);repeat.begin(s(pads=1));assertFalse(repeat.report("note_repeat",s(pads=1,repeat=true)).advanced);assertTrue(repeat.report("note_repeat_pad",s(pads=1,repeat=true)).advanced);val full=LearnEngine(8);full.begin(s(pads=1));assertFalse(full.report("full_level",s(pads=1,full=true)).advanced);assertTrue(full.report("full_level_pad",s(pads=1,full=true)).advanced);val levels=LearnEngine(9);levels.begin(s(pads=1));assertTrue(levels.report("16_levels_pad",s(pads=1,levels=true)).advanced)}
 
-    @Test fun sampleEditRequiresNewPadAssignments(){val e=LearnEngine(13);e.begin(s(pads=1));assertFalse(e.report("chopped",s(pads=1)).advanced);assertTrue(e.report("chopped",s(pads=5)).advanced)}
+    @Test fun sampleEditAcceptsSuccessfulReplacement(){val e=LearnEngine(13);e.begin(s(pads=1));assertFalse(e.report("chopped",s()).advanced);assertTrue(e.report("chopped",s(pads=1)).advanced)}
 
     @Test fun mixerLessonRequiresAppliedChange(){val e=LearnEngine(14);e.begin(s(pads=2));assertFalse(e.report("menu",s(pads=2)).advanced);assertTrue(e.report("mixer_changed",s(pads=2)).advanced);assertEquals(LearnEngine.LAST_LESSON,e.lesson)}
 
