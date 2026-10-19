@@ -2,6 +2,10 @@ from pathlib import Path
 p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerApp.kt')
 s=p.read_text()
 s=s.replace('content.tag!="phone_ui_v18"','content.tag!="phone_ui_v26"').replace('content.tag="phone_ui_v18"','content.tag="phone_ui_v26"')
+old='findText(root){it.text?.toString()?.startsWith("MPC TRAINER")==true}?.apply{text="MPC LIVE III     TRAINER";textSize=11.5f;typeface=Typeface.DEFAULT_BOLD;gravity=Gravity.CENTER_VERTICAL;setTextColor(Color.rgb(42,40,37));layoutParams=layoutParams.apply{height=a.dp(26)}}'
+new='findText(root){it.text?.toString()?.startsWith("MPC TRAINER")==true}?.apply{text="MPC TRAINER";textSize=13f;typeface=Typeface.create("sans-serif-black",Typeface.BOLD);letterSpacing=-0.035f;gravity=Gravity.CENTER_VERTICAL;setTextColor(Color.rgb(190,35,32));layoutParams=layoutParams.apply{height=a.dp(26)}}'
+if old not in s: raise SystemExit('branding anchor missing')
+s=s.replace(old,new,1)
 old='findText(root){it.text?.toString()?.startsWith("SEQ")==true}?.apply{textSize=10.5f;typeface=Typeface.MONOSPACE;gravity=Gravity.TOP or Gravity.START;minHeight=0;setPadding(a.dp(12),a.dp(9),a.dp(12),a.dp(8));layoutParams=layoutParams.apply{height=a.dp(190)};background=rounded(Color.rgb(17,28,25),Color.rgb(6,10,9),a.dp(2),a.dp(4));setTextColor(Color.rgb(190,235,179))}'
 new='val displayText=findText(root){it.text?.toString()?.startsWith("SEQ")==true};val displayH=a.dp(190);displayText?.apply{textSize=10.5f;typeface=Typeface.MONOSPACE;gravity=Gravity.TOP or Gravity.START;minHeight=0;setPadding(a.dp(12),a.dp(9),a.dp(12),a.dp(8));layoutParams=layoutParams.apply{height=-1};background=rounded(Color.rgb(17,28,25),Color.rgb(6,10,9),a.dp(2),a.dp(4));setTextColor(Color.rgb(190,235,179))};(displayText?.parent as? FrameLayout)?.layoutParams=(displayText?.parent as? FrameLayout)?.layoutParams?.apply{height=displayH}'
 if old not in s: raise SystemExit('display sizing anchor missing')
@@ -47,4 +51,4 @@ marker='\n override fun onCreate('
 if marker not in t: raise SystemExit('onCreate anchor missing')
 t=t.replace(marker,insert+marker,1)
 q.write_text(t)
-print('Dedicated stacked VOL -/+ buttons replace swipe; stable PAD VOL display; row spacing restored')
+print('MPC TRAINER red hardware-style branding; dedicated VOL controls and phone UI audit applied')
