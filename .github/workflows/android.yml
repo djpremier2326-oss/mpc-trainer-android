@@ -57,6 +57,8 @@ jobs:
         run: python3 scripts/bridge_step_anchor.py
       - name: Add pitch and post-record quantize
         run: python3 scripts/integrate_pitch_quantize.py
+      - name: Repair generated Kotlin strings
+        run: python3 scripts/repair_pitch_generated_strings.py
       - name: Restore live recording monitoring
         run: python3 scripts/restore_record_monitoring_after_pitch.py
       - name: Harden rapid pad playback
