@@ -45,6 +45,8 @@ jobs:
         run: python3 scripts/integrate_workspace_display.py
       - name: Put Sample Edit waveform on main display
         run: python3 scripts/integrate_main_waveform.py
+      - name: Apply audit fixes
+        run: python3 scripts/integrate_audit_fixes.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
