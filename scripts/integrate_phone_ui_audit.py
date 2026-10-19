@@ -12,7 +12,6 @@ if old not in s: raise SystemExit('grid sizing anchor missing')
 s=s.replace(old,new,1)
 s=s.replace('root.setPadding(a.dp(8),a.dp(3),a.dp(8),a.dp(4))','root.setPadding(a.dp(8),0,a.dp(8),0)',1)
 s=s.replace('layoutParams=layoutParams.apply{height=a.dp(26)}','layoutParams=layoutParams.apply{height=a.dp(22)}',1)
-# Keep the controls compact enough for the phone, but restore visible vertical breathing room between rows.
 s=s.replace('row.layoutParams=row.layoutParams.apply{height=if(transport)a.dp(44) else if(bankRow)a.dp(38) else if(topModes)a.dp(38) else a.dp(36)}','row.layoutParams=row.layoutParams.apply{height=if(transport)a.dp(36) else if(bankRow)a.dp(32) else if(topModes)a.dp(32) else a.dp(30)}',1)
 s=s.replace('lp.topMargin=a.dp(5);lp.bottomMargin=a.dp(5)','lp.topMargin=a.dp(2);lp.bottomMargin=a.dp(2)',1)
 start=s.index(' private fun addUtilityBar(');end=s.index('\n private fun syncKnob',start)
@@ -41,16 +40,11 @@ p.write_text(s)
 
 q=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt')
 t=q.read_text()
-# No global swipe interception: dedicated buttons must be the only quick pad-volume gesture.
 insert='''
- fun showPadVolumeOnDisplay(value:Int){
-  val root=findViewById<ViewGroup>(android.R.id.content)
-  fun walk(v:View):TextView?{if(v is TextView&&v.text?.toString()?.let{it.startsWith("MAIN")||it.startsWith("BROWSE")||it.startsWith("SAMPLE EDIT")||it.startsWith("STEP SEQ")||it.startsWith("MIXER")||it.startsWith("PAD VOL")}==true)return v;if(v is ViewGroup)for(i in 0 until v.childCount){walk(v.getChildAt(i))?.let{return it}};return null}
-  walk(root)?.text="PAD VOL  ${value.coerceIn(0,100)}%"
- }
+ fun showPadVolumeOnDisplay(value:Int){showDisplayMessage("PAD VOL  ${value.coerceIn(0,100)}%")}
 '''
 marker='\n override fun onCreate('
 if marker not in t: raise SystemExit('onCreate anchor missing')
 t=t.replace(marker,insert+marker,1)
 q.write_text(t)
-print('Dedicated stacked VOL -/+ buttons replace swipe; MENU/TEMPO stacked left; row spacing restored')
+print('Dedicated stacked VOL -/+ buttons replace swipe; stable PAD VOL display; row spacing restored')
