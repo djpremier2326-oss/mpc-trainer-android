@@ -46,7 +46,6 @@ chop_done=';assigned++}};savePads();refreshPads();report("sample_edit_chop")'
 if chop_done in s:s=s.replace(chop_done,';padVolumes[bank][pp]=1f;assigned++}};saveVolumes();savePads();refreshPads();report("sample_edit_chop")',1)
 hit_sig='private fun hit(i:Int,user:Boolean){'
 if hit_sig in s and 'if(user)displayOverride=null;' not in s:s=s.replace(hit_sig,'private fun hit(i:Int,user:Boolean){if(user)displayOverride=null;',1)
-# A manual pad hit should identify the actual source sample on the MPC display. In 16 LEVELS the source pad is used.
 hit_refresh=';refreshStatus()}\n private fun loopTicks()'
 if 'PAD ${p+1} • ${pads[b][p]?.name?:"EMPTY"}' not in s:
     if hit_refresh not in s: raise SystemExit('pad display anchor missing')
@@ -57,21 +56,18 @@ stop_sig='private fun stopTransport(){countInToken++;'
 if stop_sig in s:s=s.replace(stop_sig,'private fun stopTransport(){displayOverride=null;countInToken++;',1)
 for old,new in [('btn("TC"){tc=','btn("TC"){displayOverride=null;tc='),('btn("SWING"){swing=','btn("SWING"){displayOverride=null;swing='),('btn("TRACK −"){track=','btn("TRACK −"){displayOverride=null;track='),('btn("TRACK +"){track=','btn("TRACK +"){displayOverride=null;track='),('btn("METRO"){metronome=','btn("METRO"){displayOverride=null;metronome='),('btn("COUNT IN"){countIn=','btn("COUNT IN"){displayOverride=null;countIn='),('btn("TRACK MUTE"){mute[track]=','btn("TRACK MUTE"){displayOverride=null;mute[track]='),('btn("NOTE REPEAT"){noteRepeat=','btn("NOTE REPEAT"){displayOverride=null;noteRepeat='),('btn("FULL LEVEL"){fullLevel=','btn("FULL LEVEL"){displayOverride=null;fullLevel='),('btn("16 LEVELS"){if(!levels16)','btn("16 LEVELS"){displayOverride=null;if(!levels16)')]:
     if old in s:s=s.replace(old,new,1)
-# Save/restore the active bank as project context, and sanitize restored control values.
 save_head='JSONObject().put("bpm",bpm).put("tc",tc).put("swing",swing).put("track",track)'
 save_head_new='JSONObject().put("bpm",bpm).put("tc",tc).put("swing",swing).put("track",track).put("bank",bank)'
 if save_head in s:s=s.replace(save_head,save_head_new,1)
 elif '.put("bank",bank)' not in s: raise SystemExit('save project bank anchor missing')
 restore_controls='bpm=o.optInt("bpm",90).coerceIn(40,240);tc=o.optInt("tc",16);swing=o.optInt("swing",50);track=o.optInt("track",0).coerceIn(0,3);metronome=o.optBoolean("metro",false);countIn=o.optBoolean("count",true)'
-restore_controls_new='bpm=o.optInt("bpm",90).coerceIn(40,240);tc=o.optInt("tc",16).let{if(it in listOf(8,16,32))it else 16};swing=o.optInt("swing",50).coerceIn(50,75);track=o.optInt("track",0).coerceIn(0,3);bank=o.optInt("bank",0).coerceIn(0,3);metronome=o.optBoolean("metro",false);countIn=o.optBoolean("count",true)'
+restore_controls_new='bpm=o.optInt("bpm",90).coerceIn(40,240);tc=o.optInt("tc",16).let{if(it in listOf(4,8,16,32,64))it else 16};swing=o.optInt("swing",50).coerceIn(50,75);track=o.optInt("track",0).coerceIn(0,3);bank=o.optInt("bank",0).coerceIn(0,3);metronome=o.optBoolean("metro",false);countIn=o.optBoolean("count",true)'
 if restore_controls in s:s=s.replace(restore_controls,restore_controls_new,1)
 elif 'bank=o.optInt("bank",0).coerceIn(0,3)' not in s: raise SystemExit('restore project controls anchor missing')
-# Restore only valid project data. Corrupt/out-of-range events must not crash playback after relaunch.
 restore='events+=Event(e.optInt("b"),e.optInt("p"),e.optLong("t"),e.optInt("tr"),e.optInt("v",100))'
 restore_new='val eb=e.optInt("b",-1);val ep=e.optInt("p",-1);val et=e.optLong("t",-1L);val er=e.optInt("tr",-1);val ev=e.optInt("v",100).coerceIn(1,127);if(eb in 0..3&&ep in 0..15&&er in 0..3&&et>=0L)events+=Event(eb,ep,et%loopTicks(),er,ev)'
 if restore in s:s=s.replace(restore,restore_new,1)
 elif 'if(eb in 0..3&&ep in 0..15&&er in 0..3' not in s: raise SystemExit('restore event validation anchor missing')
-# A missing sample file should not leave a ghost pad assignment after app relaunch.
 restore_pad='if(f.exists())pads[o.getInt("b")][o.getInt("p")]=PadSample(pool.load(f.absolutePath,1),o.getString("n"),f.absolutePath)'
 restore_pad_new='val rb=o.optInt("b",-1);val rp=o.optInt("p",-1);if(f.exists()&&rb in 0..3&&rp in 0..15)pads[rb][rp]=PadSample(pool.load(f.absolutePath,1),o.optString("n",f.nameWithoutExtension),f.absolutePath)'
 if restore_pad in s:s=s.replace(restore_pad,restore_pad_new,1)
