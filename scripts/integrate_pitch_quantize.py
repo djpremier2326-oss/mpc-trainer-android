@@ -5,13 +5,14 @@ old='private var playing=false;private var recording=false;private var overdub=f
 new='private var playing=false;private var recording=false;private var overdub=false;private var noteRepeat=false;private var fullLevel=false;private var levels16=false;private var levels16Type="VELOCITY";private var levels16OriginalPad=7'
 if old not in s: raise SystemExit('16 levels state anchor missing')
 s=s.replace(old,new,1)
-# Phone UI audit rewrites the visible button label to a two-line form before this script runs.
 button_candidates=[
+ 'btn("16 LEVELS"){displayOverride=null;if(!levels16){sourceBank=bank;sourcePad=pad};levels16=!levels16;report("16_levels");refreshPads();refreshStatus()}',
  'btn("16 LEVELS"){if(!levels16){sourceBank=bank;sourcePad=pad};levels16=!levels16;report("16_levels");refreshPads();refreshStatus()}',
+ 'btn("16\nLEVELS"){displayOverride=null;if(!levels16){sourceBank=bank;sourcePad=pad};levels16=!levels16;report("16_levels");refreshPads();refreshStatus()}',
  'btn("16\nLEVELS"){if(!levels16){sourceBank=bank;sourcePad=pad};levels16=!levels16;report("16_levels");refreshPads();refreshStatus()}'
 ]
 found=next((x for x in button_candidates if x in s),None)
-if found is None: raise SystemExit('16 levels button anchor missing after phone UI transform')
+if found is None: raise SystemExit('16 levels button anchor missing after audit transforms')
 s=s.replace(found,found.split('{',1)[0]+'{show16Levels()}',1)
 old='private fun velocity(i:Int)=if(levels16)(((i+1)*127f/16f).roundToLong().toInt()).coerceIn(1,127) else if(fullLevel)127 else 100'
 new='private fun velocity(i:Int)=if(levels16&&levels16Type=="VELOCITY")(((i+1)*127f/16f).roundToLong().toInt()).coerceIn(1,127) else if(fullLevel)127 else 100\n private fun levels16TuneSemitones(i:Int)=(i-levels16OriginalPad).coerceIn(-12,12)\n private fun levels16Rate(i:Int)=java.lang.Math.pow(2.0,levels16TuneSemitones(i)/12.0).toFloat().coerceIn(.5f,2f)'
@@ -25,15 +26,18 @@ old='if(user&&loaded&&recording&&playing){events+=Event(b,p,if(tcEnabled)quant(t
 new='if(user&&loaded&&recording&&playing){if(levels16&&levels16Type=="TUNE"){showDisplayMessage("16 LEVELS • TUNE • запись pitch-событий пока недоступна")}else{events+=Event(b,p,if(tcEnabled)quant(tick()) else tick(),track,v);saveProject()}}'
 if old not in s: raise SystemExit('record anchor missing')
 s=s.replace(old,new,1)
-old='private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,(60000.0/bpm*(4.0/tc)).toLong().coerceAtLeast(25))}}};private fun startRepeat(){h.removeCallbacks(repeater);h.post(repeater)};private fun stopRepeat(){h.removeCallbacks(repeater)}'
-new='private fun noteRepeatIntervalMs()=(60000.0/bpm*(4.0/tc.coerceAtLeast(1))).toLong().coerceAtLeast(25)\n private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,noteRepeatIntervalMs())}}};private fun startRepeat(){h.removeCallbacks(repeater);h.post(repeater)};private fun stopRepeat(){h.removeCallbacks(repeater)}'
-if old not in s: raise SystemExit('note repeat anchor missing')
-s=s.replace(old,new,1)
+old_candidates=[
+ 'private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,(60000.0/bpm*(4.0/tc)).toLong().coerceAtLeast(25))}}};private fun startRepeat(){h.removeCallbacks(repeater);h.postDelayed(repeater,(60000.0/bpm*(4.0/tc)).toLong().coerceAtLeast(25))};private fun stopRepeat(){h.removeCallbacks(repeater)}',
+ 'private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,(60000.0/bpm*(4.0/tc)).toLong().coerceAtLeast(25))}}};private fun startRepeat(){h.removeCallbacks(repeater);h.post(repeater)};private fun stopRepeat(){h.removeCallbacks(repeater)}'
+]
+rep_found=next((x for x in old_candidates if x in s),None)
+if rep_found is None: raise SystemExit('note repeat anchor missing after audit transforms')
+new='private fun noteRepeatIntervalMs()=(60000.0/bpm*(4.0/tc.coerceAtLeast(1))).toLong().coerceAtLeast(25)\n private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,noteRepeatIntervalMs())}}};private fun startRepeat(){h.removeCallbacks(repeater);h.postDelayed(repeater,noteRepeatIntervalMs())};private fun stopRepeat(){h.removeCallbacks(repeater)}'
+s=s.replace(rep_found,new,1)
 old='private fun redrawSteps(page:Int,label:TextView,bs:List<Button>){label.text="BAR ${page+1} • TRACK ${track+1} • PAD ${pad+1}";bs.forEachIndexed{i,b->val t=page*384L+i*24L;val on=events.any{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};b.text="${i+1}\\n${if(on)"●" else "○"}";b.setOnClickListener{val ix=events.indexOfFirst{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};if(ix>=0)events.removeAt(ix)else{events+=Event(bank,pad,t,track,127);report("step_added")};saveProject();redrawSteps(page,label,bs)}}}'
 new='private fun redrawSteps(page:Int,label:TextView,bs:List<Button>){label.text="BAR ${page+1} • TRACK ${track+1} • BANK ${\'A\'+bank} • PAD ${pad+1} • 1/16";bs.forEachIndexed{i,b->val t=page*384L+i*24L;val ix=events.indexOfFirst{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};val on=ix>=0;val vel=if(on)events[ix].velocity else 100;b.text="${i+1}\\n${if(on)"● $vel" else "○"}";b.setOnClickListener{val hit=events.indexOfFirst{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};if(hit>=0)events.removeAt(hit)else{events+=Event(bank,pad,t,track,100);report("step_added")};saveProject();redrawSteps(page,label,bs)}}}'
 if old not in s: raise SystemExit('step redraw anchor missing')
 s=s.replace(old,new,1)
-# Pitch state follows the volume integration which runs earlier.
 old='private var masterVolume=1f;private val padVolumes=Array(4){FloatArray(16){1f}}'
 new='private var masterVolume=1f;private val padVolumes=Array(4){FloatArray(16){1f}};private val padPitch=Array(4){IntArray(16){0}}'
 if old not in s: raise SystemExit('pitch state anchor missing')
@@ -64,9 +68,13 @@ s=s.replace(save_anchor,'.put("bank",bank).put("tcOn",tcEnabled).put("metro",met
 restore_anchor='bank=o.optInt("bank",0).coerceIn(0,3);metronome='
 if restore_anchor not in s: raise SystemExit('TC restore persistence anchor missing')
 s=s.replace(restore_anchor,'bank=o.optInt("bank",0).coerceIn(0,3);tcEnabled=o.optBoolean("tcOn",true);metronome=',1)
-tc_candidates=['btn("TC"){tc=when(tc){8->16;16->32;else->8};saveProject();report("tc");refreshStatus()}','btn("TC"){showTimingCorrect()}']
+tc_candidates=[
+ 'btn("TC"){displayOverride=null;tc=when(tc){8->16;16->32;else->8};saveProject();report("tc");refreshStatus()}',
+ 'btn("TC"){tc=when(tc){8->16;16->32;else->8};saveProject();report("tc");refreshStatus()}',
+ 'btn("TC"){showTimingCorrect()}'
+]
 tc_found=next((x for x in tc_candidates if x in s),None)
-if tc_found is None: raise SystemExit('TC button anchor missing')
+if tc_found is None: raise SystemExit('TC button anchor missing after audit transforms')
 if 'showTimingCorrect()' not in tc_found:s=s.replace(tc_found,'btn("TC"){showTimingCorrect()}',1)
 anchor='fun showPadVolumeOnDisplay(value:Int){showDisplayMessage("PAD VOL  ${value.coerceIn(0,100)}%")}'
 block='''fun showPadVolumeOnDisplay(value:Int){showDisplayMessage("PAD VOL  ${value.coerceIn(0,100)}%")}
@@ -110,4 +118,4 @@ t=t.replace(old,new,1)
 t=t.replace('val items=arrayOf("MIXER / MASTER VOLUME","CONTROL GUIDE","RESTART COURSE","NEW PROJECT")','val items=arrayOf("PITCH RESET","TC ON / OFF","TC • DO IT (CURRENT TRACK)","MIXER / MASTER VOLUME","CONTROL GUIDE","RESTART COURSE","NEW PROJECT")',1)
 t=t.replace('when(w){0->{a.setWorkspaceMode("MIXER");a.showVolumeMixer()};1->guide?.performClick();2->restart?.performClick();3->confirmNewProject(a)}','when(w){0->a.resetSelectedPadPitch();1->a.setTimingCorrectEnabled(!a.timingCorrectEnabled());2->a.quantizeCurrentTrack();3->{a.setWorkspaceMode("MIXER");a.showVolumeMixer()};4->guide?.performClick();5->restart?.performClick();6->confirmNewProject(a)}',1)
 a.write_text(t)
-print('Pitch, TC, Note Repeat, Step Sequencer and 16 Levels integrated after phone UI transform')
+print('Pitch, TC, Note Repeat, Step Sequencer and 16 Levels integrated after audit transforms')
