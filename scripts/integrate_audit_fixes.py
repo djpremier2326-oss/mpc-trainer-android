@@ -17,9 +17,9 @@ s=s.replace('width=150;height=105','width=(resources.displayMetrics.widthPixels-
 repls={'"Project saved"':'"Проект сохранён"','"Lesson complete"':'"Урок завершён"','"Load a WAV or MP3 to a pad first"':'"Сначала загрузите WAV или MP3 на пэд"','"Only $room pad slots remain in this bank"':'"В этом банке осталось только $room свободных пэдов"','"$count chops assigned to pads"':'"$count фрагментов назначено на пэды"','"Set Start/End, then chop the selected range evenly across pads."':'"Установите Start/End, затем равномерно разрежьте выбранный диапазон по пэдам."','"NUMBER OF CHOPS"':'"КОЛИЧЕСТВО CHOPS"'}
 for a,b in repls.items():s=s.replace(a,b)
 
-# SoundPool.load() is asynchronous. A pad could previously be tapped before Android had
-# finished decoding the sample, making the first hit randomly silent. Track readiness and
-# keep one pending manual audition per sound so the user's tap is not lost.
+# SoundPool.load() is asynchronous. Keep sample readiness explicit so a first manual tap
+# is not silently lost. Sequencer events that arrive while a sound is still loading are
+# queued once and played as soon as Android reports that sample ready.
 field=' private lateinit var pool:SoundPool\n'
 if 'private val readySounds=' not in s:
     if field not in s: raise SystemExit('SoundPool field anchor missing')
@@ -34,15 +34,15 @@ if 'private fun playLoadedSound(' not in s:
     if helper_anchor not in s: raise SystemExit('hit anchor missing')
     s=s.replace(helper_anchor,helper+helper_anchor,1)
 manual='pool.play(it.soundId,g,g,1,0,1f)'
-# First occurrence is manual pad playback after volume integration; second is sequencer.
+# First occurrence is manual pad playback; second is sequencer playback. Both must survive
+# an asynchronous load window. The map intentionally keeps only one pending hit per sample.
 if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,true)',1)
 else: raise SystemExit('manual SoundPool play anchor missing')
-if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,false)',1)
+if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,true)',1)
 else: raise SystemExit('sequencer SoundPool play anchor missing')
-# Do not keep stale IDs after Activity teardown.
 destroy='override fun onDestroy(){'
 if destroy in s and 'readySounds.clear();pendingAuditions.clear();' not in s:
     s=s.replace(destroy,'override fun onDestroy(){readySounds.clear();pendingAuditions.clear();',1)
 
 p.write_text(s)
-print('Audit fixes applied; SoundPool readiness protects first manual pad hit')
+print('Audit fixes applied; SoundPool readiness protects manual and sequencer hits')
