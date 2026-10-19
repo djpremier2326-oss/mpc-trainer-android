@@ -5,45 +5,71 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 
-/** Streaming preview for Browser selections. Unlike SoundPool this is suitable for long MP3/WAV music samples. */
+/** Streaming Browser audition for long WAV/MP3 sources. Pad one-shots remain on SoundPool. */
 class BrowserPreview(private val context: Context) {
     private var player: MediaPlayer? = null
+    private var generation = 0
 
-    fun play(uri: Uri, onError: (String) -> Unit = {}) {
-        stop()
+    @Synchronized
+    fun play(uri: Uri, onReady: () -> Unit = {}, onError: (String) -> Unit = {}) {
+        val token = ++generation
+        releaseCurrent()
         try {
-            player = MediaPlayer().apply {
-                setAudioAttributes(
-                    AudioAttributes.Builder()
-                        .setUsage(AudioAttributes.USAGE_MEDIA)
-                        .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .build()
-                )
-                setDataSource(context, uri)
-                setOnPreparedListener { it.start() }
-                setOnCompletionListener { stop() }
-                setOnErrorListener { _, what, extra ->
+            val next = MediaPlayer()
+            player = next
+            next.setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            )
+            next.setDataSource(context, uri)
+            next.setOnPreparedListener {
+                if (token != generation || player !== it) return@setOnPreparedListener
+                onReady()
+                it.start()
+            }
+            next.setOnCompletionListener {
+                if (player === it) stop()
+            }
+            next.setOnErrorListener { mp, what, extra ->
+                if (player === mp) {
                     onError("Preview error $what/$extra")
                     stop()
-                    true
                 }
-                prepareAsync()
+                true
             }
+            next.prepareAsync()
         } catch (e: Exception) {
-            stop()
-            onError(e.message ?: "Preview unavailable")
+            if (token == generation) {
+                releaseCurrent()
+                onError(e.message ?: "Preview unavailable")
+            }
         }
     }
 
+    @Synchronized
     fun stop() {
+        generation++
+        releaseCurrent()
+    }
+
+    @Synchronized
+    fun release() = stop()
+
+    @Synchronized
+    fun isActive(): Boolean = player != null
+
+    private fun releaseCurrent() {
         val old = player
         player = null
         if (old != null) {
+            try { old.setOnPreparedListener(null) } catch (_: Exception) {}
+            try { old.setOnCompletionListener(null) } catch (_: Exception) {}
+            try { old.setOnErrorListener(null) } catch (_: Exception) {}
             try { old.stop() } catch (_: Exception) {}
             try { old.reset() } catch (_: Exception) {}
-            old.release()
+            try { old.release() } catch (_: Exception) {}
         }
     }
-
-    fun release() = stop()
 }
