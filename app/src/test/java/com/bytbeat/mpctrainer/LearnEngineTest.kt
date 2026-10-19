@@ -11,8 +11,7 @@ class LearnEngineTest {
     ) = LearnEngine.Snapshot(pads,events,track,muted,tc,swing,repeat,full,levels)
 
     @Test fun lessonsRequireRealStateChanges() {
-        val e=LearnEngine(1)
-        e.begin(s())
+        val e=LearnEngine(1); e.begin(s())
         assertFalse(e.report("loaded",s()).advanced)
         assertTrue(e.report("loaded",s(pads=1)).advanced)
         assertEquals(2,e.lesson)
@@ -39,21 +38,33 @@ class LearnEngineTest {
         assertTrue(e.report("chopped",s(pads=5)).advanced)
     }
 
-    @Test fun challengeRequiresCoreWorkflowNotTokenBeat() {
+    @Test fun challengeRequiresCoreWorkflowFromCleanProject() {
         val e=LearnEngine(LearnEngine.LAST_LESSON); e.begin(s())
         var r=e.report("stop",s(pads=2,events=2))
+        assertTrue(r.message.contains("✓ clean project"))
         assertTrue(r.message.contains("✓ REC"))
         assertTrue(r.message.contains("○ OVERDUB"))
         r=e.report("step_added",s(pads=2,events=3))
-        r=e.report("save",s(pads=2,events=3))
-        assertFalse(r.message.contains("FOUNDATION COMPLETE"))
-        assertTrue(r.message.contains("○ TC"))
-        assertTrue(r.message.contains("○ another track"))
         r=e.report("overdub_stop",s(pads=2,events=4))
         r=e.report("tc",s(pads=2,events=4,tc=32))
         r=e.report("track",s(pads=2,events=4,track=1,tc=32))
         r=e.report("save",s(pads=2,events=4,track=1,tc=32))
         assertTrue(r.message.contains("FOUNDATION COMPLETE"))
+    }
+
+    @Test fun dirtyChallengeCannotReuseLessonWork() {
+        val e=LearnEngine(LearnEngine.LAST_LESSON); e.begin(s(pads=5,events=20,tc=16,track=0))
+        var r=e.report("stop",s(pads=5,events=21))
+        r=e.report("overdub_stop",s(pads=5,events=22))
+        r=e.report("tc",s(pads=5,events=22,tc=32))
+        r=e.report("track",s(pads=5,events=22,track=1,tc=32))
+        r=e.report("step_added",s(pads=5,events=23,track=1,tc=32))
+        r=e.report("save",s(pads=5,events=23,track=1,tc=32))
+        assertFalse(r.message.contains("FOUNDATION COMPLETE"))
+        assertTrue(r.message.contains("○ clean project"))
+        r=e.report("new_project",s())
+        assertTrue(r.message.contains("✓ clean project"))
+        assertTrue(r.message.contains("○ REC"))
     }
 
     @Test fun challengeTcAndTrackMustActuallyChange() {
