@@ -38,16 +38,19 @@ load_anchor='pads[bank][pad]=PadSample(pool.load(f.absolutePath,1),pendingName.s
 load_new='unloadPadSound(pads[bank][pad]);pads[bank][pad]=PadSample(pool.load(f.absolutePath,1),pendingName.substringBeforeLast(\'.\'),f.absolutePath);padVolumes[bank][pad]=1f;saveVolumes();savePads();refreshPads();report("loaded")'
 if load_anchor in s:s=s.replace(load_anchor,load_new,1)
 elif 'unloadPadSound(pads[bank][pad]);pads[bank][pad]=PadSample' not in s: raise SystemExit('pad replacement anchor missing')
-# CHOP uses pp=pad+i as its destination. Replacing an occupied destination must unload its old sound and reset slice level.
 chop_prefix='pads[bank][pp]=PadSample(pool.load(f.absolutePath,1),'
 if 'unloadPadSound(pads[bank][pp]);pads[bank][pp]=PadSample' not in s:
     if chop_prefix not in s: raise SystemExit('chop replacement anchor missing')
     s=s.replace(chop_prefix,'unloadPadSound(pads[bank][pp]);'+chop_prefix,1)
-# A newly created slice should start at unity instead of inheriting the overwritten pad's old volume.
 chop_done=';assigned++}};savePads();refreshPads();report("sample_edit_chop")'
 if chop_done in s:s=s.replace(chop_done,';padVolumes[bank][pp]=1f;assigned++}};saveVolumes();savePads();refreshPads();report("sample_edit_chop")',1)
 hit_sig='private fun hit(i:Int,user:Boolean){'
 if hit_sig in s and 'if(user)displayOverride=null;' not in s:s=s.replace(hit_sig,'private fun hit(i:Int,user:Boolean){if(user)displayOverride=null;',1)
+# A manual pad hit should identify the actual source sample on the MPC display. In 16 LEVELS the source pad is used.
+hit_refresh=';refreshStatus()}\n private fun loopTicks()'
+if 'PAD ${p+1} • ${pads[b][p]?.name?:"EMPTY"}' not in s:
+    if hit_refresh not in s: raise SystemExit('pad display anchor missing')
+    s=s.replace(hit_refresh,';if(user)showDisplayMessage("BANK ${\'A\'+b} • PAD ${p+1} • ${pads[b][p]?.name?:\"EMPTY\"}");else refreshStatus()}\n private fun loopTicks()',1)
 play_sig='private fun play(){if(playing)return;'
 if play_sig in s:s=s.replace(play_sig,'private fun play(){if(playing)return;displayOverride=null;',1)
 stop_sig='private fun stopTransport(){countInToken++;'
@@ -57,4 +60,4 @@ for old,new in [('btn("TC"){tc=','btn("TC"){displayOverride=null;tc='),('btn("SW
 destroy='override fun onDestroy(){'
 if destroy in s and 'readySounds.clear();pendingAuditions.clear();' not in s:s=s.replace(destroy,'override fun onDestroy(){readySounds.clear();pendingAuditions.clear();',1)
 p.write_text(s)
-print('Audit fixes applied; stale replaced sounds unload, chopped pads reset to unity, sequencer stays on-grid')
+print('Audit fixes applied; pad hits identify samples, stale sounds unload, chopped pads reset to unity')
