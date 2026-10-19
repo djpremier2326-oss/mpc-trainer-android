@@ -2,7 +2,10 @@ package com.bytbeat.mpctrainer
 
 import android.app.Activity
 import android.app.Application
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -12,7 +15,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 
-/** Adapts the trainer surface to real phone screens without touching audio logic. */
+/** Phone-only presentation layer. Audio and trainer semantics stay in TrainerActivity. */
 class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
     override fun onCreate() {
         super.onCreate()
@@ -22,27 +25,17 @@ class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
     override fun onActivityResumed(activity: Activity) {
         if (activity !is TrainerActivity) return
         val content = activity.findViewById<FrameLayout>(android.R.id.content) ?: return
-        if (content.tag == "phone_layout_fixed") return
+        if (content.tag == "phone_layout_fixed_v2") return
         val root = content.getChildAt(0) as? LinearLayout ?: return
 
-        findFirst(root, GridLayout::class.java)?.let { grid ->
-            (grid.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
-                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
-                lp.weight = 0f
-                grid.layoutParams = lp
-            }
-            for (i in 0 until grid.childCount) {
-                grid.getChildAt(i).layoutParams = grid.getChildAt(i).layoutParams.apply {
-                    height = activity.dp(66)
-                }
-            }
-        }
-
+        tunePads(activity, root)
         tuneRows(activity, root)
+        tuneHeader(activity, root)
 
         content.removeView(root)
         val scroll = ScrollView(activity).apply {
             isFillViewport = true
+            isVerticalScrollBarEnabled = false
             overScrollMode = View.OVER_SCROLL_IF_CONTENT_SCROLLS
             addView(root, ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -53,27 +46,72 @@ class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
             ViewGroup.LayoutParams.MATCH_PARENT,
             ViewGroup.LayoutParams.MATCH_PARENT
         ))
-        content.tag = "phone_layout_fixed"
+        content.tag = "phone_layout_fixed_v2"
+    }
+
+    private fun tunePads(activity: Activity, root: ViewGroup) {
+        findFirst(root, GridLayout::class.java)?.let { grid ->
+            (grid.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
+                lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
+                lp.weight = 0f
+                lp.topMargin = activity.dp(4)
+                lp.bottomMargin = activity.dp(5)
+                grid.layoutParams = lp
+            }
+            for (i in 0 until grid.childCount) {
+                (grid.getChildAt(i) as? Button)?.apply {
+                    layoutParams = layoutParams.apply { height = activity.dp(64) }
+                    minHeight = 0
+                    minimumHeight = 0
+                    setPadding(activity.dp(2), activity.dp(2), activity.dp(2), activity.dp(2))
+                    textSize = 10f
+                    setTextColor(Color.rgb(244, 241, 232))
+                    setBackgroundColor(Color.rgb(58, 57, 53))
+                }
+            }
+        }
     }
 
     private fun tuneRows(activity: Activity, root: ViewGroup) {
         for (i in 0 until root.childCount) {
-            val child = root.getChildAt(i)
-            if (child is LinearLayout && child.orientation == LinearLayout.HORIZONTAL) {
-                child.layoutParams = child.layoutParams.apply { height = activity.dp(48) }
-                for (j in 0 until child.childCount) {
-                    (child.getChildAt(j) as? Button)?.apply {
-                        minHeight = 0
-                        minimumHeight = 0
-                        setPadding(activity.dp(3), 0, activity.dp(3), 0)
-                        textSize = 9f
-                    }
+            val row = root.getChildAt(i) as? LinearLayout ?: continue
+            if (row.orientation != LinearLayout.HORIZONTAL) continue
+            row.layoutParams = row.layoutParams.apply { height = activity.dp(44) }
+            for (j in 0 until row.childCount) {
+                (row.getChildAt(j) as? Button)?.apply {
+                    minHeight = 0
+                    minimumHeight = 0
+                    gravity = Gravity.CENTER
+                    isAllCaps = false
+                    setPadding(activity.dp(2), 0, activity.dp(2), 0)
+                    textSize = 9.5f
+                    setTextColor(Color.rgb(39, 38, 34))
+                    setBackgroundColor(buttonColor(text.toString()))
                 }
             }
         }
+    }
+
+    private fun tuneHeader(activity: Activity, root: ViewGroup) {
         findFirst(root, TextView::class.java) {
             it.text?.toString()?.startsWith("MPC TRAINER") == true
-        }?.setPadding(0, activity.dp(4), 0, activity.dp(4))
+        }?.apply {
+            text = "MPC TRAINER  •  LIVE III BASICS"
+            textSize = 15f
+            setTypeface(typeface, Typeface.BOLD)
+            setPadding(activity.dp(2), activity.dp(5), 0, activity.dp(5))
+        }
+    }
+
+    private fun buttonColor(label: String): Int = when {
+        label == "REC" -> Color.rgb(196, 79, 58)
+        label == "OVERDUB" -> Color.rgb(218, 137, 62)
+        label == "PLAY" -> Color.rgb(171, 184, 151)
+        label == "STOP" -> Color.rgb(190, 188, 177)
+        label.startsWith("BANK") -> Color.rgb(201, 194, 174)
+        label == "LEARN" -> Color.rgb(210, 185, 105)
+        label == "SAMPLE EDIT" || label == "STEP SEQ" -> Color.rgb(194, 190, 177)
+        else -> Color.rgb(211, 211, 204)
     }
 
     private fun <T : View> findFirst(
