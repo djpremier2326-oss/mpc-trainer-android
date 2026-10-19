@@ -4,6 +4,7 @@ package com.bytbeat.mpctrainer
 object ProjectReset {
     fun preferenceKeys(): List<String> = buildList {
         add("project")
+        add("volumes")
         for (bank in 0..3) for (pad in 0..15) {
             add("p_${bank}_$pad")
             add("n_${bank}_$pad")
