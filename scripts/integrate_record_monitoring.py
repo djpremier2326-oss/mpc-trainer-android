@@ -22,7 +22,7 @@ if new not in s:
     s=s.replace(old,new,1)
 
 needle='events.filter{!mute[it.track]&&crossed(lastClockTick,t,it.tick)}.forEach{e->'
-replacement='val cycle=loopCycle();events.filter{!mute[it.track]&&crossed(lastClockTick,t,it.tick)&&(recordedCycle[it]?.let{born->cycle>born}?:true)}.forEach{e->'
+replacement='val cycle=loopCycle();events.filter{ev->!mute[ev.track]&&crossed(lastClockTick,t,ev.tick)&&(recordedCycle[ev]?.let{born->cycle>born}?:true)}.forEach{e->'
 if replacement not in s:
     if needle not in s: raise SystemExit('clock event-filter anchor not found')
     s=s.replace(needle,replacement,1)
