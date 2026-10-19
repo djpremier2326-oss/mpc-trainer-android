@@ -25,6 +25,7 @@ if idx is None: raise SystemExit('refreshStatus function not found')
 if lines[idx].count('{') != lines[idx].count('}'):
     raise SystemExit('refreshStatus is no longer one-line; update integrator deliberately')
 block=''' fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}
+ private fun position():String{val t=tick();val bar=(t/384L)+1;val within=t%384L;val beat=(within/96L)+1;val pulse=within%96L;return "%03d:%02d:%02d".format(bar,beat,pulse)}
  private fun stepPattern(bar:Int):String{
   val start=bar*384L
   return (0 until 16).joinToString(""){step->val t=start+step*24L;if(events.any{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t})"■" else "·"}
