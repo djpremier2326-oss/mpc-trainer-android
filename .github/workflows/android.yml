@@ -39,6 +39,8 @@ jobs:
         run: python3 scripts/integrate_volume_controls.py
       - name: Fix live recording monitoring
         run: python3 scripts/integrate_record_monitoring.py
+      - name: Integrate Sample Edit waveform
+        run: python3 scripts/integrate_waveform_editor.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
