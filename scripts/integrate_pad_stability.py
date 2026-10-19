@@ -10,14 +10,17 @@ if old in s:
 elif new not in s:
     raise SystemExit('final playLoadedSound anchor missing')
 
-# The callback may already have been hardened by an earlier integration step. Accept both
-# the original and current guarded forms so this script remains idempotent across the pipeline.
-old='pool.setOnLoadCompleteListener{sp,id,status->if(status==0){readySounds.add(id);pendingAuditions.remove(id)?.let{pr->sp.play(id,pr.first,pr.first,1,0,pr.second)}}}'
-new='pool.setOnLoadCompleteListener{sp,id,status->if(status==0){readySounds.add(id);pendingAuditions.remove(id)?.let{pr->try{sp.play(id,pr.first,pr.first,1,0,pr.second)}catch(_:RuntimeException){readySounds.remove(id)}}}else{readySounds.remove(id);pendingAuditions.remove(id)}}'
-if old in s:
-    s=s.replace(old,new,1)
-elif new not in s:
-    raise SystemExit('load callback anchor missing')
+# Load completion is asynchronous and may race with replacement/unload. The callback shape
+# changes earlier in the pipeline, so accept the known variants and normalize to one guarded form.
+callback_candidates=[
+ 'pool.setOnLoadCompleteListener{sp,id,status->if(status==0){readySounds.add(id);pendingAuditions.remove(id)?.let{pr->sp.play(id,pr.first,pr.first,1,0,pr.second)}}}',
+ 'pool.setOnLoadCompleteListener{sp,id,statusCode->runOnUiThread{if(statusCode==0){readySounds.add(id);pendingAuditions.remove(id)?.let{pr->sp.play(id,pr.first,pr.first,1,0,pr.second)}}else{pendingAuditions.remove(id)}}}',
+]
+guarded='pool.setOnLoadCompleteListener{sp,id,statusCode->runOnUiThread{if(statusCode==0){readySounds.add(id);pendingAuditions.remove(id)?.let{pr->try{sp.play(id,pr.first,pr.first,1,0,pr.second)}catch(_:RuntimeException){readySounds.remove(id);pendingAuditions.remove(id)}}}else{readySounds.remove(id);pendingAuditions.remove(id)}}}'
+if guarded not in s:
+    found=next((x for x in callback_candidates if x in s),None)
+    if found is None: raise SystemExit('load callback anchor missing')
+    s=s.replace(found,guarded,1)
 
 # Do not do a full status/workspace refresh for every raw finger-down. That refresh walks
 # project/UI state and is unnecessary for ordinary auditioning; selection UI is refreshed by touch handler.
