@@ -14,6 +14,7 @@ s=s.replace(needle,replacement,1)
 needle='private fun sampleEdit(){'
 helper='''fun selectedPadVolumePercent():Int=(padVolumes[bank][pad]*100f).toInt().coerceIn(0,100)
  fun setSelectedPadVolumePercent(value:Int){padVolumes[bank][pad]=(value.coerceIn(0,100)/100f);saveVolumes();report("mixer_changed");refreshStatus()}
+ fun adjustSelectedPadVolume(delta:Int):Int{val v=(selectedPadVolumePercent()+delta).coerceIn(0,100);padVolumes[bank][pad]=v/100f;saveVolumes();report("mixer_changed");return v}
  fun selectedPadLabel():String="${'A'+bank}${pad+1}"
  private fun sampleEdit(){'''
 if needle not in s: raise SystemExit('sampleEdit anchor missing')
