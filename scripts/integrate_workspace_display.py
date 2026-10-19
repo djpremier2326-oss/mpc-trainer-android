@@ -6,7 +6,7 @@ s=p.read_text()
 old='private var metronome=false;private var countIn=true;private var lastBeat=-1L;private var lastClockTick=-1L;private var countInToken=0'
 if 'private var workspaceMode=' not in s:
     if old not in s: raise SystemExit('workspace state anchor not found')
-    s=s.replace(old,old+'\n private var workspaceMode="MAIN"',1)
+    s=s.replace(old,old+'\n private var workspaceMode="MAIN";private var displayOverride:String?=null',1)
 
 old='btn("MAIN"){report("main");refreshStatus()},btn("BROWSE"){report("browse");browse()},btn("SAMPLE EDIT"){sampleEdit()}'
 new='btn("MAIN"){setWorkspaceMode("MAIN");report("main")},btn("BROWSE"){setWorkspaceMode("BROWSE");report("browse");browse()},btn("SAMPLE EDIT"){setWorkspaceMode("SAMPLE EDIT");sampleEdit()}'
@@ -24,7 +24,9 @@ idx=next((i for i,line in enumerate(lines) if line.lstrip().startswith('private 
 if idx is None: raise SystemExit('refreshStatus function not found')
 if lines[idx].count('{') != lines[idx].count('}'):
     raise SystemExit('refreshStatus is no longer one-line; update integrator deliberately')
-block=''' fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}
+block=''' fun setWorkspaceMode(mode:String){workspaceMode=mode;displayOverride=null;refreshStatus()}
+ fun showDisplayMessage(message:String){displayOverride=message;refreshStatus()}
+ fun clearDisplayMessage(){displayOverride=null;refreshStatus()}
  private fun position():String{val t=tick();val bar=(t/384L)+1;val within=t%384L;val beat=(within/96L)+1;val pulse=within%96L;return "%03d:%02d:%02d".format(bar,beat,pulse)}
  private fun stepPattern(bar:Int):String{
   val start=bar*384L
@@ -41,7 +43,7 @@ block=''' fun setWorkspaceMode(mode:String){workspaceMode=mode;refreshStatus()}
    else->"MAIN  •  SEQ 01  •  TRACK ${track+1}${if(mute[track])" MUTE" else ""}\\nBANK ${'A'+bank} • PAD ${pad+1} • ${position()} • $transport\\n$bpm BPM • TC 1/$tc • SWING $swing% • MET ${if(metronome)"ON" else "OFF"} • COUNT ${if(countIn)"ON" else "OFF"}"
   }
  }
- private fun refreshStatus(){TrainerUiState.publish(bank,pad,track,playing,recording,overdub,noteRepeat,fullLevel,levels16,mute[track]);status.text=workspaceText()}'''
+ private fun refreshStatus(){TrainerUiState.publish(bank,pad,track,playing,recording,overdub,noteRepeat,fullLevel,levels16,mute[track]);status.text=displayOverride?:workspaceText()}'''
 lines[idx:idx+1]=block.splitlines()
 s='\n'.join(lines)+'\n'
 
@@ -51,7 +53,7 @@ old='AlertDialog.Builder(this).setTitle("STEP SEQUENCER").setView(outer).setPosi
 new='AlertDialog.Builder(this).setTitle("STEP SEQUENCER").setView(outer).setPositiveButton("DONE"){_,_->refreshStatus()}.setOnCancelListener{refreshStatus()}.show()'
 if old in s:s=s.replace(old,new,1)
 old='status.text="SAMPLE EDIT • ${e.message}";Toast.makeText(this,"Sample Edit: ${e.message}",Toast.LENGTH_LONG).show()'
-new='status.text="SAMPLE EDIT • ${e.message}";Toast.makeText(this,"SAMPLE EDIT: ${e.message}",Toast.LENGTH_LONG).show();h.postDelayed({refreshStatus()},1800)'
+new='showDisplayMessage("SAMPLE EDIT • ${e.message}");Toast.makeText(this,"SAMPLE EDIT: ${e.message}",Toast.LENGTH_LONG).show()'
 if old in s:s=s.replace(old,new,1)
 p.write_text(s)
 
@@ -63,4 +65,4 @@ if new not in a:
     if old not in a: raise SystemExit('mixer menu anchor not found')
     a=a.replace(old,new,1)
 app.write_text(a)
-print('Contextual workspace integrated with live Step Seq pattern')
+print('Contextual workspace integrated with stable display override and live Step Seq pattern')
