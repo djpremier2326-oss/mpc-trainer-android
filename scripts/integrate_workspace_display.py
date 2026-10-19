@@ -28,4 +28,14 @@ if 'private fun workspaceText()' not in s:
     s=s.replace(old,new,1)
 
 p.write_text(s)
+
+app=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerApp.kt')
+a=app.read_text()
+old='0->a.showVolumeMixer();1->guide?.performClick()'
+new='0->{a.setWorkspaceMode("MIXER");a.showVolumeMixer()};1->guide?.performClick()'
+if new not in a:
+    if old not in a: raise SystemExit('mixer menu anchor not found')
+    a=a.replace(old,new,1)
+app.write_text(a)
+
 print('Contextual MAIN/BROWSE/SAMPLE EDIT/STEP SEQ/MIXER workspace display integrated')
