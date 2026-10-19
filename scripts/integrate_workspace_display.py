@@ -28,6 +28,15 @@ if 'private fun workspaceText()' not in s:
     if old not in s: raise SystemExit('refreshStatus anchor not found after UI-state integration')
     s=s.replace(old,new,1)
 
+# Dialogs temporarily write progress/errors to the display. Restore the contextual screen after they close.
+old='AlertDialog.Builder(this).setTitle("STEP SEQUENCER").setView(outer).setPositiveButton("DONE",null).show()'
+new='AlertDialog.Builder(this).setTitle("STEP SEQUENCER").setView(outer).setPositiveButton("DONE"){_,_->refreshStatus()}.setOnCancelListener{refreshStatus()}.show()'
+if old in s: s=s.replace(old,new,1)
+
+old='status.text="SAMPLE EDIT • ${e.message}";Toast.makeText(this,"Sample Edit: ${e.message}",Toast.LENGTH_LONG).show()'
+new='status.text="SAMPLE EDIT • ${e.message}";Toast.makeText(this,"SAMPLE EDIT: ${e.message}",Toast.LENGTH_LONG).show();h.postDelayed({refreshStatus()},1800)'
+if old in s: s=s.replace(old,new,1)
+
 p.write_text(s)
 
 app=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerApp.kt')
@@ -39,4 +48,4 @@ if new not in a:
     a=a.replace(old,new,1)
 app.write_text(a)
 
-print('Contextual MAIN/BROWSE/SAMPLE EDIT/STEP SEQ/MIXER workspace display integrated')
+print('Contextual MPC workspace display integrated and synchronized')
