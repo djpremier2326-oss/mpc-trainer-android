@@ -16,7 +16,7 @@ object AudioImport {
         output.parentFile?.mkdirs()
         val temp=File(output.parentFile ?: output.absoluteFile.parentFile,".${output.name}.pcm.tmp")
         val extractor=MediaExtractor()
-        var codec:MediaCodec?=null
+        var codecToRelease:MediaCodec?=null
         try {
             extractor.setDataSource(input.absolutePath)
             var track=-1
@@ -30,9 +30,10 @@ object AudioImport {
             extractor.selectTrack(track)
             val src=source!!
             val mime=src.getString(MediaFormat.KEY_MIME) ?: error("Unknown audio format")
-            codec=MediaCodec.createDecoderByType(mime)
-            codec.configure(src,null,null,0)
-            codec.start()
+            val decoder=MediaCodec.createDecoderByType(mime)
+            codecToRelease=decoder
+            decoder.configure(src,null,null,0)
+            decoder.start()
             var sampleRate=src.getInteger(MediaFormat.KEY_SAMPLE_RATE)
             var channels=src.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
             var pcmEncoding=AudioFormat.ENCODING_PCM_16BIT
@@ -43,28 +44,28 @@ object AudioImport {
             FileOutputStream(temp).use { pcmOut ->
                 while(!outputDone){
                     if(!inputDone){
-                        val ix=codec.dequeueInputBuffer(10_000)
+                        val ix=decoder.dequeueInputBuffer(10_000)
                         if(ix>=0){
-                            val buf=codec.getInputBuffer(ix) ?: error("Decoder input buffer unavailable")
+                            val buf=decoder.getInputBuffer(ix) ?: error("Decoder input buffer unavailable")
                             val size=extractor.readSampleData(buf,0)
-                            if(size<0){codec.queueInputBuffer(ix,0,0,0,MediaCodec.BUFFER_FLAG_END_OF_STREAM);inputDone=true}
-                            else{codec.queueInputBuffer(ix,0,size,extractor.sampleTime,0);extractor.advance()}
+                            if(size<0){decoder.queueInputBuffer(ix,0,0,0,MediaCodec.BUFFER_FLAG_END_OF_STREAM);inputDone=true}
+                            else{decoder.queueInputBuffer(ix,0,size,extractor.sampleTime,0);extractor.advance()}
                         }
                     }
-                    val ox=codec.dequeueOutputBuffer(info,10_000)
+                    val ox=decoder.dequeueOutputBuffer(info,10_000)
                     when {
                         ox>=0 -> {
                             if(info.size>0){
-                                val b=codec.getOutputBuffer(ox) ?: error("Decoder output buffer unavailable")
+                                val b=decoder.getOutputBuffer(ox) ?: error("Decoder output buffer unavailable")
                                 b.position(info.offset);b.limit(info.offset+info.size)
                                 val data=ByteArray(info.size);b.get(data);pcmOut.write(data);total+=data.size
                                 if(total>512L*1024L*1024L) error("Audio is too large for basic Sample Edit")
                             }
                             outputDone=info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
-                            codec.releaseOutputBuffer(ox,false)
+                            decoder.releaseOutputBuffer(ox,false)
                         }
                         ox==MediaCodec.INFO_OUTPUT_FORMAT_CHANGED -> {
-                            val f=codec.outputFormat
+                            val f=decoder.outputFormat
                             sampleRate=f.getInteger(MediaFormat.KEY_SAMPLE_RATE)
                             channels=f.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
                             if(f.containsKey(MediaFormat.KEY_PCM_ENCODING)) pcmEncoding=f.getInteger(MediaFormat.KEY_PCM_ENCODING)
@@ -86,8 +87,8 @@ object AudioImport {
             }
             return output
         } finally {
-            try{codec?.stop()}catch(_:Exception){}
-            try{codec?.release()}catch(_:Exception){}
+            try{codecToRelease?.stop()}catch(_:Exception){}
+            try{codecToRelease?.release()}catch(_:Exception){}
             try{extractor.release()}catch(_:Exception){}
             temp.delete()
         }
