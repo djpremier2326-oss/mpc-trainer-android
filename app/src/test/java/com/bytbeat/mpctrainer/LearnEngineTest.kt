@@ -41,7 +41,7 @@ class LearnEngineTest {
     @Test fun challengeRequiresCoreWorkflowFromCleanProject() {
         val e=LearnEngine(LearnEngine.LAST_LESSON); e.begin(s())
         var r=e.report("stop",s(pads=2,events=2))
-        assertTrue(r.message.contains("✓ clean project"))
+        assertTrue(r.message.contains("✓ чистый проект"))
         assertTrue(r.message.contains("✓ REC"))
         assertTrue(r.message.contains("○ OVERDUB"))
         r=e.report("step_added",s(pads=2,events=3))
@@ -49,7 +49,7 @@ class LearnEngineTest {
         r=e.report("tc",s(pads=2,events=4,tc=32))
         r=e.report("track",s(pads=2,events=4,track=1,tc=32))
         r=e.report("save",s(pads=2,events=4,track=1,tc=32))
-        assertTrue(r.message.contains("FOUNDATION COMPLETE"))
+        assertTrue(r.message.contains("ОСНОВЫ ПРОЙДЕНЫ"))
     }
 
     @Test fun dirtyChallengeCannotReuseLessonWork() {
@@ -60,10 +60,10 @@ class LearnEngineTest {
         r=e.report("track",s(pads=5,events=22,track=1,tc=32))
         r=e.report("step_added",s(pads=5,events=23,track=1,tc=32))
         r=e.report("save",s(pads=5,events=23,track=1,tc=32))
-        assertFalse(r.message.contains("FOUNDATION COMPLETE"))
-        assertTrue(r.message.contains("○ clean project"))
+        assertFalse(r.message.contains("ОСНОВЫ ПРОЙДЕНЫ"))
+        assertTrue(r.message.contains("○ чистый проект"))
         r=e.report("new_project",s())
-        assertTrue(r.message.contains("✓ clean project"))
+        assertTrue(r.message.contains("✓ чистый проект"))
         assertTrue(r.message.contains("○ REC"))
     }
 
@@ -72,6 +72,18 @@ class LearnEngineTest {
         var r=e.report("tc",s(pads=2,events=2,tc=16,track=0))
         assertTrue(r.message.contains("○ TC"))
         r=e.report("track",s(pads=2,events=2,tc=16,track=0))
-        assertTrue(r.message.contains("○ another track"))
+        assertTrue(r.message.contains("○ другой TRACK"))
+    }
+
+    @Test fun courseCopyIsRussianWhileHardwareLabelsStayCanonical() {
+        val browse=LearnEngine(1)
+        assertTrue(browse.explanation().contains("поиска"))
+        assertTrue(browse.prompt().contains("BROWSE"))
+        val record=LearnEngine(3)
+        assertTrue(record.explanation().contains("запись"))
+        assertTrue(record.prompt().contains("REC"))
+        val challenge=LearnEngine(LearnEngine.LAST_LESSON)
+        assertTrue(challenge.prompt().contains("ЭКЗАМЕН"))
+        assertTrue(challenge.prompt().contains("NEW PROJECT"))
     }
 }
