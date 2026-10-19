@@ -9,10 +9,12 @@ import java.io.FileOutputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
-/** Normalizes Android-supported audio to an editable PCM16 WAV when needed. */
+/** Normalizes Android-supported compressed/non-PCM audio to an editable PCM16 WAV when needed. */
 object AudioImport {
  fun toEditableWav(input:File,output:File):File{
-  if(input.extension.equals("wav",true)){try{val i=WavSlicer.inspect(input);if(i.bits==16)return input}catch(_:Exception){}}
+  // WavSlicer already edits integer PCM WAV at 8/16/24/32-bit. Keep those files bit-exact
+  // instead of sending perfectly valid 24/32-bit drum samples through a phone decoder.
+  if(input.extension.equals("wav",true)){try{WavSlicer.inspect(input);return input}catch(_:Exception){}}
   output.parentFile?.mkdirs();val temp=File(output.parentFile?:output.absoluteFile.parentFile,".${output.name}.pcm.tmp");val ex=MediaExtractor();var dec:MediaCodec?=null
   try{
    ex.setDataSource(input.absolutePath);var track=-1;var src:MediaFormat?=null
