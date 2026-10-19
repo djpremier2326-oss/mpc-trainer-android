@@ -16,5 +16,33 @@ s=s.replace('"${label.take(7)}_${i+1}"','"${label}_${i+1}"')
 s=s.replace('width=150;height=105','width=(resources.displayMetrics.widthPixels-(64*resources.displayMetrics.density).toInt())/4;height=(56*resources.displayMetrics.density).toInt()')
 repls={'"Project saved"':'"Проект сохранён"','"Lesson complete"':'"Урок завершён"','"Load a WAV or MP3 to a pad first"':'"Сначала загрузите WAV или MP3 на пэд"','"Only $room pad slots remain in this bank"':'"В этом банке осталось только $room свободных пэдов"','"$count chops assigned to pads"':'"$count фрагментов назначено на пэды"','"Set Start/End, then chop the selected range evenly across pads."':'"Установите Start/End, затем равномерно разрежьте выбранный диапазон по пэдам."','"NUMBER OF CHOPS"':'"КОЛИЧЕСТВО CHOPS"'}
 for a,b in repls.items():s=s.replace(a,b)
+
+# SoundPool.load() is asynchronous. A pad could previously be tapped before Android had
+# finished decoding the sample, making the first hit randomly silent. Track readiness and
+# keep one pending manual audition per sound so the user's tap is not lost.
+field=' private lateinit var pool:SoundPool\n'
+if 'private val readySounds=' not in s:
+    if field not in s: raise SystemExit('SoundPool field anchor missing')
+    s=s.replace(field,field+' private val readySounds=mutableSetOf<Int>();private val pendingAuditions=mutableMapOf<Int,Float>()\n',1)
+create='pool=SoundPool.Builder().setMaxStreams(24).setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).build();restorePads()'
+create_new='pool=SoundPool.Builder().setMaxStreams(24).setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).build();pool.setOnLoadCompleteListener{sp,id,statusCode->runOnUiThread{if(statusCode==0){readySounds.add(id);pendingAuditions.remove(id)?.let{g->sp.play(id,g,g,1,0,1f)}}else{pendingAuditions.remove(id)}}};restorePads()'
+if create in s:s=s.replace(create,create_new,1)
+elif 'pool.setOnLoadCompleteListener' not in s: raise SystemExit('SoundPool create anchor missing')
+helper_anchor=' private fun hit(i:Int,user:Boolean)'
+if 'private fun playLoadedSound(' not in s:
+    helper=' private fun playLoadedSound(soundId:Int,gain:Float,keepPending:Boolean){val g=gain.coerceIn(0f,1f);if(readySounds.contains(soundId))pool.play(soundId,g,g,1,0,1f)else if(keepPending)pendingAuditions[soundId]=g}\n'
+    if helper_anchor not in s: raise SystemExit('hit anchor missing')
+    s=s.replace(helper_anchor,helper+helper_anchor,1)
+manual='pool.play(it.soundId,g,g,1,0,1f)'
+# First occurrence is manual pad playback after volume integration; second is sequencer.
+if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,true)',1)
+else: raise SystemExit('manual SoundPool play anchor missing')
+if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,false)',1)
+else: raise SystemExit('sequencer SoundPool play anchor missing')
+# Do not keep stale IDs after Activity teardown.
+destroy='override fun onDestroy(){'
+if destroy in s and 'readySounds.clear();pendingAuditions.clear();' not in s:
+    s=s.replace(destroy,'override fun onDestroy(){readySounds.clear();pendingAuditions.clear();',1)
+
 p.write_text(s)
-print('Audit fixes applied')
+print('Audit fixes applied; SoundPool readiness protects first manual pad hit')
