@@ -12,11 +12,7 @@ import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 
-/**
- * Phone layout adapter kept separate from the trainer/audio logic.
- * It fixes the first real-device issue: the weighted pad grid consumed all
- * remaining height and pushed the MPC controls to the bottom of the screen.
- */
+/** Adapts the trainer surface to real phone screens without touching audio logic. */
 class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
     override fun onCreate() {
         super.onCreate()
@@ -29,11 +25,8 @@ class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
         if (content.tag == "phone_layout_fixed") return
         val root = content.getChildAt(0) as? LinearLayout ?: return
 
-        // Remove the 1.0 weight from the pad grid. On tall phones that weight
-        // was responsible for the huge empty area visible in the first APK.
-        findFirst<GridLayout>(root)?.let { grid ->
-            val lp = grid.layoutParams
-            if (lp is LinearLayout.LayoutParams) {
+        findFirst(root, GridLayout::class.java)?.let { grid ->
+            (grid.layoutParams as? LinearLayout.LayoutParams)?.let { lp ->
                 lp.height = ViewGroup.LayoutParams.WRAP_CONTENT
                 lp.weight = 0f
                 grid.layoutParams = lp
@@ -45,11 +38,8 @@ class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
             }
         }
 
-        // Existing control rows used raw 48 px, which is too short on a
-        // high-density Android display. Give controls a readable touch target.
         tuneRows(activity, root)
 
-        // Let compact phones scroll instead of clipping lower MPC controls.
         content.removeView(root)
         val scroll = ScrollView(activity).apply {
             isFillViewport = true
@@ -70,9 +60,7 @@ class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
         for (i in 0 until root.childCount) {
             val child = root.getChildAt(i)
             if (child is LinearLayout && child.orientation == LinearLayout.HORIZONTAL) {
-                val lp = child.layoutParams
-                lp.height = activity.dp(48)
-                child.layoutParams = lp
+                child.layoutParams = child.layoutParams.apply { height = activity.dp(48) }
                 for (j in 0 until child.childCount) {
                     (child.getChildAt(j) as? Button)?.apply {
                         minHeight = 0
@@ -83,18 +71,25 @@ class TrainerApp : Application(), Application.ActivityLifecycleCallbacks {
                 }
             }
         }
-        findFirst<TextView>(root) { it.text?.toString()?.startsWith("MPC TRAINER") == true }?.apply {
-            setPadding(0, activity.dp(4), 0, activity.dp(4))
-        }
+        findFirst(root, TextView::class.java) {
+            it.text?.toString()?.startsWith("MPC TRAINER") == true
+        }?.setPadding(0, activity.dp(4), 0, activity.dp(4))
     }
 
-    private inline fun <reified T : View> findFirst(
+    private fun <T : View> findFirst(
         root: View,
-        noinline predicate: (T) -> Boolean = { true }
+        type: Class<T>,
+        predicate: (T) -> Boolean = { true }
     ): T? {
-        if (root is T && predicate(root)) return root
-        if (root is ViewGroup) for (i in 0 until root.childCount) {
-            findFirst<T>(root.getChildAt(i), predicate)?.let { return it }
+        if (type.isInstance(root)) {
+            val value = type.cast(root)
+            if (value != null && predicate(value)) return value
+        }
+        if (root is ViewGroup) {
+            for (i in 0 until root.childCount) {
+                val found = findFirst(root.getChildAt(i), type, predicate)
+                if (found != null) return found
+            }
         }
         return null
     }
