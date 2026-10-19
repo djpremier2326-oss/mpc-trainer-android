@@ -49,6 +49,8 @@ jobs:
         run: python3 scripts/integrate_audit_fixes.py
       - name: Apply phone UI audit fixes
         run: python3 scripts/integrate_phone_ui_audit.py
+      - name: Add pitch and post-record quantize
+        run: python3 scripts/integrate_pitch_quantize.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
