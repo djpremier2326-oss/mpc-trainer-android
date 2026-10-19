@@ -4,11 +4,12 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class ProjectResetTest {
-    @Test fun resetCoversProjectAndEveryPadAssignmentOnly() {
+    @Test fun resetCoversProjectMixerAndEveryPadAssignmentOnly() {
         val keys=ProjectReset.preferenceKeys()
-        assertEquals(129,keys.size)
+        assertEquals(130,keys.size)
         assertEquals(keys.size,keys.toSet().size)
         assertTrue("project" in keys)
+        assertTrue("volumes" in keys)
         for(b in 0..3) for(p in 0..15){
             assertTrue("p_${b}_$p" in keys)
             assertTrue("n_${b}_$p" in keys)
