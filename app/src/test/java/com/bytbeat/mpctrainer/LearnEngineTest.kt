@@ -17,7 +17,6 @@ class LearnEngineTest {
         assertTrue(e.report("loaded",s(pads=1)).advanced)
         assertEquals(2,e.lesson)
         assertTrue(e.report("pad",s(pads=1)).advanced)
-
         e.begin(s(pads=1,events=2))
         assertFalse(e.report("stop",s(pads=1,events=2)).advanced)
         assertTrue(e.report("stop",s(pads=1,events=3)).advanced)
@@ -27,11 +26,9 @@ class LearnEngineTest {
         val repeat=LearnEngine(7); repeat.begin(s(pads=1))
         assertFalse(repeat.report("note_repeat",s(pads=1,repeat=true)).advanced)
         assertTrue(repeat.report("note_repeat_pad",s(pads=1,repeat=true)).advanced)
-
         val full=LearnEngine(8); full.begin(s(pads=1))
         assertFalse(full.report("full_level",s(pads=1,full=true)).advanced)
         assertTrue(full.report("full_level_pad",s(pads=1,full=true)).advanced)
-
         val levels=LearnEngine(9); levels.begin(s(pads=1))
         assertTrue(levels.report("16_levels_pad",s(pads=1,levels=true)).advanced)
     }
@@ -42,13 +39,28 @@ class LearnEngineTest {
         assertTrue(e.report("chopped",s(pads=5)).advanced)
     }
 
-    @Test fun challengeNeedsPadsRecordingStepAndSave() {
+    @Test fun challengeRequiresCoreWorkflowNotTokenBeat() {
         val e=LearnEngine(LearnEngine.LAST_LESSON); e.begin(s())
         var r=e.report("stop",s(pads=2,events=2))
-        assertTrue(r.message.contains("○ Step Seq"))
+        assertTrue(r.message.contains("✓ REC"))
+        assertTrue(r.message.contains("○ OVERDUB"))
         r=e.report("step_added",s(pads=2,events=3))
-        assertTrue(r.message.contains("○ SAVE"))
         r=e.report("save",s(pads=2,events=3))
+        assertFalse(r.message.contains("FOUNDATION COMPLETE"))
+        assertTrue(r.message.contains("○ TC"))
+        assertTrue(r.message.contains("○ another track"))
+        r=e.report("overdub_stop",s(pads=2,events=4))
+        r=e.report("tc",s(pads=2,events=4,tc=32))
+        r=e.report("track",s(pads=2,events=4,track=1,tc=32))
+        r=e.report("save",s(pads=2,events=4,track=1,tc=32))
         assertTrue(r.message.contains("FOUNDATION COMPLETE"))
+    }
+
+    @Test fun challengeTcAndTrackMustActuallyChange() {
+        val e=LearnEngine(LearnEngine.LAST_LESSON); e.begin(s(tc=16,track=0))
+        var r=e.report("tc",s(pads=2,events=2,tc=16,track=0))
+        assertTrue(r.message.contains("○ TC"))
+        r=e.report("track",s(pads=2,events=2,tc=16,track=0))
+        assertTrue(r.message.contains("○ another track"))
     }
 }
