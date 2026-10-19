@@ -16,7 +16,6 @@ s=s.replace('"${label.take(7)}_${i+1}"','"${label}_${i+1}"')
 s=s.replace('width=150;height=105','width=(resources.displayMetrics.widthPixels-(64*resources.displayMetrics.density).toInt())/4;height=(56*resources.displayMetrics.density).toInt()')
 repls={'"Project saved"':'"Проект сохранён"','"Lesson complete"':'"Урок завершён"','"Load a WAV or MP3 to a pad first"':'"Сначала загрузите WAV или MP3 на пэд"','"Only $room pad slots remain in this bank"':'"В этом банке осталось только $room свободных пэдов"','"$count chops assigned to pads"':'"$count фрагментов назначено на пэды"','"Set Start/End, then chop the selected range evenly across pads."':'"Установите Start/End, затем равномерно разрежьте выбранный диапазон по пэдам."','"NUMBER OF CHOPS"':'"КОЛИЧЕСТВО CHOPS"'}
 for a,b in repls.items():s=s.replace(a,b)
-
 field=' private lateinit var pool:SoundPool\n'
 if 'private val readySounds=' not in s:
     if field not in s: raise SystemExit('SoundPool field anchor missing')
@@ -35,18 +34,15 @@ if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,true)',1)
 else: raise SystemExit('manual SoundPool play anchor missing')
 if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,false)',1)
 else: raise SystemExit('sequencer SoundPool play anchor missing')
-
-# Replacing a pad must cancel any queued first hit and unload the old SoundPool allocation.
 load_anchor='pads[bank][pad]=PadSample(pool.load(f.absolutePath,1),pendingName.substringBeforeLast(\'.\'),f.absolutePath);padVolumes[bank][pad]=1f;saveVolumes();savePads();refreshPads();report("loaded")'
 load_new='unloadPadSound(pads[bank][pad]);pads[bank][pad]=PadSample(pool.load(f.absolutePath,1),pendingName.substringBeforeLast(\'.\'),f.absolutePath);padVolumes[bank][pad]=1f;saveVolumes();savePads();refreshPads();report("loaded")'
 if load_anchor in s:s=s.replace(load_anchor,load_new,1)
 elif 'unloadPadSound(pads[bank][pad]);pads[bank][pad]=PadSample' not in s: raise SystemExit('pad replacement anchor missing')
-# Chop assignment can overwrite occupied destination pads too; unload those old sounds first.
-chop_anchor='pads[bank][pi]=PadSample(pool.load(f.absolutePath,1),"${label}_${i+1}",f.absolutePath);assigned++'
-chop_new='unloadPadSound(pads[bank][pi]);pads[bank][pi]=PadSample(pool.load(f.absolutePath,1),"${label}_${i+1}",f.absolutePath);assigned++'
-if chop_anchor in s:s=s.replace(chop_anchor,chop_new,1)
-elif 'unloadPadSound(pads[bank][pi]);pads[bank][pi]=PadSample' not in s: raise SystemExit('chop replacement anchor missing')
-
+# Generated editor has changed several times. Match the stable assignment prefix rather than the label formatting.
+chop_prefix='pads[bank][pi]=PadSample(pool.load(f.absolutePath,1),'
+if 'unloadPadSound(pads[bank][pi]);pads[bank][pi]=PadSample' not in s:
+    if chop_prefix not in s: raise SystemExit('chop replacement anchor missing')
+    s=s.replace(chop_prefix,'unloadPadSound(pads[bank][pi]);'+chop_prefix,1)
 hit_sig='private fun hit(i:Int,user:Boolean){'
 if hit_sig in s and 'if(user)displayOverride=null;' not in s:s=s.replace(hit_sig,'private fun hit(i:Int,user:Boolean){if(user)displayOverride=null;',1)
 play_sig='private fun play(){if(playing)return;'
