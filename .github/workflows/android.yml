@@ -69,6 +69,8 @@ jobs:
         run: python3 scripts/integrate_pad_stability.py
       - name: Add pitch and TC regression tests
         run: python3 scripts/integrate_pitch_tc_tests.py
+      - name: Integrate pitch and TC Learn lessons
+        run: python3 scripts/integrate_learn_pitch_tc.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
