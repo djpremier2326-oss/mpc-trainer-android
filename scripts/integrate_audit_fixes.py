@@ -27,18 +27,17 @@ if create in s:s=s.replace(create,create_new,1)
 elif 'pool.setOnLoadCompleteListener' not in s: raise SystemExit('SoundPool create anchor missing')
 helper_anchor=' private fun hit(i:Int,user:Boolean)'
 if 'private fun playLoadedSound(' not in s:
-    helper=' private fun playLoadedSound(soundId:Int,gain:Float,keepPending:Boolean){val g=gain.coerceIn(0f,1f);if(readySounds.contains(soundId))pool.play(soundId,g,g,1,0,1f)else if(keepPending)pendingAuditions[soundId]=g}\n'
+    helper=' private fun playLoadedSound(soundId:Int,gain:Float,queueManual:Boolean){val g=gain.coerceIn(0f,1f);if(readySounds.contains(soundId))pool.play(soundId,g,g,1,0,1f)else if(queueManual)pendingAuditions[soundId]=g}\n'
     if helper_anchor not in s: raise SystemExit('hit anchor missing')
     s=s.replace(helper_anchor,helper+helper_anchor,1)
 manual='pool.play(it.soundId,g,g,1,0,1f)'
 if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,true)',1)
 else: raise SystemExit('manual SoundPool play anchor missing')
-if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,true)',1)
+# Sequencer timing must never be shifted to an arbitrary later instant. If a restored sample
+# is still decoding, skip that one event; later loop events play on-grid once the sample is ready.
+if manual in s:s=s.replace(manual,'playLoadedSound(it.soundId,g,false)',1)
 else: raise SystemExit('sequencer SoundPool play anchor missing')
 
-# Persistent PAD VOL/readout messages should survive clock refreshes, but real user actions
-# must replace them. Clear only on user-originated pad hits and transport actions; sequencer
-# playback calls hit(..., false) and therefore cannot erase the readout by itself.
 hit_sig='private fun hit(i:Int,user:Boolean){'
 if hit_sig in s and 'if(user)displayOverride=null;' not in s:
     s=s.replace(hit_sig,'private fun hit(i:Int,user:Boolean){if(user)displayOverride=null;',1)
@@ -46,24 +45,10 @@ play_sig='private fun play(){if(playing)return;'
 if play_sig in s:s=s.replace(play_sig,'private fun play(){if(playing)return;displayOverride=null;',1)
 stop_sig='private fun stopTransport(){countInToken++;'
 if stop_sig in s:s=s.replace(stop_sig,'private fun stopTransport(){displayOverride=null;countInToken++;',1)
-
-# Akai documents TC as snapping notes to the selected grid and Swing as a timing offset.
-# Keep those controls visible in MAIN immediately after the user changes them.
 for old,new in [
- ('btn("TC"){tc=','btn("TC"){displayOverride=null;tc='),
- ('btn("SWING"){swing=','btn("SWING"){displayOverride=null;swing='),
- ('btn("TRACK −"){track=','btn("TRACK −"){displayOverride=null;track='),
- ('btn("TRACK +"){track=','btn("TRACK +"){displayOverride=null;track='),
- ('btn("METRO"){metronome=','btn("METRO"){displayOverride=null;metronome='),
- ('btn("COUNT IN"){countIn=','btn("COUNT IN"){displayOverride=null;countIn='),
- ('btn("TRACK MUTE"){mute[track]=','btn("TRACK MUTE"){displayOverride=null;mute[track]='),
- ('btn("NOTE REPEAT"){noteRepeat=','btn("NOTE REPEAT"){displayOverride=null;noteRepeat='),
- ('btn("FULL LEVEL"){fullLevel=','btn("FULL LEVEL"){displayOverride=null;fullLevel='),
- ('btn("16 LEVELS"){if(!levels16)','btn("16 LEVELS"){displayOverride=null;if(!levels16)')]:
+ ('btn("TC"){tc=','btn("TC"){displayOverride=null;tc='),('btn("SWING"){swing=','btn("SWING"){displayOverride=null;swing='),('btn("TRACK −"){track=','btn("TRACK −"){displayOverride=null;track='),('btn("TRACK +"){track=','btn("TRACK +"){displayOverride=null;track='),('btn("METRO"){metronome=','btn("METRO"){displayOverride=null;metronome='),('btn("COUNT IN"){countIn=','btn("COUNT IN"){displayOverride=null;countIn='),('btn("TRACK MUTE"){mute[track]=','btn("TRACK MUTE"){displayOverride=null;mute[track]='),('btn("NOTE REPEAT"){noteRepeat=','btn("NOTE REPEAT"){displayOverride=null;noteRepeat='),('btn("FULL LEVEL"){fullLevel=','btn("FULL LEVEL"){displayOverride=null;fullLevel='),('btn("16 LEVELS"){if(!levels16)','btn("16 LEVELS"){displayOverride=null;if(!levels16)')]:
     if old in s:s=s.replace(old,new,1)
-
 destroy='override fun onDestroy(){'
-if destroy in s and 'readySounds.clear();pendingAuditions.clear();' not in s:
-    s=s.replace(destroy,'override fun onDestroy(){readySounds.clear();pendingAuditions.clear();',1)
+if destroy in s and 'readySounds.clear();pendingAuditions.clear();' not in s:s=s.replace(destroy,'override fun onDestroy(){readySounds.clear();pendingAuditions.clear();',1)
 p.write_text(s)
-print('Audit fixes applied; audio readiness protected and stale display messages clear on meaningful controls')
+print('Audit fixes applied; manual first taps queue safely, sequencer timing never queues late')
