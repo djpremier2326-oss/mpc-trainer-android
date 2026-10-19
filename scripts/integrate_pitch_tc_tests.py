@@ -10,8 +10,15 @@ import java.io.File
 
 class PitchTimingCorrectIntegrationTest {
     private fun generatedSource(): String {
-        val root = File(System.getProperty("user.dir")).parentFile.parentFile
-        return File(root, "app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt").readText()
+        val cwd = File(System.getProperty("user.dir") ?: ".").absoluteFile
+        val candidates = listOf(
+            File(cwd, "src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt"),
+            File(cwd, "app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt"),
+            File(cwd.parentFile ?: cwd, "app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt")
+        )
+        val source = candidates.firstOrNull { it.isFile }
+            ?: error("Generated TrainerActivity.kt not found from ${cwd.path}: ${candidates.joinToString { it.path }}")
+        return source.readText()
     }
 
     @Test fun pitch_is_real_persisted_and_resettable() {
@@ -51,4 +58,4 @@ class PitchTimingCorrectIntegrationTest {
     }
 }
 ''')
-print('Pitch/TC generated-source regression tests added')
+print('Pitch/TC generated-source regression tests added with robust Gradle working-directory lookup')
