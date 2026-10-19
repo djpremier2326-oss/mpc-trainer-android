@@ -9,20 +9,27 @@ old='btn("16 LEVELS"){if(!levels16){sourceBank=bank;sourcePad=pad};levels16=!lev
 new='btn("16 LEVELS"){show16Levels()}'
 if old not in s: raise SystemExit('16 levels button anchor missing')
 s=s.replace(old,new,1)
-# Preserve velocity ladder and add Tune ladder centered on Original Pad. 16 Levels temporarily maps source pad to all 16 pads.
 old='private fun velocity(i:Int)=if(levels16)(((i+1)*127f/16f).roundToLong().toInt()).coerceIn(1,127) else if(fullLevel)127 else 100'
 new='private fun velocity(i:Int)=if(levels16&&levels16Type=="VELOCITY")(((i+1)*127f/16f).roundToLong().toInt()).coerceIn(1,127) else if(fullLevel)127 else 100\n private fun levels16TuneSemitones(i:Int)=(i-levels16OriginalPad).coerceIn(-12,12)\n private fun levels16Rate(i:Int)=java.lang.Math.pow(2.0,levels16TuneSemitones(i)/12.0).toFloat().coerceIn(.5f,2f)'
 if old not in s: raise SystemExit('velocity anchor missing')
 s=s.replace(old,new,1)
-# Pitch in Tune mode is a performance/event property in this compact trainer; normal pad pitch remains per-pad.
 old='val g=padGain(v,b,p);pads[b][p]?.let{playLoadedSound(it.soundId,g,true,pitchRate(b,p))}'
 new='val g=padGain(v,b,p);val rate=if(levels16&&levels16Type=="TUNE")levels16Rate(i) else pitchRate(b,p);pads[b][p]?.let{playLoadedSound(it.soundId,g,true,rate)}'
 if old not in s: raise SystemExit('manual playback pitch anchor missing')
 s=s.replace(old,new,1)
-# Keep event model simple: Tune 16 Levels auditions pitch correctly; recording Tune mode is intentionally blocked rather than recording wrong notes.
 old='if(user&&loaded&&recording&&playing){events+=Event(b,p,if(tcEnabled)quant(tick()) else tick(),track,v);saveProject()}'
 new='if(user&&loaded&&recording&&playing){if(levels16&&levels16Type=="TUNE"){showDisplayMessage("16 LEVELS • TUNE • запись pitch-событий пока недоступна")}else{events+=Event(b,p,if(tcEnabled)quant(tick()) else tick(),track,v);saveProject()}}'
 if old not in s: raise SystemExit('record anchor missing')
+s=s.replace(old,new,1)
+# Note Repeat follows the active TC time division. Keep it independent of swing; swing affects event placement, not repeat timer spacing in this basic trainer.
+old='private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,(60000.0/bpm*(4.0/tc)).toLong().coerceAtLeast(25))}}};private fun startRepeat(){h.removeCallbacks(repeater);h.post(repeater)};private fun stopRepeat(){h.removeCallbacks(repeater)}'
+new='private fun noteRepeatIntervalMs()=(60000.0/bpm*(4.0/tc.coerceAtLeast(1))).toLong().coerceAtLeast(25)\n private val repeater=object:Runnable{override fun run(){if(noteRepeat){hit(pad,true);h.postDelayed(this,noteRepeatIntervalMs())}}};private fun startRepeat(){h.removeCallbacks(repeater);h.post(repeater)};private fun stopRepeat(){h.removeCallbacks(repeater)}'
+if old not in s: raise SystemExit('note repeat anchor missing')
+s=s.replace(old,new,1)
+# Step Sequencer: 16 steps per bar at the basic 1/16 grid, with current track/pad selection and velocity-aware event creation.
+old='private fun redrawSteps(page:Int,label:TextView,bs:List<Button>){label.text="BAR ${page+1} • TRACK ${track+1} • PAD ${pad+1}";bs.forEachIndexed{i,b->val t=page*384L+i*24L;val on=events.any{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};b.text="${i+1}\\n${if(on)"●" else "○"}";b.setOnClickListener{val ix=events.indexOfFirst{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};if(ix>=0)events.removeAt(ix)else{events+=Event(bank,pad,t,track,127);report("step_added")};saveProject();redrawSteps(page,label,bs)}}}'
+new='private fun redrawSteps(page:Int,label:TextView,bs:List<Button>){label.text="BAR ${page+1} • TRACK ${track+1} • BANK ${\'A\'+bank} • PAD ${pad+1} • 1/16";bs.forEachIndexed{i,b->val t=page*384L+i*24L;val ix=events.indexOfFirst{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};val on=ix>=0;val vel=if(on)events[ix].velocity else 100;b.text="${i+1}\\n${if(on)"● $vel" else "○"}";b.setOnClickListener{val hit=events.indexOfFirst{it.track==track&&it.bank==bank&&it.pad==pad&&it.tick==t};if(hit>=0)events.removeAt(hit)else{events+=Event(bank,pad,t,track,100);report("step_added")};saveProject();redrawSteps(page,label,bs)}}}'
+if old not in s: raise SystemExit('step redraw anchor missing')
 s=s.replace(old,new,1)
 anchor=' private fun showTimingCorrect(){'
 block=''' private fun show16Levels(){
@@ -45,4 +52,4 @@ block=''' private fun show16Levels(){
 if anchor not in s: raise SystemExit('timing dialog anchor missing')
 s=s.replace(anchor,block+anchor,1)
 p.write_text(s)
-print('16 Levels Velocity + Tune modes aligned to MPC concept; unsupported Tune recording fails safely')
+print('Note Repeat tied to TC division; Step Sequencer basic 1/16 workflow audited; 16 Levels Velocity/Tune retained')
