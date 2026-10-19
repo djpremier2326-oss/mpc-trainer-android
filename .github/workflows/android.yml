@@ -25,6 +25,8 @@ jobs:
           gradle-version: '8.9'
       - name: Integrate streaming Browser preview
         run: python3 scripts/integrate_browser_preview.py
+      - name: Integrate trainer UI state
+        run: python3 scripts/integrate_ui_state.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
