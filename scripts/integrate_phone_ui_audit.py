@@ -39,14 +39,13 @@ gesture='''class TrainerActivity : AppCompatActivity() {
   val edge=resources.displayMetrics.widthPixels*0.72f
   when(ev.actionMasked){
    MotionEvent.ACTION_DOWN->{volumeSwipeCandidate=ev.x>=edge;volumeSwipeActive=false;if(volumeSwipeCandidate){volumeSwipeDownY=ev.y;volumeSwipeStart=selectedPadVolumePercent()}}
-   MotionEvent.ACTION_MOVE->{if(volumeSwipeCandidate){val total=volumeSwipeDownY-ev.y;if(!volumeSwipeActive&&kotlin.math.abs(total)>dp(12)){volumeSwipeActive=true;val cancel=MotionEvent.obtain(ev);cancel.action=MotionEvent.ACTION_CANCEL;super.dispatchTouchEvent(cancel);cancel.recycle()};if(volumeSwipeActive){val h=resources.displayMetrics.heightPixels.coerceAtLeast(1);val delta=(total/h*135f).toInt();val v=(volumeSwipeStart+delta).coerceIn(0,100);setSelectedPadVolumePercent(v);showPadVolumeOnDisplay(v);return true}}}
+   MotionEvent.ACTION_MOVE->{if(volumeSwipeCandidate){val total=volumeSwipeDownY-ev.y;val threshold=resources.displayMetrics.density*12f;if(!volumeSwipeActive&&kotlin.math.abs(total)>threshold){volumeSwipeActive=true;val cancel=MotionEvent.obtain(ev);cancel.action=MotionEvent.ACTION_CANCEL;super.dispatchTouchEvent(cancel);cancel.recycle()};if(volumeSwipeActive){val h=resources.displayMetrics.heightPixels.coerceAtLeast(1);val delta=(total/h*135f).toInt();val v=(volumeSwipeStart+delta).coerceIn(0,100);setSelectedPadVolumePercent(v);showPadVolumeOnDisplay(v);return true}}}
    MotionEvent.ACTION_UP,MotionEvent.ACTION_CANCEL->{if(volumeSwipeActive){showPadVolumeOnDisplay(selectedPadVolumePercent());volumeSwipeCandidate=false;volumeSwipeActive=false;return true};volumeSwipeCandidate=false}
   }
   return super.dispatchTouchEvent(ev)
  }
 '''
 t=t.replace(anchor,gesture,1)
-# Display helper lives in TrainerActivity and deliberately has no timer: the next normal display update replaces it.
 insert='''
  fun showPadVolumeOnDisplay(value:Int){
   val root=findViewById<ViewGroup>(android.R.id.content)
@@ -54,6 +53,7 @@ insert='''
   walk(root)?.text="PAD VOL  ${value.coerceIn(0,100)}%"
  }
 '''
+# workspace integration has already replaced the original position() helper; insert before onCreate without depending on it.
 marker='\n override fun onCreate('
 if marker not in t: raise SystemExit('onCreate anchor missing')
 t=t.replace(marker,insert+marker,1)
