@@ -5,7 +5,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.net.Uri
 
-/** Streaming Browser audition for long WAV/MP3 sources. Pad one-shots remain on SoundPool. */
+/** Streaming audition for long WAV/MP3 sources. Pad one-shots remain on SoundPool. */
 class BrowserPreview(private val context: Context) {
     private var player: MediaPlayer? = null
     private var generation = 0
@@ -34,7 +34,7 @@ class BrowserPreview(private val context: Context) {
             }
             next.setOnErrorListener { mp, what, extra ->
                 if (player === mp) {
-                    onError("Preview error $what/$extra")
+                    onError("Ошибка PREVIEW $what/$extra")
                     stop()
                 }
                 true
@@ -43,7 +43,7 @@ class BrowserPreview(private val context: Context) {
         } catch (e: Exception) {
             if (token == generation) {
                 releaseCurrent()
-                onError(e.message ?: "Preview unavailable")
+                onError(e.message ?: "PREVIEW недоступен")
             }
         }
     }
