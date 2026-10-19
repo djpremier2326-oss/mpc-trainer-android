@@ -65,6 +65,8 @@ jobs:
         run: python3 scripts/restore_record_monitoring_after_pitch.py
       - name: Harden rapid pad playback
         run: python3 scripts/integrate_pad_stability.py
+      - name: Add pitch and TC regression tests
+        run: python3 scripts/integrate_pitch_tc_tests.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
