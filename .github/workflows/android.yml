@@ -73,6 +73,8 @@ jobs:
         run: python3 scripts/integrate_learn_pitch_tc.py
       - name: Apply verified playback and lesson fixes
         run: python3 scripts/integrate_verified_fixes.py
+      - name: Integrate explanatory MPC course and behavior fixes
+        run: python3 scripts/integrate_teaching.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
