@@ -39,11 +39,11 @@ class TrainerBehaviorTest {
    press(a,"LEARN");var d=dialog();val t=text(d.window!!.decorView)
    assertTrue(t.contains("Что это"));assertTrue(t.contains("Sample"));assertTrue(t.contains("Зачем это нужно"));assertTrue(t.contains("Что услышать"));assertTrue(t.contains("Практика"))
    assertFalse(field(a,"lessonReady") as Boolean)
-   d.getButton(AlertDialog.BUTTON_POSITIVE).performClick();d=dialog()
+   d.getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(Looper.getMainLooper()).idle();d=dialog()
    // Wrong answer explains the mistake and never arms practice.
-   d.listView.performItemClick(null,1,1L);d=dialog();assertTrue(text(d.window!!.decorView).contains("Разберёмся"));assertFalse(field(a,"lessonReady") as Boolean)
-   d.getButton(AlertDialog.BUTTON_POSITIVE).performClick();d=dialog();d.listView.performItemClick(null,0,0L)
-   dialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();assertTrue(field(a,"lessonReady") as Boolean)
+   d.listView.performItemClick(null,1,1L);shadowOf(Looper.getMainLooper()).idle();d=dialog();assertTrue(text(d.window!!.decorView).contains("Разберёмся"));assertFalse(field(a,"lessonReady") as Boolean)
+   d.getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(Looper.getMainLooper()).idle();d=dialog();d.listView.performItemClick(null,0,0L);shadowOf(Looper.getMainLooper()).idle()
+   dialog().getButton(AlertDialog.BUTTON_POSITIVE).performClick();shadowOf(Looper.getMainLooper()).idle();assertTrue(field(a,"lessonReady") as Boolean)
    press(a,"MAIN");assertEquals(1,(field(a,"engine") as LearnEngine).lesson)
   }finally{c.pause().stop().destroy()}
  }
@@ -73,6 +73,28 @@ class TrainerBehaviorTest {
    invoke(a,"addTeachingKit");val count=(field(a,"pads") as Array<*>).sumOf{(it as Array<*>).count{x->x!=null}};assertEquals(4,count)
    invoke(a,"addTeachingKit");val count2=(field(a,"pads") as Array<*>).sumOf{(it as Array<*>).count{x->x!=null}};assertEquals(8,count2)
    events(a).add(TrainerActivity.Event(0,0,0,0,127));press(a,"TRACK MUTE");assertEquals(1,events(a).size);assertTrue((field(a,"mute") as BooleanArray)[0]);press(a,"TRACK MUTE");assertFalse((field(a,"mute") as BooleanArray)[0])
+  }finally{c.pause().stop().destroy()}
+ }
+ @Test fun repeatWritesMultipleEventsAndVelocityLevelsRemainDistinct(){
+  val c=open();val a=c.get()
+  try{
+   invoke(a,"addTeachingKit");set(a,"countIn",false);press(a,"REC");press(a,"PLAY");press(a,"NOTE REPEAT")
+   invoke(a,"startRepeat");shadowOf(Looper.getMainLooper()).idleFor(Duration.ofMillis(520));invoke(a,"stopRepeat");assertTrue(events(a).size>=3)
+   press(a,"STOP");events(a).clear();set(a,"levels16",true);set(a,"levels16Type","VELOCITY");set(a,"sourceBank",0);set(a,"sourcePad",0)
+   press(a,"REC");press(a,"PLAY")
+   val hit=TrainerActivity::class.java.getDeclaredMethod("hit",Int::class.javaPrimitiveType,Boolean::class.javaPrimitiveType).apply{isAccessible=true}
+   hit.invoke(a,0,true);hit.invoke(a,7,true);hit.invoke(a,15,true)
+   assertEquals(listOf(8,64,127),events(a).map{it.velocity});press(a,"STOP")
+  }finally{c.pause().stop().destroy()}
+ }
+ @Test fun tcChangesOnlyCurrentTrackAndPitchSurvivesRelaunch(){
+  var c=open();var a=c.get()
+  try{
+   invoke(a,"addTeachingKit");a.adjustSelectedPadPitch(-3)
+   events(a).add(TrainerActivity.Event(0,0,10,0,127));events(a).add(TrainerActivity.Event(0,0,10,1,127));set(a,"tc",16);set(a,"tcShift",5)
+   a.quantizeCurrentTrack();assertEquals(5L,events(a)[0].tick);assertEquals(10L,events(a)[1].tick)
+   c.pause().stop().destroy();c=Robolectric.buildActivity(TrainerActivity::class.java).setup();a=c.get()
+   @Suppress("UNCHECKED_CAST") val pitch=field(a,"padPitch") as Array<IntArray>;assertEquals(-3,pitch[0][0]);assertEquals(2,events(a).size)
   }finally{c.pause().stop().destroy()}
  }
  @Test fun emptyOverdubCannotPassRecordingLesson(){
