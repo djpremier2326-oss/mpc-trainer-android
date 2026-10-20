@@ -13,7 +13,7 @@ class PcmMixer(val outputRate:Int=48000) {
  private val voices=mutableListOf<Voice>();private var serial=0
  @Synchronized fun play(sample:Sample,left:Float,right:Float,rate:Float,done:(()->Unit)?=null):Int{
   if(voices.size>=32)voices.removeAt(0)
-  val id=++serial;voices+=Voice(id,sample,left.coerceIn(0f,1f),right.coerceIn(0f,1f),rate.coerceIn(.5f,2f),done=done);return id
+  val id=++serial;voices+=Voice(id,sample,left.coerceIn(0f,1f),right.coerceIn(0f,1f),rate.coerceIn(.125f,8f),done=done);return id
  }
  @Synchronized fun stop(id:Int){voices.removeAll{it.id==id}}
  @Synchronized fun clear(){voices.clear()}

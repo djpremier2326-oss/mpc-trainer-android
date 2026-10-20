@@ -11,8 +11,8 @@ android {
         applicationId = "com.bytbeat.mpctrainer.learning"
         minSdk = 26
         targetSdk = 35
-        versionCode = 228
-        versionName = "0.2.228"
+        versionCode = 229
+        versionName = "0.2.229"
     }
 
     signingConfigs {

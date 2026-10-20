@@ -13,7 +13,8 @@ import java.util.concurrent.atomic.AtomicInteger
 class UnifiedAudioEngine(private val context:Context) {
  private val main=Handler(Looper.getMainLooper());private val worker=Executors.newSingleThreadExecutor()
  private val next=AtomicInteger();private val allocated=mutableSetOf<Int>();private val samples=mutableMapOf<Int,PcmMixer.Sample>()
- private val mixer=PcmMixer();@Volatile private var closed=false;@Volatile private var output:AudioTrack?=null;private var thread:Thread?=null
+ private val outputRate=(context.getSystemService(Context.AUDIO_SERVICE) as AudioManager).getProperty(AudioManager.PROPERTY_OUTPUT_SAMPLE_RATE)?.toIntOrNull()?.takeIf{it in 8000..192000}?:48000
+ private val mixer=PcmMixer(outputRate);@Volatile private var closed=false;@Volatile private var output:AudioTrack?=null;private var thread:Thread?=null
  private var listener:((UnifiedAudioEngine,Int,Int)->Unit)?=null
  fun setOnLoadCompleteListener(value:((UnifiedAudioEngine,Int,Int)->Unit)?){listener=value}
  fun load(path:String,priority:Int):Int=loadInternal(path,true,null)
@@ -39,8 +40,8 @@ class UnifiedAudioEngine(private val context:Context) {
  @Synchronized private fun ensureOutput(){if(thread?.isAlive==true||closed)return
   thread=Thread({
    try{Process.setThreadPriority(Process.THREAD_PRIORITY_AUDIO)
-    val min=AudioTrack.getMinBufferSize(48000,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_FLOAT).coerceAtLeast(4096)
-    val track=AudioTrack.Builder().setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setAudioFormat(AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_FLOAT).setSampleRate(48000).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).build()).setBufferSizeInBytes(min).setTransferMode(AudioTrack.MODE_STREAM).setPerformanceMode(AudioTrack.PERFORMANCE_MODE_LOW_LATENCY).build()
+    val min=AudioTrack.getMinBufferSize(outputRate,AudioFormat.CHANNEL_OUT_STEREO,AudioFormat.ENCODING_PCM_FLOAT).coerceAtLeast(4096)
+    val track=AudioTrack.Builder().setAudioAttributes(AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_MEDIA).setContentType(AudioAttributes.CONTENT_TYPE_MUSIC).build()).setAudioFormat(AudioFormat.Builder().setEncoding(AudioFormat.ENCODING_PCM_FLOAT).setSampleRate(outputRate).setChannelMask(AudioFormat.CHANNEL_OUT_STEREO).build()).setBufferSizeInBytes(min).setTransferMode(AudioTrack.MODE_STREAM).setPerformanceMode(AudioTrack.PERFORMANCE_MODE_NONE).build()
     if(closed){track.release();return@Thread};output=track;track.setVolume(1f);track.play()
     while(!closed){val (audio,completed)=mixer.render(256);var offset=0;while(offset<audio.size&&!closed){val n=track.write(audio,offset,audio.size-offset,AudioTrack.WRITE_BLOCKING);if(n<=0)break;offset+=n};completed.forEach{it()};if(offset==0&&!closed)break}
    }catch(_:Exception){main.post{if(!closed)android.widget.Toast.makeText(context,"Не удалось запустить аудиовыход",android.widget.Toast.LENGTH_LONG).show()}}
@@ -48,6 +49,7 @@ class UnifiedAudioEngine(private val context:Context) {
   },"MPC-PCM").apply{isDaemon=true;start()}
  }
  fun stop(stream:Int){mixer.stop(stream)}
+ fun stopAll(){mixer.clear()}
  fun unload(id:Int):Boolean=synchronized(samples){allocated.remove(id);samples.remove(id)!=null}
  fun release(){closed=true;listener=null;worker.shutdownNow();mixer.clear();synchronized(samples){samples.clear();allocated.clear()};try{output?.pause();output?.flush()}catch(_:Exception){};main.removeCallbacksAndMessages(null)}
 }
