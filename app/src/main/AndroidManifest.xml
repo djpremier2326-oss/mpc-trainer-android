@@ -3,7 +3,7 @@
     <application
         android:name=".TrainerApp"
         android:allowBackup="true"
-        android:label="MPC Trainer"
+        android:label="MPC Trainer 225"
         android:theme="@style/Theme.MPCTrainer">
         <activity
             android:name=".TrainerActivity"

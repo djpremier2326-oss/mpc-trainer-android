@@ -87,3 +87,18 @@ s=s.replace('e.report("stop",s(pads=2,events=2))','e.report("recorded_pass",s(pa
 s=s.replace('e.report("overdub_stop",','e.report("overdub_pass",')
 p.write_text(s)
 print('Explanatory course, audible examples, understanding checks, practice kit and hardware transport behavior integrated')
+
+
+# Make the actual installed build and the new course unmistakable on first launch.
+p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt');s=p.read_text()
+old=';refreshPads();refreshStatus()}\n private fun densityDp'
+new=';refreshPads();refreshStatus();h.post{showCourseWelcomeIfNeeded()}}\n private fun densityDp'
+if s.count(old)!=1:raise SystemExit('Course welcome startup anchor missing')
+s=s.replace(old,new,1)
+welcome=''' private fun showCourseWelcomeIfNeeded(){if(isFinishing||isDestroyed)return;val prefs=getSharedPreferences("mpc",MODE_PRIVATE);if(prefs.getInt("course_welcome",0)>=225)return;prefs.edit().putInt("course_welcome",225).apply();engine.selectLesson(0,snapshot());saveLesson();learn=true;lessonReady=false;learnCard.visibility=View.VISIBLE;showLesson()}\n'''
+s=s.replace(' private fun renderLessonCard(){',welcome+' private fun renderLessonCard(){',1)
+p.write_text(s)
+p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerApp.kt');s=p.read_text()
+if 'text="MPC TRAINER";' not in s:raise SystemExit('Versioned header anchor missing')
+s=s.replace('text="MPC TRAINER";','text="MPC TRAINER · 225";',1);p.write_text(s)
+print('Course welcome opens after real phone layout initialization; installed header identifies build 225')

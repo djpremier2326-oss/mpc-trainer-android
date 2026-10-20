@@ -31,7 +31,13 @@ class TrainerBehaviorTest {
  private fun open():org.robolectric.android.controller.ActivityController<TrainerActivity>{
   val app=org.robolectric.RuntimeEnvironment.getApplication()
   for(name in listOf("mpc","trainer_v2","learn"))app.getSharedPreferences(name,0).edit().clear().commit()
+  app.getSharedPreferences("mpc",0).edit().putInt("course_welcome",225).commit()
   return Robolectric.buildActivity(TrainerActivity::class.java).setup()
+ }
+ @Test @Config(application=TrainerApp::class) fun realPhoneAppOpensExplanationOnFirstLaunch(){
+  val app=org.robolectric.RuntimeEnvironment.getApplication();app.getSharedPreferences("mpc",0).edit().clear().commit();app.getSharedPreferences("trainer_v2",0).edit().clear().commit()
+  val c=Robolectric.buildActivity(TrainerActivity::class.java).setup();val a=c.get()
+  try{shadowOf(Looper.getMainLooper()).idle();assertTrue(text(a.window.decorView).contains("MPC TRAINER · 225"));val t=text(dialog().window!!.decorView);assertTrue(t.contains("Что это"));assertTrue(t.contains("Зачем это нужно"));assertTrue(t.contains("Sample"));assertTrue(field(a,"learn") as Boolean)}finally{c.pause().stop().destroy()}
  }
  @Test fun learnExplainsConceptsBeforePracticeAndChecksUnderstanding(){
   val c=open();val a=c.get()
