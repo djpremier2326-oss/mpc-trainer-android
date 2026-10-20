@@ -31,6 +31,6 @@ The trainer is an educational subset. This is a code/automated behavior audit, n
 ## Remaining scope and verification limits
 
 - No physical phone/emulator audio latency or touch ergonomics validation is claimed by the JVM Android tests.
-- SoundPool is intended for short one-shot samples; long-source pad playback needs a separate implementation and device verification. Browser preview uses streaming audio.
+- Browser and pads now use the same stereo float PCM mixer and output session. PCM WAV depth and stereo are preserved; compressed sources are decoded through the same import path. There is an explicit 64 MiB per-sample and 128 MiB loaded-sample budget; failures are reported. Android output latency and perceived loudness still require device verification.
 - Tune note recording, undo/redo and full MPC 3 track/arrangement behavior are not yet implemented.
 - UI geometry is not certified by these behavior tests. Teaching text is scrollable in its own dialog, preserving the existing pad surface.

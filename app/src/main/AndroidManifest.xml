@@ -3,7 +3,7 @@
     <application
         android:name="com.bytbeat.mpctrainer.TrainerApp"
         android:allowBackup="true"
-        android:label="MPC Учёба 225"
+        android:label="MPC Учёба 228"
         android:theme="@style/Theme.MPCTrainer">
         <activity
             android:name="com.bytbeat.mpctrainer.TrainerActivity"

@@ -1,75 +1,36 @@
 package com.bytbeat.mpctrainer
 
 import android.content.Context
-import android.media.AudioAttributes
-import android.media.MediaPlayer
 import android.net.Uri
+import android.os.Handler
+import android.os.Looper
+import java.io.File
+import java.util.concurrent.Executors
 
-/** Streaming audition for long WAV/MP3 sources. Pad one-shots remain on SoundPool. */
-class BrowserPreview(private val context: Context) {
-    private var player: MediaPlayer? = null
-    private var generation = 0
-
-    @Synchronized
-    fun play(uri: Uri, onReady: () -> Unit = {}, onError: (String) -> Unit = {}) {
-        val token = ++generation
-        releaseCurrent()
-        try {
-            val next = MediaPlayer()
-            player = next
-            next.setAudioAttributes(
-                AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_MEDIA)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
-                    .build()
-            )
-            next.setDataSource(context, uri)
-            next.setOnPreparedListener {
-                if (token != generation || player !== it) return@setOnPreparedListener
-                onReady()
-                it.start()
-            }
-            next.setOnCompletionListener {
-                if (player === it) stop()
-            }
-            next.setOnErrorListener { mp, what, extra ->
-                if (player === mp) {
-                    onError("Ошибка PREVIEW $what/$extra")
-                    stop()
-                }
-                true
-            }
-            next.prepareAsync()
-        } catch (e: Exception) {
-            if (token == generation) {
-                releaseCurrent()
-                onError(e.message ?: "PREVIEW недоступен")
-            }
-        }
+/** Browser and Sample Edit use exactly the same PCM engine as the pads. */
+class BrowserPreview(private val context:Context,private val engine:UnifiedAudioEngine,private val gain:()->Float={1f}) {
+ private val main=Handler(Looper.getMainLooper());private val files=Executors.newSingleThreadExecutor()
+ @Volatile private var generation=0;private var sound=0;private var stream=0;@Volatile private var active=false;@Volatile private var closed=false
+ @Synchronized fun play(uri:Uri,onReady:()->Unit={},onError:(String)->Unit={}){
+  if(closed)return;stop();val token=generation;active=true
+  files.execute{var temporary:File?=null
+   try{
+    val file=if(uri.scheme=="file")File(uri.path?:error("Нет пути к аудио"))else{
+     File.createTempFile("audition_",".audio",context.cacheDir).also{out->temporary=out;context.contentResolver.openInputStream(uri)?.use{input->out.outputStream().use{input.copyTo(it)}}?:error("Не удалось открыть файл")}
     }
-
-    @Synchronized
-    fun stop() {
-        generation++
-        releaseCurrent()
+    main.post{
+     if(closed||generation!=token){temporary?.delete();return@post}
+     sound=engine.loadPreview(file.absolutePath){id,status->
+      temporary?.delete()
+      if(closed||generation!=token){engine.unload(id);return@loadPreview}
+      if(status!=0){stop();onError("Не удалось декодировать PREVIEW");return@loadPreview}
+      onReady();stream=engine.playPreview(id,gain().coerceIn(0f,1f)){if(generation==token)stop()}
+     }
     }
-
-    @Synchronized
-    fun release() = stop()
-
-    @Synchronized
-    fun isActive(): Boolean = player != null
-
-    private fun releaseCurrent() {
-        val old = player
-        player = null
-        if (old != null) {
-            try { old.setOnPreparedListener(null) } catch (_: Exception) {}
-            try { old.setOnCompletionListener(null) } catch (_: Exception) {}
-            try { old.setOnErrorListener(null) } catch (_: Exception) {}
-            try { old.stop() } catch (_: Exception) {}
-            try { old.reset() } catch (_: Exception) {}
-            try { old.release() } catch (_: Exception) {}
-        }
-    }
+   }catch(e:Exception){temporary?.delete();main.post{if(!closed&&generation==token){stop();onError(e.message?:"PREVIEW недоступен")}}}
+  }
+ }
+ @Synchronized fun stop(){generation++;active=false;if(stream!=0)engine.stop(stream);if(sound!=0)engine.unload(sound);stream=0;sound=0}
+ @Synchronized fun release(){stop();closed=true;files.shutdownNow();main.removeCallbacksAndMessages(null)}
+ fun isActive()=active
 }
