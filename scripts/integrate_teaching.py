@@ -107,7 +107,7 @@ print('Course welcome opens after real phone layout initialization; installed he
 # Scrolling is inside the existing display, so the pad geometry is unchanged.
 p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt');s=p.read_text()
 old='displayFrame.addView(status,FrameLayout.LayoutParams(-1,-1));'
-new='val statusScroll=ScrollView(this).apply{isFillViewport=true;addView(status,ScrollView.LayoutParams(-1,-2))};displayFrame.addView(statusScroll,FrameLayout.LayoutParams(-1,-1));'
+new='val statusScroll=ScrollView(this).apply{isFillViewport=true;addView(status,FrameLayout.LayoutParams(-1,-2))};displayFrame.addView(statusScroll,FrameLayout.LayoutParams(-1,-1));'
 if s.count(old)!=1:raise SystemExit('Scrollable teaching workspace anchor missing')
 s=s.replace(old,new,1)
 old='status.text=displayOverride?:workspaceText()'
