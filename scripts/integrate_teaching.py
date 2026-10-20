@@ -59,7 +59,7 @@ replace(old,''' private fun play(){if(playing)return;displayOverride=null;countI
 old=next(line for line in s.splitlines() if line.startswith(' private fun stopTransport(){'))
 replace(old,''' private fun stopTransport(){displayOverride=null;countInToken++;if(playing)pausedTick=tick();val didRecord=passRecorded;val didOverdub=passOverdub;playing=false;recording=false;recordArmed=false;overdub=false;lastClockTick=-1;h.removeCallbacks(clock);stopRepeat();if(didRecord)report("recorded_pass");if(didOverdub)report("overdub_pass");report(if(didOverdub&&!didRecord)"overdub_stop" else "stop");passRecorded=false;passOverdub=false;saveProject();refreshStatus()}''')
 # Give phone users an explicit equivalent of PLAY START without adding a small row.
-replace('setOnClickListener{click()}}','setOnClickListener{click()};if(label=="PLAY"){setOnLongClickListener{playing=false;recording=false;h.removeCallbacks(clock);pausedTick=0L;play();Toast.makeText(this,"PLAY START • с начала",Toast.LENGTH_SHORT).show();true}}}')
+replace('setOnClickListener{click()}}','setOnClickListener{click()};if(label=="PLAY"){setOnLongClickListener{playing=false;recording=false;h.removeCallbacks(clock);pausedTick=0L;play();Toast.makeText(this@TrainerActivity,"PLAY START • с начала",Toast.LENGTH_SHORT).show();true}}}')
 # Fresh record starts at the beginning; resumable ordinary PLAY retains STOP position.
 
 replace('recordedCycle[e]=loopCycle();saveProject()', 'recordedCycle[e]=loopCycle();if(overdub)passOverdub=true else passRecorded=true;saveProject()')
