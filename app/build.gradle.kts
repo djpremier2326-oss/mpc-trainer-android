@@ -8,11 +8,20 @@ android {
     compileSdk = 35
 
     defaultConfig {
-        applicationId = "com.bytbeat.mpctrainer"
+        applicationId = "com.bytbeat.mpctrainer.learning"
         minSdk = 26
         targetSdk = 35
         versionCode = 225
         versionName = "0.2.225"
+    }
+
+    signingConfigs {
+        getByName("debug") {
+            storeFile = rootProject.file("training-debug.keystore")
+            storePassword = "android"
+            keyAlias = "androiddebugkey"
+            keyPassword = "android"
+        }
     }
 
     buildTypes {

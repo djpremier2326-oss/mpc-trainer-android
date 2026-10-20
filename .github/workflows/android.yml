@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Prepare stable training debug signing key
+        run: base64 --decode signing/training-debug.keystore.b64 > training-debug.keystore
       - name: Set up Java 17
         uses: actions/setup-java@v4
         with:

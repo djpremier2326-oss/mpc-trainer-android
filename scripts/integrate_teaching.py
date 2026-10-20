@@ -102,3 +102,21 @@ p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerApp.kt');s=p.read_text()
 if 'text="MPC TRAINER";' not in s:raise SystemExit('Versioned header anchor missing')
 s=s.replace('text="MPC TRAINER";','text="MPC TRAINER · 225";',1);p.write_text(s)
 print('Course welcome opens after real phone layout initialization; installed header identifies build 225')
+
+# In Learn mode the workspace itself explains the function; the task is separate.
+# Scrolling is inside the existing display, so the pad geometry is unchanged.
+p=Path('app/src/main/java/com/bytbeat/mpctrainer/TrainerActivity.kt');s=p.read_text()
+old='displayFrame.addView(status,FrameLayout.LayoutParams(-1,-1));'
+new='val statusScroll=ScrollView(this).apply{isFillViewport=true;addView(status,ScrollView.LayoutParams(-1,-2))};displayFrame.addView(statusScroll,FrameLayout.LayoutParams(-1,-1));'
+if s.count(old)!=1:raise SystemExit('Scrollable teaching workspace anchor missing')
+s=s.replace(old,new,1)
+old='status.text=displayOverride?:workspaceText()'
+new='status.textSize=if(learn)14f else 12f;status.text=if(learn){val lesson=LessonContent.get(engine.lesson);"${lesson.title}\\n\\n${lesson.meaning}\\n\\nЗАЧЕМ ЭТО НУЖНО\\n${lesson.purpose}\\n\\n${displayOverride?:workspaceText()}"}else displayOverride?:workspaceText()'
+if s.count(old)!=1:raise SystemExit('Inline teaching workspace anchor missing')
+s=s.replace(old,new,1)
+old='Нажми: объяснение • звуковой пример"}'
+new='Нажми: объяснение • звуковой пример";refreshStatus()}'
+if s.count(old)!=1:raise SystemExit('Teaching card refresh anchor missing')
+s=s.replace(old,new,1)
+p.write_text(s)
+print('Meaning and purpose remain visible directly on the MPC display throughout Learn mode')

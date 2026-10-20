@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:name=".TrainerApp"
+        android:name="com.bytbeat.mpctrainer.TrainerApp"
         android:allowBackup="true"
-        android:label="MPC Trainer 225"
+        android:label="MPC Учёба 225"
         android:theme="@style/Theme.MPCTrainer">
         <activity
-            android:name=".TrainerActivity"
+            android:name="com.bytbeat.mpctrainer.TrainerActivity"
             android:screenOrientation="portrait"
             android:exported="true">
             <intent-filter>
