@@ -81,6 +81,8 @@ jobs:
         run: python3 scripts/integrate_unified_audio.py
       - name: Preserve recorded sound parameters and visible unity levels
         run: python3 scripts/integrate_playback_consistency.py
+      - name: Integrate low latency pad output
+        run: python3 scripts/integrate_low_latency.py
       - name: Test trainer core
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build debug APK
