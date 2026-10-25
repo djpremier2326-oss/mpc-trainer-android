@@ -30,10 +30,11 @@ public class PlannerActivity extends Activity {
     private String pendingBackup;
     private boolean pageReady;
     private String pendingOpenDate;
+    private String pendingReminderId;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=20_000_000;
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
-        pendingOpenDate=getIntent().getStringExtra("openDate");
+        pendingOpenDate=getIntent().getStringExtra("openDate");pendingReminderId=getIntent().getStringExtra("openReminderId");
         ReminderScheduler.restore(this);
         web=new WebView(this);
         web.setBackgroundColor(0xffdde5f6);
@@ -67,8 +68,8 @@ public class PlannerActivity extends Activity {
     }
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==201){updateNotificationStatus();if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)configureNotifications();}}
     @Override protected void onResume(){super.onResume();if(web!=null){ReminderScheduler.restore(this);updateNotificationStatus();}}
-    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingOpenDate=intent.getStringExtra("openDate");openPendingDate();}
-    private void openPendingDate(){if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+")",null);}}
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
+    private void openPendingDate(){if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
     public class BackupBridge {
         @JavascriptInterface public String notificationStatus(){return PlannerActivity.this.notificationStatus();}
         @JavascriptInterface public void requestNotifications(){runOnUiThread(()->configureNotifications());}
