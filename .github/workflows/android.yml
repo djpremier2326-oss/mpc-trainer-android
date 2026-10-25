@@ -19,6 +19,8 @@ jobs:
           gradle-version: '8.9'
       - name: Restore stable debug signing
         run: base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
+      - name: Test reminder timing
+        run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build APK
         run: gradle :app:assembleDebug --stacktrace
       - name: Name APK

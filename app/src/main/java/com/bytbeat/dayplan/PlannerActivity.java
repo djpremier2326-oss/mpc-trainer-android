@@ -1,6 +1,12 @@
 package com.bytbeat.dayplan;
 
 import android.app.Activity;
+import android.Manifest;
+import android.content.pm.PackageManager;
+import android.os.Build;
+import android.provider.Settings;
+import android.graphics.Color;
+import android.view.View;
 import android.app.AlertDialog;
 import android.content.Intent;
 import android.net.Uri;
@@ -22,9 +28,13 @@ import org.json.JSONObject;
 public class PlannerActivity extends Activity {
     private WebView web;
     private String pendingBackup;
+    private boolean pageReady;
+    private String pendingOpenDate;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=20_000_000;
     @Override public void onCreate(Bundle saved) {
         super.onCreate(saved);
+        pendingOpenDate=getIntent().getStringExtra("openDate");
+        ReminderScheduler.restore(this);
         web=new WebView(this);
         web.setBackgroundColor(0xffdde5f6);
         setContentView(web);
@@ -36,6 +46,7 @@ public class PlannerActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         web.setWebViewClient(new WebViewClient(){
+            @Override public void onPageFinished(WebView view,String url){pageReady=true;updateNotificationStatus();view.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);openPendingDate();}
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){return !request.getUrl().toString().startsWith("file:///android_asset/");}
         });
         web.setWebChromeClient(new WebChromeClient(){
@@ -46,7 +57,25 @@ public class PlannerActivity extends Activity {
         web.loadUrl("file:///android_asset/index.html");
     }
     private void message(String s){Toast.makeText(this,s,Toast.LENGTH_LONG).show();}
+    private void updateNotificationStatus(){if(web!=null&&pageReady)web.evaluateJavascript("window.receiveNotificationStatus&&window.receiveNotificationStatus("+notificationStatus()+")",null);}
+    private String notificationStatus(){return "{\"supported\":true,\"notifications\":"+ReminderScheduler.notificationsAllowed(this)+",\"exact\":"+ReminderScheduler.exactAllowed(this)+"}";}
+    private void configureNotifications(){
+        if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},201);return;}
+        if(!ReminderScheduler.notificationsAllowed(this)){Intent i=new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE,getPackageName());startActivity(i);return;}
+        if(Build.VERSION.SDK_INT>=31&&!ReminderScheduler.exactAllowed(this)){try{startActivity(new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,Uri.parse("package:"+getPackageName())));}catch(Exception e){message("Открой настройки приложения и разреши точные напоминания");}return;}
+        ReminderScheduler.restore(this);updateNotificationStatus();message("Уведомления включены");
+    }
+    @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==201){updateNotificationStatus();if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)configureNotifications();}}
+    @Override protected void onResume(){super.onResume();if(web!=null){ReminderScheduler.restore(this);updateNotificationStatus();}}
+    @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingOpenDate=intent.getStringExtra("openDate");openPendingDate();}
+    private void openPendingDate(){if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+")",null);}}
     public class BackupBridge {
+        @JavascriptInterface public String notificationStatus(){return PlannerActivity.this.notificationStatus();}
+        @JavascriptInterface public void requestNotifications(){runOnUiThread(()->configureNotifications());}
+        @JavascriptInterface public boolean syncReminders(String json){return ReminderScheduler.sync(PlannerActivity.this,json);}
+        @JavascriptInterface public void testNotification(){runOnUiThread(()->{if(!ReminderScheduler.notificationsAllowed(PlannerActivity.this)){configureNotifications();return;}ReminderScheduler.notify(PlannerActivity.this,"test","Уведомления работают","Напоминания о делах появятся здесь",java.time.LocalDate.now().toString());message("Проверочное уведомление отправлено");});}
+        @JavascriptInterface public void themeColors(String bg,boolean dark){runOnUiThread(()->{try{int color=Color.parseColor(bg);getWindow().setStatusBarColor(color);getWindow().setNavigationBarColor(color);getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);}catch(Exception e){}});}
+
         @JavascriptInterface public void saveBackup(String name,String json){
             if(json==null||json.getBytes(StandardCharsets.UTF_8).length>MAX_BYTES)return;
             runOnUiThread(()->{pendingBackup=json;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name);startActivityForResult(i,SAVE);}catch(Exception e){pendingBackup=null;message("Не удалось открыть выбор файла");}});
