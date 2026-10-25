@@ -9,6 +9,43 @@
 .day-events{display:grid;gap:6px;margin-bottom:12px}.day-events button{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:var(--surface);color:var(--text);border:1px solid var(--border);border-left:4px solid var(--accent);border-radius:10px;padding:10px}.day-events span{font-size:11px;color:var(--accent);white-space:nowrap}.day-events strong{font-size:12px;overflow-wrap:anywhere}.day-events small{margin-left:auto;color:var(--accent)}.cal-reminder{font-size:9px}
 
 body{color-scheme:light}body[data-dark=true]{color-scheme:dark}.tabs [data-tab=events]{flex:0 0 28px;font-size:14px}@media(max-width:400px){.tabs .tab{font-size:10px}.tabs [data-tab=events]{font-size:14px}}
+
+/* Separate page, panels, fields and controls in every palette. */
+.tabs{background:var(--nav-bg);border:1px solid var(--card-edge);box-shadow:0 2px 8px #00000012;gap:2px}
+.tab:not(.active){box-shadow:inset 0 0 0 1px var(--card-edge)}
+.slot{--tint:var(--card);--edge:var(--card-edge);box-shadow:0 3px 9px #00000016}
+.slot[data-color=none] .time{background:var(--inset);border-color:var(--card-edge)}
+.btn,.date-input,.jump,.field input,.field select,.color-trigger,.bell-button,.event-toggle,.swatch,.weekday-options label{background:var(--control);color:var(--control-text);border-color:var(--outline)}
+.btn.primary,.tab.active,.event-toggle[aria-pressed=true]{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.color-trigger,.bell-button{font-weight:650;box-shadow:0 1px 2px #00000015}
+.bell-button.bell-on{background:var(--accent);color:var(--on-accent);border-color:var(--accent)}
+.slot:not([data-color=none]) .color-trigger,.slot:not([data-color=none]) .bell-button{background:#fff9;color:#30435c;border-color:#71829b}
+.slot:not([data-color=none]) textarea::placeholder{color:#56657b}
+.slot:not([data-color=none]) .bell-button.bell-on{background:#334d73;color:#fff;border-color:#334d73}
+.overview,.calendar,.event-card,dialog{background:var(--card);border-color:var(--card-edge);box-shadow:0 3px 9px #00000016}
+.overview-head{background:var(--inset);color:var(--text)}
+.preview-line{border-color:var(--card-edge)}
+.cal-cell{background:var(--control);color:var(--control-text);border-color:var(--outline);box-shadow:0 2px 3px #00000012}
+.cal-cell.outside{background:var(--inset);color:var(--muted);opacity:.6;box-shadow:none}
+.cal-cell.today{border:2px solid var(--accent)}
+.cal-cell.chosen{background:var(--accent);color:var(--on-accent);border-color:var(--accent);box-shadow:0 2px 7px #00000030}
+.cal-cell .cal-count{color:inherit;opacity:.85}
+.savings-top,.saving-stats{background:var(--card);border:1px solid var(--card-edge);border-radius:12px;padding:12px}
+.saving-stats{margin:10px 0 12px}
+.deposit{background:var(--control);color:var(--control-text);border:1px solid var(--outline);box-shadow:0 2px 4px #00000020;min-height:65px}
+.deposit small{color:var(--control-text);opacity:.8}
+.deposit[aria-pressed=true]{background:linear-gradient(145deg,#b5ef85,#63cd54);color:#204a1d;border-color:#4d963a;box-shadow:0 2px 5px #336d2830}
+.deposit[aria-pressed=true] small{color:#2c5826;opacity:1}
+.saving-legend{color:var(--muted)}
+.term-explanation,.permission-banner,.custom-theme{background:var(--inset);border:1px solid var(--card-edge);color:var(--text)}
+.saving-progress{background:var(--nav-bg);border:1px solid var(--outline);height:10px}
+.day-events button{background:var(--card);border-color:var(--card-edge);border-left-color:var(--accent)}
+.dialog-head button{background:var(--control);color:var(--control-text);border:1px solid var(--outline);border-radius:7px;padding:2px 7px 5px;font-size:20px}
+.settings-buttons .danger{color:#9b3027}body[data-dark=true] .settings-buttons .danger{color:#9b3027}
+.settings-theme small{color:var(--control-text);opacity:.8}
+footer button{background:var(--control);color:var(--control-text);border:1px solid var(--outline);border-radius:7px;padding:5px 9px}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline-color:var(--accent)}
+
 </style></head><body><main><nav class="tabs" aria-label="Период"><button class="tab active" data-tab="day">День</button><button class="tab" data-tab="week">Неделя</button><button class="tab" data-tab="month">Месяц</button><button class="tab" data-tab="calendar">Календарь</button><button class="tab" data-tab="savings">Накопления</button><button class="tab" data-tab="events" aria-label="События и напоминания">🔔</button></nav><div class="toolbar"><div><h1 class="date-title" id="title"></h1><p class="sub" id="subtitle"></p></div><div class="nav"><button class="btn arrow" id="prev" aria-label="Предыдущий период">‹</button><label class="sr-only" for="date">Выбрать дату</label><input class="date-input" id="date" type="date"><button class="btn arrow" id="next" aria-label="Следующий период">›</button><button class="btn" id="today">Сегодня</button></div></div><div id="view"></div><footer><span id="save-state" role="status">Сохраняется на этом устройстве</span><button id="settings-open">Настройки</button></footer></main>
 <dialog id="reminder-dialog" aria-labelledby="reminder-title"><form id="reminder-form"><div class="dialog-head"><h2 id="reminder-title">Событие</h2><button type="button" data-close="reminder-dialog" aria-label="Закрыть">×</button></div><input name="reminderId" type="hidden"><label class="field">Название<input name="title" maxlength="500" required placeholder="Например, день рождения"></label><div class="reminder-datetime"><label class="field">Дата<input name="date" type="date" required></label><label class="field">Время<input name="time" type="time" required></label></div><label class="field">Напомнить<select name="lead"><option value="0">В указанное время</option><option value="5">За 5 минут</option><option value="10">За 10 минут</option><option value="15">За 15 минут</option><option value="30">За 30 минут</option><option value="60">За 1 час</option><option value="1440">За 1 день</option></select></label><label class="field">Повтор<select name="repeat"><option value="none">Один раз</option><option value="daily">Каждый день</option><option value="weekly">По дням недели</option><option value="monthly">Каждый месяц</option><option value="yearly">Каждый год</option></select></label><div id="weekday-options" class="weekday-options" hidden><label><input name="weekdays" type="checkbox" value="1">Пн</label><label><input name="weekdays" type="checkbox" value="2">Вт</label><label><input name="weekdays" type="checkbox" value="3">Ср</label><label><input name="weekdays" type="checkbox" value="4">Чт</label><label><input name="weekdays" type="checkbox" value="5">Пт</label><label><input name="weekdays" type="checkbox" value="6">Сб</label><label><input name="weekdays" type="checkbox" value="7">Вс</label></div><p class="dialog-note" id="repeat-help"></p><label class="enabled-reminder"><input type="checkbox" name="enabled" checked>Уведомление включено</label><p id="reminder-error" class="form-error" hidden></p><div class="dialog-actions"><button type="button" class="btn danger" id="reminder-delete" hidden>Удалить</button><button type="submit" class="btn primary">Сохранить</button></div></form></dialog>
 <dialog id="theme-dialog" aria-labelledby="theme-title"><div class="dialog-head"><h2 id="theme-title">Оформление</h2><button data-close="theme-dialog" aria-label="Закрыть">×</button></div><p class="dialog-note">Выбери настроение. Тема применяется сразу и сохраняется.</p><div class="themes-grid" id="themes-grid"></div><section class="custom-theme"><h3>Своя тема</h3><label class="custom-accent-label">Цвет акцента<input id="custom-accent" type="color" value="#52699b"></label><label class="enabled-reminder"><input id="custom-dark" type="checkbox">Тёмный фон</label><button class="btn primary" id="custom-theme-apply">Применить свой цвет</button></section><label class="field">Размер записей<select id="font-size-choice"><option value="small">Компактный</option><option value="normal">Обычный</option><option value="large">Крупный</option></select></label><label class="field">Высота строк расписания<select id="density-choice"><option value="normal">Обычная</option><option value="compact">Компактная</option></select></label></dialog>
@@ -86,6 +123,22 @@ lavender:['Лавандовая','#e9e0f5','#fcf8ff','#423257','#89759e','#d0bde
 rose:['Пыльная роза','#f0dee3','#fff8fa','#573441','#95717e','#dcbac7','#a45675',false],
 sand:['Песочная','#eee0c5','#fff8e8','#504326','#93805b','#d6c092','#9b7630',false],
 graphite:['Графит и лайм','#25292a','#33393a','#eff5e7','#acb8a1','#4e5c4d','#afce63',true]};
+
+const THEME_LAYERS={
+blue:['#c2d2ed','#ffffff','#e5edff','#304d80','#8da7d0','#e4edfc','#b3c8e8'],
+olive:['#cbd2ae','#fffff6','#e0e8c5','#3c5121','#98a66b','#e9edda','#c1cca0'],
+milk:['#e4d7c2','#fffef9','#eee0c8','#59452c','#b9a181','#f1e9db','#d8c7ad'],
+chocolate:['#4b352c','#60483d','#f1ddc3','#4b3023','#a78166','#493329','#8b6852'],
+emerald:['#b1dbbf','#fafffc','#cef0d9','#145c35','#77b38e','#e1f4e8','#9acdab'],
+mono:['#d2d2d2','#ffffff','#e5e5e5','#202020','#969696','#f2f2f2','#bcbcbc'],
+night:['#303944','#3b4654','#d7e2f0','#253449','#73869f','#28313d','#62758f'],
+midnight:['#293e5e','#354e70','#cde2ff','#203e68','#7795bd','#243b5b','#6684ac'],
+lavender:['#d4bee9','#fffbff','#e8d7fa','#5d387a','#b093c8','#f0e6fa','#c1a4dc'],
+rose:['#e4becd','#fffafd','#f3d5e1','#773b56','#c18a9f','#f8e6ed','#d8a7bb'],
+sand:['#dfc797','#fffcf3','#f0dcae','#654b1e','#b69a61','#f6ecd7','#cfb27b'],
+graphite:['#3b4542','#485650','#d8e5bf','#354328','#81977b','#303d35','#6f876a']};
+function themeLayers(t,p){return THEME_LAYERS[p.theme]||(t[7]?['#303c4d','#3d4a5e','#dbe6f5','#253449','#7c91b0','#263347','#647c9d']:['#ccd7e9','#ffffff','#e3ebfa','#30466a','#97aac9','#eef3fb','#b9c8df'])}
+
 const DEFAULT_PREFS={theme:'blue',customAccent:'#52699b',customDark:false,font:'normal',density:'normal'};
 let nativeNotificationState={supported:false,notifications:false,exact:false},lastReminderSync='',reminderSlot=-1,reminderDraftDate='';
 function validPrefs(p){return p&&['blue','olive','milk','chocolate','emerald','mono','night','midnight','lavender','rose','sand','graphite','custom'].includes(p.theme)&&/^#[0-9a-f]{6}$/i.test(p.customAccent)&&typeof p.customDark==='boolean'&&['small','normal','large'].includes(p.font)&&['normal','compact'].includes(p.density)}
@@ -111,7 +164,7 @@ window.receiveNotificationStatus=s=>{nativeNotificationState=s;if(tab==='events'
 window.openReminderDate=(d,id)=>{if(validDate(d))navigate(d,'day');if(id&&state.reminders.some(r=>r.id===id))openReminder(id)};
 window.onAndroidReady=()=>{syncAndroidReminders(true);applyTheme();try{if(window.AndroidFiles?.notificationStatus)window.receiveNotificationStatus(JSON.parse(AndroidFiles.notificationStatus()))}catch(e){}};
 function accentText(hex){const values=hex.slice(1).match(/../g).map(x=>parseInt(x,16)/255).map(v=>v<=.04045?v/12.92:Math.pow((v+.055)/1.055,2.4));const lum=.2126*values[0]+.7152*values[1]+.0722*values[2];return lum>.179?'#121820':'#ffffff'}
-function applyTheme(){const p=state.prefs;let t=THEMES[p.theme];if(!t){const dark=p.customDark;t=['Своя тема',dark?'#191c24':'#e9edf5',dark?'#282d39':'#ffffff',dark?'#edf1fa':'#263247',dark?'#a6b2c7':'#6b7c97',dark?'#48556d':'#c3cede',p.customAccent,dark]}const vars={'--app-bg':t[1],'--surface':t[2],'--text':t[3],'--muted':t[4],'--border':t[5],'--accent':t[6],'--on-accent':accentText(t[6]),'--plan-font':({small:'13px',normal:'15px',large:'18px'})[p.font]};for(const [k,v]of Object.entries(vars))document.documentElement.style.setProperty(k,v);document.body.dataset.dark=String(t[7]);document.body.dataset.density=p.density;if(window.AndroidFiles?.themeColors)AndroidFiles.themeColors(t[1],t[7]);$('theme-current').textContent=t[0]}
+function applyTheme(){const p=state.prefs;let t=THEMES[p.theme];if(!t){const dark=p.customDark;t=['Своя тема',dark?'#191c24':'#e9edf5',dark?'#282d39':'#ffffff',dark?'#edf1fa':'#263247',dark?'#a6b2c7':'#6b7c97',dark?'#48556d':'#c3cede',p.customAccent,dark]}const l=themeLayers(t,p);const vars={'--nav-bg':l[0],'--card':l[1],'--control':l[2],'--control-text':l[3],'--outline':l[4],'--inset':l[5],'--card-edge':l[6],'--app-bg':t[1],'--surface':t[2],'--text':t[3],'--muted':t[4],'--border':t[5],'--accent':t[6],'--on-accent':accentText(t[6]),'--plan-font':({small:'13px',normal:'15px',large:'18px'})[p.font]};for(const [k,v]of Object.entries(vars))document.documentElement.style.setProperty(k,v);document.body.dataset.dark=String(t[7]);document.body.dataset.density=p.density;if(window.AndroidFiles?.themeColors)AndroidFiles.themeColors(t[1],t[7]);$('theme-current').textContent=t[0]}
 function renderThemePicker(){$('themes-grid').innerHTML=Object.entries(THEMES).map(([id,t])=>`<button class="theme-card" data-theme="${id}" aria-pressed="${state.prefs.theme===id}" style="background:${t[1]};color:${t[3]};border-color:${t[5]}"><span class="theme-colors"><i style="background:${t[2]}"></i><i style="background:${t[5]}"></i><i style="background:${t[6]}"></i></span><strong>${t[0]}</strong>${state.prefs.theme===id?'<span class="theme-tick">✓</span>':''}</button>`).join('');$('custom-accent').value=state.prefs.customAccent;$('custom-dark').checked=state.prefs.customDark;$('font-size-choice').value=state.prefs.font;$('density-choice').value=state.prefs.density}
 function initializeExtras(){state.reminders=state.reminders||[];state.prefs={...DEFAULT_PREFS,...(state.prefs||{})};applyTheme();}
 $('reminder-form').onsubmit=e=>{e.preventDefault();try{const r=saveReminderForm(e.target);$('reminder-dialog').close();render();toast(!r.enabled?'Напоминание сохранено и выключено':nextReminder(r)?'Напоминание сохранено':'Сохранено. Указанное время уже прошло.');if(r.enabled&&window.AndroidFiles?.requestNotifications&&(!nativeNotificationState.notifications||!nativeNotificationState.exact))AndroidFiles.requestNotifications()}catch(err){$('reminder-error').textContent=err.message;$('reminder-error').hidden=false}};
