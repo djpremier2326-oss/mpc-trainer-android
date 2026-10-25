@@ -1,18 +1,7 @@
-<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
-    <application
-        android:name=".TrainerApp"
-        android:allowBackup="true"
-        android:label="MPC Trainer"
-        android:theme="@style/Theme.MPCTrainer">
-        <activity
-            android:name=".TrainerActivity"
-            android:screenOrientation="portrait"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
+    <application android:allowBackup="false" android:label="Расписание" android:icon="@drawable/ic_planner" android:theme="@style/AppTheme" android:supportsRtl="true">
+        <activity android:name=".PlannerActivity" android:exported="true" android:configChanges="orientation|screenSize|keyboardHidden" android:windowSoftInputMode="adjustResize">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
         </activity>
     </application>
 </manifest>
