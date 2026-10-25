@@ -95,6 +95,6 @@ public class PlannerActivity extends Activity {
             runOnUiThread(()->web.evaluateJavascript(script,null));
         }catch(Exception e){runOnUiThread(()->message("Не удалось прочитать копию"));}}).start();
     }
-    @Override public void onBackPressed(){web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}return false;})()",closed->{if(!"true".equals(closed))super.onBackPressed();});}
+    @Override public void onBackPressed(){web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))super.onBackPressed();});}
     @Override protected void onDestroy(){if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();}super.onDestroy();}
 }
