@@ -3,11 +3,11 @@ android {
     namespace 'com.bytbeat.dayplan'
     compileSdk 35
     defaultConfig {
-        applicationId 'com.bytbeat.dayplan'
+        applicationId 'com.bytbeat.shiftplan'
         minSdk 26
         targetSdk 34
-        versionCode 17
-        versionName '2.0.1'
+        versionCode 1
+        versionName '1.0.0'
     }
     signingConfigs {
         debug {

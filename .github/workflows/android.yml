@@ -1,7 +1,7 @@
-name: Build Planner APK
+name: Build Shift Planner APK
 on:
   push:
-    branches: [daily-planner-android]
+    branches: [friend-shift-calendar]
   workflow_dispatch:
 permissions:
   contents: read
@@ -24,9 +24,9 @@ jobs:
       - name: Build APK
         run: gradle :app:assembleDebug --stacktrace
       - name: Name APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk raspisanie.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk smeny-2-2.apk
       - uses: actions/upload-artifact@v4
         with:
-          name: raspisanie-apk
-          path: raspisanie.apk
+          name: smeny-2-2-apk
+          path: smeny-2-2.apk
           if-no-files-found: error
