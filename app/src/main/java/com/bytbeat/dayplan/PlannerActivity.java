@@ -30,6 +30,7 @@ public class PlannerActivity extends Activity {
     private String pendingBackup;
     private boolean pageReady;
     private boolean startupRequested;
+    private android.widget.FrameLayout root;
     private String pendingOpenDate;
     private String pendingReminderId;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=20_000_000;
@@ -42,7 +43,8 @@ public class PlannerActivity extends Activity {
         web=new WebView(this);
         web.setBackgroundColor(background);
         web.setVisibility(View.INVISIBLE);
-        setContentView(web);
+        root=new android.widget.FrameLayout(this);root.setBackgroundColor(background);
+        root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(root);
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -66,13 +68,15 @@ public class PlannerActivity extends Activity {
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(color));
         getWindow().setStatusBarColor(color);getWindow().setNavigationBarColor(color);
         getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        if(root!=null)root.setBackgroundColor(color);
         if(web!=null)web.setBackgroundColor(color);
     }
     private void finishStartup(){
         if(web==null||startupRequested)return;startupRequested=true;
         web.postVisualStateCallback(1,new WebView.VisualStateCallback(){@Override public void onComplete(long requestId){
             if(web==null||isFinishing()||isDestroyed())return;
-            web.setVisibility(View.VISIBLE);pageReady=true;
+            web.setAlpha(0f);web.setVisibility(View.VISIBLE);pageReady=true;
+            web.animate().alpha(1f).setDuration(140).setInterpolator(new android.view.animation.DecelerateInterpolator()).start();
             web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
             openPendingDate();
             new Thread(()->ReminderScheduler.restore(PlannerActivity.this)).start();
