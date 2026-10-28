@@ -130,3 +130,5 @@ body[data-design=ice][data-variant=graphite] .ice-week .ice-sunday[aria-current=
 body[data-design=ice][data-variant=graphite] .ice-time-block:not([data-color=none]){border-left-color:var(--ice-mark)}
 body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours,body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours span,body[data-design=ice][data-variant=graphite] .ice-time-block .ice-entry-reminder{color:var(--ice-ink,#050505)}
 body[data-design=ice][data-variant=graphite] .ice-time-block.ice-row-editing{outline:2px solid #000000;outline-offset:-2px}
+
+body[data-design=ice][data-variant=graphite] #ice-undo button{background:#000000;color:#ffffff}
