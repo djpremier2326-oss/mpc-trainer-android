@@ -129,3 +129,6 @@ body[data-design=ice][data-variant=graphite] .ice-week .ice-sunday[aria-current=
 
 body[data-design=ice][data-variant=graphite] .ice-time-block:not([data-color=none]){border-left-color:var(--ice-mark)}
 body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours,body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours span,body[data-design=ice][data-variant=graphite] .ice-time-block .ice-entry-reminder{color:var(--ice-ink,#050505)}
+
+body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell.today:not(.chosen)[data-day-color]{background:#f3f3f3!important;color:#050505!important;border-color:#050505!important;box-shadow:inset 0 0 0 1px #050505}
+body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell.chosen[data-day-color]{background:#3f3f3f!important;color:#f3f3f3!important}
