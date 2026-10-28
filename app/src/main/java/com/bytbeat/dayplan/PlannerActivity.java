@@ -29,6 +29,7 @@ public class PlannerActivity extends Activity {
     private WebView web;
     private String pendingBackup;
     private boolean pageReady;
+    private boolean firstFrameReady;
     private boolean startupRequested;
     private boolean nativeThemeInitialized,nativeDark;
     private int nativeThemeColor;
@@ -47,6 +48,14 @@ public class PlannerActivity extends Activity {
         web.setBackgroundColor(background);
         root=new android.widget.FrameLayout(this);root.setBackgroundColor(background);
         root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(root);
+        // Keep the launch transition on the previous surface until WebView has a real frame.
+        // Do not draw the empty native/WebView background as an intermediate screen.
+        root.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){
+            @Override public boolean onPreDraw(){
+                if(!firstFrameReady)return false;
+                root.getViewTreeObserver().removeOnPreDrawListener(this);return true;
+            }
+        });
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
@@ -78,6 +87,7 @@ public class PlannerActivity extends Activity {
         if(web==null||startupRequested)return;startupRequested=true;
         web.postVisualStateCallback(1,new WebView.VisualStateCallback(){@Override public void onComplete(long requestId){
             if(web==null||isFinishing()||isDestroyed())return;
+            firstFrameReady=true;root.invalidate();
             pageReady=true;
             web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
             openPendingDate();
@@ -129,6 +139,6 @@ public class PlannerActivity extends Activity {
             runOnUiThread(()->web.evaluateJavascript(script,null));
         }catch(Exception e){runOnUiThread(()->message("Не удалось прочитать копию"));}}).start();
     }
-    @Override public void onBackPressed(){web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))super.onBackPressed();});}
+    @Override public void onBackPressed(){web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
     @Override protected void onDestroy(){if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}super.onDestroy();}
 }
