@@ -58,6 +58,9 @@ public class PlannerActivity extends Activity {
         });
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
+        // Retain rasterized tiles while the Activity is behind another app.
+        settings.setOffscreenPreRaster(true);
+        web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT,false);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
