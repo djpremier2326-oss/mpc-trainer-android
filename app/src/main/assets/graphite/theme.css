@@ -108,7 +108,7 @@ body[data-design=ice][data-variant=graphite] .tabs>.tab.active{color:#050505}
 body[data-design=ice][data-variant=graphite] .tabs>.tab.active:after{background:#050505;box-shadow:none}
 body[data-design=ice][data-variant=graphite] .ice-compose{background:#3f3f3f;color:#f3f3f3;box-shadow:0 2px 8px #05050522;flex:none;aspect-ratio:1;border-radius:50%}
 body[data-design=ice][data-variant=graphite] .ice-compose svg{display:block;flex:none}
-body[data-design=ice][data-variant=graphite] .ice-time-block{background:#f3f3f3}
+body[data-design=ice][data-variant=graphite] .ice-time-block{background:var(--ice-card,#f3f3f3)}
 body[data-design=ice][data-variant=graphite] .ice-hours,body[data-design=ice][data-variant=graphite] .ice-entry-reminder{color:#3f3f3f}
 body[data-design=ice][data-variant=graphite] .ice-entry textarea::placeholder{color:#686868}
 body[data-design=ice][data-variant=graphite] .ice-hours span{color:#686868}
@@ -126,3 +126,6 @@ body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell.chosen{ba
 body[data-design=ice][data-variant=graphite] .ice-day-tools i,body[data-design=ice][data-variant=graphite] .overview .day-color-button i{border-color:#8d8d8d}
 body[data-design=ice][data-variant=graphite] dialog::backdrop{background:#05050566}
 body[data-design=ice][data-variant=graphite] .ice-week .ice-sunday[aria-current=date]{color:#ff304f}
+
+body[data-design=ice][data-variant=graphite] .ice-time-block:not([data-color=none]){border-left-color:var(--ice-mark)}
+body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours,body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours span,body[data-design=ice][data-variant=graphite] .ice-time-block .ice-entry-reminder{color:var(--ice-ink,#050505)}
