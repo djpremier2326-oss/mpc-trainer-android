@@ -132,3 +132,15 @@ body[data-design=ice][data-variant=graphite] .ice-time-block .ice-hours,body[dat
 body[data-design=ice][data-variant=graphite] .ice-time-block.ice-row-editing{outline:2px solid #000000;outline-offset:-2px}
 
 body[data-design=ice][data-variant=graphite] #ice-undo button{background:#ffffff;color:#000000}
+
+body[data-design=ice][data-variant=graphite] .saving-goal,
+body[data-design=ice][data-variant=graphite] .savings-top small,
+body[data-design=ice][data-variant=graphite] .goal-name,
+body[data-design=ice][data-variant=graphite] .saving-stats small,
+body[data-design=ice][data-variant=graphite] .saving-stats strong,
+body[data-design=ice][data-variant=graphite] .saving-stats strong.saved-money,
+body[data-design=ice][data-variant=graphite] .deposit:not([aria-pressed=true]),
+body[data-design=ice][data-variant=graphite] .deposit:not([aria-pressed=true]) small,
+body[data-design=ice][data-variant=graphite] .saving-caption,
+body[data-design=ice][data-variant=graphite] .saving-legend,
+body[data-design=ice][data-variant=graphite] .saving-details{color:#000000}
