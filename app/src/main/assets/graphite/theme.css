@@ -1,0 +1,87 @@
+body[data-design=ice][data-variant=graphite]{--ice-cyan:#d5deea;--ice-ink:#19212c;--ice-paper:#e7ebf1;background:#101216;color:#f2f4f7}
+body[data-design=ice][data-variant=graphite] main{background:linear-gradient(155deg,#1b1f26,#0e1014)}
+body[data-design=ice][data-variant=graphite] .ice-home{background:#14171d}
+body[data-design=ice][data-variant=graphite] .tabs{background:linear-gradient(135deg,#1a1e25,#101216);border-top-color:#4d5868}
+body[data-design=ice][data-variant=graphite] .tabs>.tab{color:#aab6c7}
+body[data-design=ice][data-variant=graphite] .tabs>.tab.active{color:#f2f5fa}
+body[data-design=ice][data-variant=graphite] .tabs>.tab.active:after{background:#d5deea;box-shadow:0 0 9px #cbd6e533}
+body[data-design=ice][data-variant=graphite] .ice-compose{background:linear-gradient(135deg,#f0f3f8,#b3c0d1);color:#141b25;box-shadow:0 0 18px #cbd6e51a}
+body[data-design=ice][data-variant=graphite] .ice-week{background:#171b22;border-color:#485464}
+body[data-design=ice][data-variant=graphite] .ice-week button{color:#cad3df}
+body[data-design=ice][data-variant=graphite] .ice-week button[aria-current=date]{background:linear-gradient(135deg,#f4f6f9,#bdc7d5);color:#121820;box-shadow:0 0 12px #c5d3e522}
+body[data-design=ice][data-variant=graphite] .ice-week .ice-sunday{color:#c998a1}
+body[data-design=ice][data-variant=graphite] .ice-week button i{background:#637184}
+body[data-design=ice][data-variant=graphite] .ice-week button i.has-plans{background:#d3dce8}
+body[data-design=ice][data-variant=graphite] .ice-paper{background:linear-gradient(155deg,#e4e8ee,#cfd6df)}
+body[data-design=ice][data-variant=graphite] .ice-day-tools>button{background:#f3f5f8;color:#27364a;border-color:#b8c4d2}
+body[data-design=ice][data-variant=graphite] .ice-time-block{border-color:#b8c4d2;box-shadow:0 3px 9px #10162012}
+body[data-design=ice][data-variant=graphite] .ice-time-block[data-color=none]{border-left-color:#9aabbe}
+body[data-design=ice][data-variant=graphite] .ice-hours{color:var(--ice-ink,#28364a);border-color:#c5cfdb}
+body[data-design=ice][data-variant=graphite] .ice-hours span{color:#718197}
+body[data-design=ice][data-variant=graphite] .ice-time-block .ice-entry,body[data-design=ice][data-variant=graphite] .ice-time-block.has-entry .ice-entry{background:transparent;color:var(--ice-ink);border-color:transparent;box-shadow:none}
+body[data-design=ice][data-variant=graphite] .ice-entry textarea,body[data-design=ice][data-variant=graphite] .ice-time-block.has-entry textarea{color:var(--ice-ink)}
+body[data-design=ice][data-variant=graphite] .ice-entry textarea::placeholder{color:#8490a1}
+body[data-design=ice][data-variant=graphite] .ice-entry-reminder,body[data-design=ice][data-variant=graphite] .ice-time-block.has-entry .ice-entry-reminder{color:inherit}
+body[data-design=ice][data-variant=graphite] .ice-color-button{background:#ced8e333;border-color:#9baec444;color:#27364a}
+body[data-design=ice][data-variant=graphite] .ice-time-block[data-color=none] .ice-color-button i{background:#b8c7db;border-color:#8297b2;box-shadow:0 0 7px #708bac55}
+body[data-design=ice][data-variant=graphite] .ice-time-end{color:#65778e}
+body[data-design=ice][data-variant=graphite] .ice-edit-bar{background:#242b35;color:#f3f5f8;border-color:#4d5a6e}
+body[data-design=ice][data-variant=graphite] .ice-row-done,body[data-design=ice][data-variant=graphite] #ice-edit-done{background:#d4dce7;color:#18212d;border-color:#adbacb}
+body[data-design=ice][data-variant=graphite] .ice-menu-heading{color:#f3f5f8}
+body[data-design=ice][data-variant=graphite] #ice-tools-list button{background:#29323f;color:#e9eef5;border-color:#49586c}
+body[data-design=ice][data-variant=graphite] #ice-tools-list button>span:first-child{background:#d5deea;color:#1c2838}
+body[data-design=ice][data-variant=graphite] #ice-tools-list small{color:#b2bfd0}
+body[data-design=ice][data-variant=graphite] .calendar-month,body[data-design=ice][data-variant=graphite] .savings-top,body[data-design=ice][data-variant=graphite] .saving-stats,body[data-design=ice][data-variant=graphite] .note-card,body[data-design=ice][data-variant=graphite] .deposit:not([aria-pressed=true]),body[data-design=ice][data-variant=graphite] .overview[data-day-color=none]{background:#e9edf3;color:#1b2738;border-color:#c4cedb}
+body[data-design=ice][data-variant=graphite] .note-card{border-left-color:#b2c2d8}
+body[data-design=ice][data-variant=graphite] .note-card p,body[data-design=ice][data-variant=graphite] .note-card small,body[data-design=ice][data-variant=graphite] .note-card .note-pin-label{color:#53667f}
+body[data-design=ice][data-variant=graphite] .saving-goal,body[data-design=ice][data-variant=graphite] .saving-stats strong,body[data-design=ice][data-variant=graphite] .calendar-month h2{color:#172338}
+body[data-design=ice][data-variant=graphite] .saving-stats strong.saved-money{color:#405a7d;text-shadow:none}
+body[data-design=ice][data-variant=graphite] .savings-top small,body[data-design=ice][data-variant=graphite] .goal-name,body[data-design=ice][data-variant=graphite] .saving-stats small,body[data-design=ice][data-variant=graphite] .deposit:not([aria-pressed=true]) small,body[data-design=ice][data-variant=graphite] .calendar-month .weekday{color:#5d708a}
+body[data-design=ice][data-variant=graphite] .saving-progress{background:#283342;border-color:#3f5066}
+body[data-design=ice][data-variant=graphite] .saving-progress i{background:#b9cbe2;box-shadow:0 0 10px #bdcce655}
+body[data-design=ice][data-variant=graphite] .deposit[aria-pressed=true]{background:linear-gradient(145deg,#54677e,#303e51);border-color:#9baec7;color:#fff;box-shadow:0 0 12px #bdcce622}
+body[data-design=ice][data-variant=graphite] .deposit[aria-pressed=true] small,body[data-design=ice][data-variant=graphite] .deposit[aria-pressed=true]::after{color:#d8e3f2}
+body[data-design=ice][data-variant=graphite] .complete-banner{background:#cbd6e5;color:#172338}
+body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell:not(.chosen){background:#f5f7fa;color:#1b2738;border-color:#ced7e4}
+body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell.outside:not(.chosen){background:#e0e6ee;color:#7a8aa1}
+body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell.chosen{background:#627891;color:#fff;border-color:#516880}
+body[data-design=ice][data-variant=graphite] .calendar-month .cal-cell.today{border-color:#101722!important;box-shadow:inset 0 0 0 1px #101722,0 0 9px #c3d0e533}
+body[data-design=ice][data-variant=graphite] .month-watermark{color:#819bbd}
+body[data-design=ice][data-variant=graphite][data-view=week] .overview[data-day-color=none] .overview-head,body[data-design=ice][data-variant=graphite][data-view=week] .overview[data-day-color=none] .preview-line p{color:#1b2738}
+body[data-design=ice][data-variant=graphite][data-view=week] .overview[data-day-color=none] .overview-head small,body[data-design=ice][data-variant=graphite][data-view=week] .overview[data-day-color=none] .empty,body[data-design=ice][data-variant=graphite][data-view=week] .overview[data-day-color=none] .preview-line span{color:#5d708a}
+body[data-design=ice][data-variant=graphite][data-view=week] .overview[data-day-color=none] .preview-line{border-color:#c8d2df}
+body[data-design=ice][data-variant=graphite][data-view=week] .overview.today[data-day-color=none]{border-color:#5b7595}
+body[data-design=ice][data-variant=graphite] .note-format{background:#303a48;border-color:#53647b}
+body[data-design=ice][data-variant=graphite] .note-format .format-btn{background:#46556a;border-color:#6b7e98;color:#f0f4fa}
+body[data-design=ice][data-variant=graphite] .note-format .format-btn[aria-pressed=true],body[data-design=ice][data-variant=graphite] .note-format .note-calc-toggle{background:#d2ddea;color:#1c2838;border-color:#e3e9f2}
+body[data-design=ice][data-variant=graphite] #note-calc-dock .note-calculator{background:#222b38;border-color:#53647b}
+body[data-design=ice][data-variant=graphite] #note-calc-dock .calc-head{background:#46556a;color:#eff4fa}
+body[data-design=ice][data-variant=graphite] #note-calc-dock .calc-head button{background:#5c718c}
+body[data-design=ice][data-variant=graphite] #note-calc-dock .calc-screen{background:#e9edf3;border-color:#b6c5da}
+body[data-design=ice][data-variant=graphite] #note-calc-dock .calc-expression,body[data-design=ice][data-variant=graphite] #note-calc-dock .calc-result{color:#1b2738}
+body[data-design=ice][data-variant=graphite] #note-copy-text{background:#303a48;border-color:#53647b;color:#eff4fa}
+body[data-design=ice][data-variant=graphite] .calc-equals,body[data-design=ice][data-variant=graphite] #calculator-dialog .calc-key.calc-equals{background:#d2ddea;color:#1c2838;border-color:#e3e9f2;box-shadow:0 5px 12px #bdcce622}
+body[data-design=ice][data-variant=graphite] .note-swipe-actions [data-note-pin]{background:#d2ddea;border-color:#e3e9f2;color:#1c2838}
+body[data-design=ice][data-variant=graphite] #ice-undo{background:#283342;border-color:#53647b;color:#eff4fa}
+body[data-design=ice][data-variant=graphite]{--ice-cyan:#dae1e9;--ice-ink:#171c23;--ice-paper:#e5e9ee;background:#101216;color:#f2f4f7}
+body[data-design=ice][data-variant=graphite] main{background:linear-gradient(155deg,#1b1f26,#0e1014)}
+body[data-design=ice][data-variant=graphite] .ice-home{background:#14171d}
+body[data-design=ice][data-variant=graphite] .ice-tribute{background:linear-gradient(120deg,#1b1e24,#111419)}
+body[data-design=ice][data-variant=graphite] .ice-tribute:after{background:linear-gradient(0deg,#14171d 0%,#14171dcc 13%,transparent 45%)}
+body[data-design=ice][data-variant=graphite] .ice-tupac-photo{width:53%;mask-image:linear-gradient(90deg,#000 68%,transparent 100%);-webkit-mask-image:linear-gradient(90deg,#000 68%,transparent 100%)}
+body[data-design=ice][data-variant=graphite] .ice-tupac-photo img{object-position:44% 30%;filter:none}
+body[data-design=ice][data-variant=graphite] .ice-tribute-glow{background:radial-gradient(ellipse,#e6edfa1a,transparent 68%)}
+body[data-design=ice][data-variant=graphite] .ice-tribute-quote p,body[data-design=ice][data-variant=graphite] .ice-tribute-quote .ice-quote-emphasis{color:#f6f7f9;text-shadow:0 0 6px #fff1}
+body[data-design=ice][data-variant=graphite] .ice-tribute-quote cite{color:#c6ceda;text-shadow:0 0 9px #cbd4e844}
+body[data-design=ice][data-variant=graphite] .ice-week button[aria-current=date]{background:linear-gradient(135deg,#f4f6f9,#bdc7d5);color:#121820;box-shadow:0 0 12px #c5d3e522}
+body[data-design=ice][data-variant=graphite] .ice-week .ice-sunday{color:#c998a1}
+body[data-design=ice][data-variant=graphite] .ice-paper{background:linear-gradient(155deg,#e4e8ee,#cfd6df)}
+body[data-design=ice][data-variant=graphite] .ice-color-button{color:#1c2938}
+body[data-design=ice][data-variant=graphite] .ice-color-button i{background:#bac8d8;box-shadow:0 0 5px #93a6bd88}
+body[data-design=ice][data-variant=graphite] .ice-time-block:not([data-color=none]) .ice-color-button i{background:var(--ice-mark)}
+body[data-design=ice][data-variant=graphite] .note-card .note-pin-label{color:#405671}
+.theme-variants{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0 20px}
+.theme-variant{padding:0;overflow:hidden;border:1px solid var(--border);border-radius:13px;background:var(--card);color:var(--text);text-align:left}
+.theme-variant img{width:100%;height:205px;object-fit:cover;object-position:top;display:block}
+.theme-variant span{display:block;padding:10px;font-size:12px;font-weight:650}
+.theme-variant[aria-pressed=true]{outline:2px solid var(--accent);outline-offset:2px}
