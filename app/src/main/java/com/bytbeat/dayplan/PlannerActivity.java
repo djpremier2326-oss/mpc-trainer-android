@@ -72,6 +72,7 @@ public class PlannerActivity extends Activity {
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
     public class BackupBridge {
+        @JavascriptInterface public void hideKeyboard(){runOnUiThread(()->{if(web==null)return;android.view.inputmethod.InputMethodManager keyboard=(android.view.inputmethod.InputMethodManager)getSystemService(INPUT_METHOD_SERVICE);if(keyboard!=null)keyboard.hideSoftInputFromWindow(web.getWindowToken(),0);web.clearFocus();});}
         @JavascriptInterface public String notificationStatus(){return PlannerActivity.this.notificationStatus();}
         @JavascriptInterface public void requestNotifications(){runOnUiThread(()->configureNotifications());}
         @JavascriptInterface public boolean syncReminders(String json){return ReminderScheduler.sync(PlannerActivity.this,json);}
