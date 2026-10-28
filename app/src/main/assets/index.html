@@ -1028,7 +1028,6 @@ $('ice-time-form').addEventListener('submit',e=>{e.preventDefault();const time=e
 initializeExtras();
 if(!state.prefs.mainMenu.includes(tab))tab=state.prefs.mainMenu[0];
 render();
-const startupAssets=[...(document.fonts?[document.fonts.ready]:[]),...Array.from(document.querySelectorAll('main img')).map(img=>img.decode?img.decode().catch(()=>{}):Promise.resolve())];
-Promise.all(startupAssets).then(()=>{document.documentElement.dataset.appReady='true';window.__plannerBooting=false;try{window.AndroidFiles?.uiReady?.()}catch(e){}if(!window.AndroidFiles?.uiReady)requestAnimationFrame(()=>setTimeout(()=>{if(window.__plannerNeedsSave){window.__plannerNeedsSave=false;persist()}},0));});
+document.documentElement.dataset.appReady='true';window.__plannerBooting=false;try{window.AndroidFiles?.uiReady?.()}catch(e){}if(!window.AndroidFiles?.uiReady)requestAnimationFrame(()=>setTimeout(()=>{if(window.__plannerNeedsSave){window.__plannerNeedsSave=false;persist()}},0));
 </script></body></html>
 

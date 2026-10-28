@@ -30,6 +30,9 @@ public class PlannerActivity extends Activity {
     private String pendingBackup;
     private boolean pageReady;
     private boolean startupRequested;
+    private boolean nativeThemeInitialized,nativeDark;
+    private int nativeThemeColor;
+    private String lastNotificationStatus;
     private android.widget.FrameLayout root;
     private String pendingOpenDate;
     private String pendingReminderId;
@@ -42,13 +45,11 @@ public class PlannerActivity extends Activity {
         applyNativeTheme(background,appearance.getBoolean("dark",true));
         web=new WebView(this);
         web.setBackgroundColor(background);
-        web.setVisibility(View.INVISIBLE);
         root=new android.widget.FrameLayout(this);root.setBackgroundColor(background);
         root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));setContentView(root);
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setDomStorageEnabled(true);
-        settings.setOffscreenPreRaster(true);
         settings.setAllowFileAccess(false);
         settings.setAllowContentAccess(false);
         settings.setAllowFileAccessFromFileURLs(false);
@@ -65,6 +66,8 @@ public class PlannerActivity extends Activity {
         web.loadUrl("file:///android_asset/index.html");
     }
     private void applyNativeTheme(int color,boolean dark){
+        if(nativeThemeInitialized&&nativeThemeColor==color&&nativeDark==dark)return;
+        nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(color));
         getWindow().setStatusBarColor(color);getWindow().setNavigationBarColor(color);
         getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
@@ -75,15 +78,14 @@ public class PlannerActivity extends Activity {
         if(web==null||startupRequested)return;startupRequested=true;
         web.postVisualStateCallback(1,new WebView.VisualStateCallback(){@Override public void onComplete(long requestId){
             if(web==null||isFinishing()||isDestroyed())return;
-            web.setAlpha(0f);web.setVisibility(View.VISIBLE);pageReady=true;
-            web.animate().alpha(1f).setDuration(140).setInterpolator(new android.view.animation.DecelerateInterpolator()).start();
+            pageReady=true;
             web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
             openPendingDate();
             new Thread(()->ReminderScheduler.restore(PlannerActivity.this)).start();
         }});
     }
     private void message(String s){Toast.makeText(this,s,Toast.LENGTH_LONG).show();}
-    private void updateNotificationStatus(){if(web!=null&&pageReady)web.evaluateJavascript("window.receiveNotificationStatus&&window.receiveNotificationStatus("+notificationStatus()+")",null);}
+    private void updateNotificationStatus(){if(web==null||!pageReady)return;String status=notificationStatus();if(status.equals(lastNotificationStatus))return;lastNotificationStatus=status;web.evaluateJavascript("window.receiveNotificationStatus&&window.receiveNotificationStatus("+status+")",null);}
     private String notificationStatus(){return "{\"supported\":true,\"notifications\":"+ReminderScheduler.notificationsAllowed(this)+",\"exact\":"+ReminderScheduler.exactAllowed(this)+"}";}
     private void configureNotifications(){
         if(Build.VERSION.SDK_INT>=33&&checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED){requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS},201);return;}
@@ -92,7 +94,7 @@ public class PlannerActivity extends Activity {
         ReminderScheduler.restore(this);updateNotificationStatus();message("Уведомления включены");
     }
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==201){updateNotificationStatus();if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)configureNotifications();}}
-    @Override protected void onResume(){super.onResume();if(web!=null&&pageReady){new Thread(()->ReminderScheduler.restore(PlannerActivity.this)).start();updateNotificationStatus();}}
+    @Override protected void onResume(){super.onResume();if(web!=null&&pageReady)updateNotificationStatus();}
     private void openExternalLink(String value){runOnUiThread(()->{try{if(value==null||value.length()>10000)return;Uri uri=Uri.parse(value);if(!("https".equalsIgnoreCase(uri.getScheme())||"http".equalsIgnoreCase(uri.getScheme()))||uri.getHost()==null){message("Нужна ссылка http или https");return;}Intent intent=new Intent(Intent.ACTION_VIEW,uri);intent.addCategory(Intent.CATEGORY_BROWSABLE);startActivity(intent);}catch(Exception e){message("Не удалось открыть ссылку");}});}
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
