@@ -6,8 +6,8 @@ android {
         applicationId 'com.bytbeat.dayplan'
         minSdk 26
         targetSdk 34
-        versionCode 66
-        versionName '2.3.44'
+        versionCode 67
+        versionName '2.3.45'
     }
     signingConfigs {
         debug {
