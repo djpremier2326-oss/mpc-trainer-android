@@ -6,11 +6,12 @@ android {
     defaultConfig {
         applicationId friendPlanner ? 'com.bytbeat.dayplan.friend' : 'com.bytbeat.dayplan'
         buildConfigField 'boolean', 'FRIEND_SHIFT', friendPlanner ? 'true' : 'false'
-        resValue 'string', 'app_name', friendPlanner ? 'Расписание смен' : 'Расписание'
+        resValue 'string', 'app_name', friendPlanner ? 'Расписание смен' : 'Чёрные дела'
+        manifestPlaceholders = [launcherIcon: friendPlanner ? '@drawable/ic_planner' : '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 78
-        versionName '2.3.56'
+        versionCode 79
+        versionName '2.3.57'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
