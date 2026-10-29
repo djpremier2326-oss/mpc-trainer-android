@@ -112,8 +112,16 @@ public class PlannerActivity extends Activity {
             @Override public boolean onShowFileChooser(WebView view,android.webkit.ValueCallback<Uri[]> callback,WebChromeClient.FileChooserParams params){
                 if(photoCallback!=null)photoCallback.onReceiveValue(null);
                 photoCallback=callback;
-                try{Intent pick=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");startActivityForResult(pick,103);}
-                catch(Exception error){photoCallback=null;callback.onReceiveValue(null);message("Не удалось открыть выбор фотографии");}
+                Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES).setType("image/*");
+                if(Build.VERSION.SDK_INT>=35)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_LAUNCH_TAB,android.provider.MediaStore.PICK_IMAGES_TAB_ALBUMS);
+                Intent gallery=new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI).setType("image/*");
+                Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
+                for(Intent pick:new Intent[]{picker,gallery,fallback}){
+                    try{startActivityForResult(pick,103);return true;}
+                    catch(android.content.ActivityNotFoundException unavailable){}
+                    catch(SecurityException unavailable){}
+                }
+                photoCallback=null;callback.onReceiveValue(null);message("Не удалось открыть галерею");
                 return true;
             }
             @Override public boolean onJsConfirm(WebView v,String url,String message,JsResult result){new AlertDialog.Builder(PlannerActivity.this).setMessage(message).setPositiveButton("Да",(d,w)->result.confirm()).setNegativeButton("Отмена",(d,w)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
