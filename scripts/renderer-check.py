@@ -1,9 +1,12 @@
 import subprocess,time,re,pathlib
 out=pathlib.Path('renderer-evidence');out.mkdir(exist_ok=True)
-def adb(*args):return subprocess.run(['adb',*args],check=True,capture_output=True,timeout=40).stdout.decode(errors='replace')
+def adb(*args):
+ r=subprocess.run(['adb',*args],capture_output=True,timeout=40)
+ if r.returncode:raise RuntimeError(str(args)+': '+r.stderr.decode(errors='replace')+r.stdout.decode(errors='replace'))
+ return r.stdout.decode(errors='replace')
 def logs():return adb('logcat','-d','-t','4000')
 try:
- adb('root');adb('wait-for-device');adb('install','-r','candidate/raspisanie.apk');adb('logcat','-c')
+ adb('wait-for-device');adb('install','-r','candidate/raspisanie.apk');adb('logcat','-c')
  adb('shell','am','start','-W','-n','com.bytbeat.dayplan/.PlannerActivity')
  deadline=time.monotonic()+40
  while 'web frame:' not in logs():
@@ -12,7 +15,7 @@ try:
  host=adb('shell','pidof','com.bytbeat.dayplan').strip()
  text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
  assert matches,'Could not identify this app renderer'
- adb('shell','kill','-9',matches[-1])
+ adb('shell','am','crash',matches[-1])
  deadline=time.monotonic()+40
  while True:
   text=logs()
