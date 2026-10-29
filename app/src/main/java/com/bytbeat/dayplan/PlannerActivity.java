@@ -57,6 +57,7 @@ public class PlannerActivity extends Activity {
         setContentView(root);
         launchCover=new android.widget.FrameLayout(this);
         launchCover.setBackgroundColor(0xff1b1d1e);
+        launchCover.setClickable(true);
         android.widget.ImageView logo=new android.widget.ImageView(this);
         logo.setImageResource(R.mipmap.ic_black_deeds);
         int size=(int)(96*getResources().getDisplayMetrics().density);
