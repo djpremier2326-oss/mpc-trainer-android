@@ -55,8 +55,8 @@ public class PlannerActivity extends Activity {
         root=new android.widget.FrameLayout(this);
         root.setBackgroundColor(0xff8d8d8d);
         startupCover=new android.widget.ImageView(this);
-        startupCover.setImageResource(R.drawable.black_deeds_icon);
-        startupCover.setScaleType(android.widget.ImageView.ScaleType.CENTER_CROP);
+        startupCover.setImageResource(R.drawable.planner_launch_icon);
+        startupCover.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
         startupCover.setContentDescription(getString(R.string.app_name));
         int iconSize=(int)(112*getResources().getDisplayMetrics().density);
         android.widget.FrameLayout.LayoutParams iconLayout=new android.widget.FrameLayout.LayoutParams(iconSize,iconSize,android.view.Gravity.CENTER);
