@@ -28,6 +28,7 @@ import org.json.JSONObject;
 public class PlannerActivity extends Activity {
     private WebView web;
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
+    private android.webkit.ValueCallback<Uri[]> photoCallback;
     private String pendingBackup;
     private boolean pageReady;
     private boolean activityResumed;
@@ -80,7 +81,7 @@ public class PlannerActivity extends Activity {
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT,false);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
-        settings.setAllowContentAccess(false);
+        settings.setAllowContentAccess(true);
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         web.setWebViewClient(new WebViewClient(){
@@ -88,7 +89,7 @@ public class PlannerActivity extends Activity {
                 android.util.Log.e("PlannerRenderer","Renderer exited; crashed="+detail.didCrash());
                 getSharedPreferences("diagnostics",MODE_PRIVATE).edit()
                     .putLong("rendererExitAt",System.currentTimeMillis()).putBoolean("rendererCrashed",detail.didCrash()).apply();
-                if(view==web){web=null;pageReady=false;startupRequested=false;lastNotificationStatus=null;}
+                if(view==web){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}web=null;pageReady=false;startupRequested=false;lastNotificationStatus=null;}
                 root.removeView(view);view.removeJavascriptInterface("AndroidFiles");view.destroy();
                 if(!isFinishing()&&!isDestroyed()){
                     if(rendererRecoveries++==0){root.post(()->initializeWeb(nativeThemeColor));}
@@ -108,6 +109,13 @@ public class PlannerActivity extends Activity {
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){String url=request.getUrl().toString();if(request.isForMainFrame()&&(url.startsWith("https://")||url.startsWith("http://")))openExternalLink(url);return !url.startsWith("file:///android_asset/");}
         });
         web.setWebChromeClient(new WebChromeClient(){
+            @Override public boolean onShowFileChooser(WebView view,android.webkit.ValueCallback<Uri[]> callback,WebChromeClient.FileChooserParams params){
+                if(photoCallback!=null)photoCallback.onReceiveValue(null);
+                photoCallback=callback;
+                try{Intent pick=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");startActivityForResult(pick,103);}
+                catch(Exception error){photoCallback=null;callback.onReceiveValue(null);message("Не удалось открыть выбор фотографии");}
+                return true;
+            }
             @Override public boolean onJsConfirm(WebView v,String url,String message,JsResult result){new AlertDialog.Builder(PlannerActivity.this).setMessage(message).setPositiveButton("Да",(d,w)->result.confirm()).setNegativeButton("Отмена",(d,w)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
             @Override public boolean onJsAlert(WebView v,String url,String message,JsResult result){new AlertDialog.Builder(PlannerActivity.this).setMessage(message).setPositiveButton("ОК",(d,w)->result.confirm()).setOnCancelListener(d->result.confirm()).show();return true;}
         });
@@ -191,6 +199,7 @@ public class PlannerActivity extends Activity {
     }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
+        if(request==103){android.webkit.ValueCallback<Uri[]> callback=photoCallback;photoCallback=null;if(callback!=null)callback.onReceiveValue(result==RESULT_OK&&data!=null&&data.getData()!=null?new Uri[]{data.getData()}:null);return;}
         if(result!=RESULT_OK||data==null||data.getData()==null){if(request==SAVE)pendingBackup=null;return;}
         Uri uri=data.getData();
         if(request==SAVE){String json=pendingBackup;pendingBackup=null;if(json==null){message("Повтори сохранение копии");return;}new Thread(()->{try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")){if(out==null)throw new Exception();out.write(json.getBytes(StandardCharsets.UTF_8));runOnUiThread(()->message("Копия сохранена"));}catch(Exception e){runOnUiThread(()->message("Не удалось сохранить копию"));}}).start();}
@@ -202,5 +211,5 @@ public class PlannerActivity extends Activity {
         }catch(Exception e){runOnUiThread(()->message("Не удалось прочитать копию"));}}).start();
     }
     @Override public void onBackPressed(){if(web==null||!pageReady){moveTaskToBack(true);return;}web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
-    @Override protected void onDestroy(){if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}
+    @Override protected void onDestroy(){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}
 }
