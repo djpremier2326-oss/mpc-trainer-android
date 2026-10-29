@@ -33,6 +33,7 @@ public class PlannerActivity extends Activity {
     private boolean activityResumed;
     private long launchStarted;
     private boolean startupRequested;
+    private int rendererRecoveries;
     private boolean nativeThemeInitialized,nativeDark;
     private int nativeThemeColor;
     private String lastNotificationStatus;
@@ -83,6 +84,24 @@ public class PlannerActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         web.setWebViewClient(new WebViewClient(){
+            @Override public boolean onRenderProcessGone(WebView view,android.webkit.RenderProcessGoneDetail detail){
+                android.util.Log.e("PlannerRenderer","Renderer exited; crashed="+detail.didCrash());
+                getSharedPreferences("diagnostics",MODE_PRIVATE).edit()
+                    .putLong("rendererExitAt",System.currentTimeMillis()).putBoolean("rendererCrashed",detail.didCrash()).apply();
+                if(view==web){web=null;pageReady=false;startupRequested=false;lastNotificationStatus=null;}
+                root.removeView(view);view.removeJavascriptInterface("AndroidFiles");view.destroy();
+                if(!isFinishing()&&!isDestroyed()){
+                    if(rendererRecoveries++==0){root.post(()->initializeWeb(nativeThemeColor));}
+                    else {
+                        android.widget.Button retry=new android.widget.Button(PlannerActivity.this);
+                        retry.setText("Восстановить экран");
+                        android.widget.FrameLayout.LayoutParams params=new android.widget.FrameLayout.LayoutParams(-2,-2,android.view.Gravity.CENTER);
+                        root.addView(retry,params);
+                        retry.setOnClickListener(v->{root.removeView(retry);initializeWeb(nativeThemeColor);});
+                    }
+                }
+                return true;
+            }
             @Override public void onPageFinished(WebView view,String url){
                 if(url.equals("file:///android_asset/index.html"))view.post(()->finishStartup());
             }
