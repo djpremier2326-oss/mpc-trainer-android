@@ -27,9 +27,6 @@ import org.json.JSONObject;
 
 public class PlannerActivity extends Activity {
     private WebView web;
-    private android.widget.ImageView resumeCover;
-    private android.graphics.Bitmap resumeBitmap;
-    private long resumeFrameId;
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
     private String pendingBackup;
     private boolean pageReady;
@@ -44,17 +41,32 @@ public class PlannerActivity extends Activity {
     private String pendingReminderId;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=20_000_000;
     @Override public void onCreate(Bundle saved) {
+        launchStarted=android.os.SystemClock.elapsedRealtime();
         super.onCreate(saved);
         pendingWorkout=getIntent().getBooleanExtra("openWorkout",false);
         pendingOpenDate=getIntent().getStringExtra("openDate");pendingReminderId=getIntent().getStringExtra("openReminderId");
         android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
         int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
         applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
-        launchStarted=android.os.SystemClock.elapsedRealtime();
         root=new android.widget.FrameLayout(this);
         root.setBackgroundColor(background);
         setContentView(root);
-        initializeWeb(background);
+        // Do not touch android.webkit before the asynchronous startup callback.
+        java.util.concurrent.ExecutorService startupExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
+        androidx.webkit.WebViewCompat.startUpWebView(getApplicationContext(),
+            new androidx.webkit.WebViewStartUpConfig.Builder(startupExecutor).build(),
+            new androidx.webkit.WebViewOutcomeReceiver<androidx.webkit.WebViewStartUpResult,androidx.webkit.WebViewStartupException>(){
+                @Override public void onResult(androidx.webkit.WebViewStartUpResult result){
+                    startupExecutor.shutdown();
+                    android.util.Log.i("PlannerStartup","engine ready: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms; UI work="+result.getTotalTimeInUiThreadMillis());
+                    initializeWeb(nativeThemeColor);
+                }
+                @Override public void onError(androidx.webkit.WebViewStartupException error){
+                    startupExecutor.shutdown();
+                    android.util.Log.e("PlannerStartup","Async startup failed; using standard initialization",error);
+                    initializeWeb(nativeThemeColor);
+                }
+            });
     }
     private void initializeWeb(int background){
         if(isFinishing()||isDestroyed()||web!=null)return;
@@ -82,11 +94,6 @@ public class PlannerActivity extends Activity {
         web.addJavascriptInterface(new BackupBridge(),"AndroidFiles");
         web.loadUrl("file:///android_asset/index.html");
     }
-    @Override protected void onStart(){
-        super.onStart();
-        if(Build.VERSION.SDK_INT>=34)overrideActivityTransition(OVERRIDE_TRANSITION_OPEN,R.anim.planner_open,R.anim.planner_hold);
-        else overridePendingTransition(R.anim.planner_open,R.anim.planner_hold);
-    }
     private void applyNativeTheme(int color,boolean dark){
         if(nativeThemeInitialized&&nativeThemeColor==color&&nativeDark==dark)return;
         nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
@@ -103,7 +110,7 @@ public class PlannerActivity extends Activity {
             pageReady=true;
             root.setBackgroundColor(nativeThemeColor);
             android.util.Log.d("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
-            root.invalidate();
+            reportFullyDrawn();
             web.postOnAnimation(()->{
                 if(web==null||isFinishing()||isDestroyed())return;
                 web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
@@ -122,36 +129,20 @@ public class PlannerActivity extends Activity {
         ReminderScheduler.restore(this);updateNotificationStatus();message("Уведомления включены");
     }
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==201){updateNotificationStatus();if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)configureNotifications();}}
-    private void preserveResumeFrame(){
-        if(web==null||root==null||!pageReady||resumeCover!=null||web.getWidth()<1||web.getHeight()<1)return;
-        try{
-            android.graphics.Bitmap frame=android.graphics.Bitmap.createBitmap(web.getWidth(),web.getHeight(),android.graphics.Bitmap.Config.ARGB_8888);
-            web.draw(new android.graphics.Canvas(frame));
-            resumeBitmap=frame;
-            resumeCover=new android.widget.ImageView(this);
-            resumeCover.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
-            resumeCover.setImageBitmap(frame);
-            resumeCover.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            root.addView(resumeCover,new android.widget.FrameLayout.LayoutParams(-1,-1));
-        }catch(RuntimeException|OutOfMemoryError ignored){clearResumeFrame();}
+    @Override protected void onResume(){
+        super.onResume();
+        WorkoutTimer.foreground=true;
+        if(web!=null)web.onResume();
+        if(web!=null&&pageReady){
+            updateNotificationStatus();
+            web.evaluateJavascript("window.onPlannerResume&&window.onPlannerResume()",null);
+        }
     }
-    private void clearResumeFrame(){
-        if(resumeCover!=null){resumeCover.setImageDrawable(null);root.removeView(resumeCover);resumeCover=null;}
-        // Let the render thread release the old display list before GC reclaims the bitmap.
-        resumeBitmap=null;
+    @Override protected void onPause(){
+        WorkoutTimer.foreground=false;
+        if(web!=null)web.onPause();
+        super.onPause();
     }
-    private void revealResumeFrame(){
-        if(web==null||resumeCover==null||!hasWindowFocus())return;
-        final long token=++resumeFrameId;
-        web.postVisualStateCallback(token,new WebView.VisualStateCallback(){@Override public void onComplete(long id){
-            if(web==null||isFinishing()||isDestroyed()||token!=resumeFrameId||!hasWindowFocus())return;
-            web.invalidate();
-            web.postOnAnimation(()->{if(token==resumeFrameId&&hasWindowFocus())clearResumeFrame();});
-        }});
-    }
-    @Override public void onWindowFocusChanged(boolean focused){super.onWindowFocusChanged(focused);if(focused)revealResumeFrame();}
-    @Override protected void onResume(){super.onResume();WorkoutTimer.foreground=true;if(web!=null&&pageReady){updateNotificationStatus();web.evaluateJavascript("window.onPlannerResume&&window.onPlannerResume()",value->revealResumeFrame());}}
-    @Override protected void onPause(){++resumeFrameId;preserveResumeFrame();WorkoutTimer.foreground=false;super.onPause();}
     private void openExternalLink(String value){runOnUiThread(()->{try{if(value==null||value.length()>10000)return;Uri uri=Uri.parse(value);if(!("https".equalsIgnoreCase(uri.getScheme())||"http".equalsIgnoreCase(uri.getScheme()))||uri.getHost()==null){message("Нужна ссылка http или https");return;}Intent intent=new Intent(Intent.ACTION_VIEW,uri);intent.addCategory(Intent.CATEGORY_BROWSABLE);startActivity(intent);}catch(Exception e){message("Не удалось открыть ссылку");}});}
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingWorkout=intent.getBooleanExtra("openWorkout",false);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingWorkout){pendingWorkout=false;web.evaluateJavascript("window.openWorkout&&window.openWorkout()",null);}if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
@@ -189,6 +180,6 @@ public class PlannerActivity extends Activity {
             runOnUiThread(()->web.evaluateJavascript(script,null));
         }catch(Exception e){runOnUiThread(()->message("Не удалось прочитать копию"));}}).start();
     }
-    @Override public void onBackPressed(){web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
+    @Override public void onBackPressed(){if(web==null||!pageReady){moveTaskToBack(true);return;}web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
     @Override protected void onDestroy(){if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}
 }

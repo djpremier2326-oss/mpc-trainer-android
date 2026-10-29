@@ -2,7 +2,7 @@ plugins { id 'com.android.application' }
 def friendPlanner = project.hasProperty('friendPlanner')
 android {
     namespace 'com.bytbeat.dayplan'
-    compileSdk 35
+    compileSdk 36
     defaultConfig {
         applicationId friendPlanner ? 'com.bytbeat.dayplan.friend' : 'com.bytbeat.dayplan'
         buildConfigField 'boolean', 'FRIEND_SHIFT', friendPlanner ? 'true' : 'false'
@@ -10,8 +10,8 @@ android {
         manifestPlaceholders = [launcherIcon: '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 86
-        versionName '2.3.64'
+        versionCode 87
+        versionName '2.3.65'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
@@ -22,8 +22,19 @@ android {
             keyPassword 'android'
         }
     }
+    buildTypes {
+        release {
+            signingConfig signingConfigs.debug
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
-dependencies { testImplementation 'junit:junit:4.13.2' }
+dependencies {
+    implementation 'androidx.webkit:webkit:1.16.0'
+    testImplementation 'junit:junit:4.13.2'
+}
 

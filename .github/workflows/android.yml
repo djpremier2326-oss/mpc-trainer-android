@@ -5,6 +5,7 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+  actions: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,27 +17,62 @@ jobs:
           java-version: '17'
       - uses: gradle/actions/setup-gradle@v4
         with:
-          gradle-version: '8.9'
+          gradle-version: '8.11.1'
       - name: Restore stable debug signing
         run: base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
       - name: Test reminder timing
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build APK
-        run: gradle :app:assembleDebug --stacktrace
+        run: gradle :app:assembleRelease --stacktrace
       - name: Name APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk raspisanie.apk
+        run: cp app/build/outputs/apk/release/app-release.apk raspisanie.apk
       - uses: actions/upload-artifact@v4
         with:
           name: raspisanie-apk
           path: raspisanie.apk
           if-no-files-found: error
       - name: Build friend shift schedule APK
-        run: gradle :app:assembleDebug -PfriendPlanner=true --stacktrace
+        run: gradle :app:assembleRelease -PfriendPlanner=true --stacktrace
       - name: Name friend APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk raspisanie-drug.apk
+        run: cp app/build/outputs/apk/release/app-release.apk raspisanie-drug.apk
       - uses: actions/upload-artifact@v4
         with:
           name: raspisanie-drug-apk
           path: raspisanie-drug.apk
           if-no-files-found: error
+  startup-check:
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: raspisanie-apk
+          path: candidate
+      - uses: actions/download-artifact@v4
+        with:
+          name: raspisanie-apk
+          run-id: 40812188822
+          github-token: ${{ github.token }}
+          path: baseline
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: Compare cold launches and hot resumes on Android 15
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          target: google_apis
+          arch: x86_64
+          profile: pixel_2
+          disable-animations: false
+          script: python3 scripts/startup-check.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: startup-evidence
+          path: startup-evidence/
 
