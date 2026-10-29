@@ -50,7 +50,12 @@ try:
         samples = []
         report[version] = {'cold_web_ready_ms': samples}
         for trial in range(5):
+            # Finish the previous task transition before starting a new process.
+            # Killing/restarting the foreground Activity back-to-back races WM teardown.
+            adb('shell', 'input', 'keyevent', 'KEYCODE_HOME')
+            time.sleep(.7)
             adb('shell', 'am', 'force-stop', PACKAGE)
+            time.sleep(.5)
             adb('logcat', '-c')
             start = launch()
             elapsed, log = ready()
@@ -99,3 +104,5 @@ try:
 finally:
     (OUT / 'results.json').write_text(json.dumps(report, indent=2))
     (OUT / 'last-logcat.txt').write_text(logs())
+    (OUT / 'activity-state.txt').write_text(adb('shell', 'dumpsys', 'activity', 'activities'))
+    (OUT / 'window-state.txt').write_text(adb('shell', 'dumpsys', 'window', 'windows'))
