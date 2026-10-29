@@ -59,6 +59,16 @@ def inspect_baseline():
             if result.get('id') == 1:
                 (OUT / 'baseline-dom.json').write_text(json.dumps(result))
                 break
+        # Verify the user's graphite theme and a saved task survive the signed upgrade.
+        ws.send(json.dumps({'id': 2, 'method': 'Runtime.evaluate', 'params': {
+            'expression': "state.prefs.variant='graphite';applyTheme();updateSlot(new Date().getHours(),'STARTUP_CHECK');persist();render();scrollScheduleToNow();'seeded'",
+            'returnByValue': True}}))
+        while True:
+            result = json.loads(ws.recv())
+            if result.get('id') == 2:
+                assert result.get('result', {}).get('result', {}).get('value') == 'seeded', result
+                (OUT / 'upgrade-seed.json').write_text(json.dumps(result))
+                break
         ws.close()
     except Exception as error:
         (OUT / 'baseline-devtools-error.txt').write_text(str(error))
@@ -99,6 +109,8 @@ try:
         try:
             ui = adb('shell', 'cat', '/sdcard/planner-ui.xml')
             (OUT / f'{version}-ui.xml').write_text(ui)
+            if version == 'candidate':
+                assert 'STARTUP_CHECK' in ui, 'Saved task missing after APK upgrade'
         except subprocess.CalledProcessError:
             report[version]['uiautomator'] = 'idle timeout; review screenshots/video'
 
