@@ -1,0 +1,1 @@
+<resources><style name="AppTheme" parent="@style/PlannerBaseTheme"><item name="android:windowSplashScreenBackground">#8d8d8d</item><item name="android:windowSplashScreenAnimatedIcon">@mipmap/ic_black_deeds</item></style></resources>
