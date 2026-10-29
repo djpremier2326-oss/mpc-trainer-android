@@ -75,8 +75,6 @@ public class PlannerActivity extends Activity {
         root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
-        // Retain rasterized tiles while the Activity is behind another app.
-        settings.setOffscreenPreRaster(true);
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT,false);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
@@ -84,7 +82,9 @@ public class PlannerActivity extends Activity {
         settings.setAllowFileAccessFromFileURLs(false);
         settings.setAllowUniversalAccessFromFileURLs(false);
         web.setWebViewClient(new WebViewClient(){
-            @Override public void onPageFinished(WebView view,String url){if(!startupRequested)view.evaluateJavascript("if(document.documentElement.dataset.appReady===\"true\"){window.AndroidFiles.uiReady();}",null);}
+            @Override public void onPageFinished(WebView view,String url){
+                if(url.equals("file:///android_asset/index.html"))view.post(()->finishStartup());
+            }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){String url=request.getUrl().toString();if(request.isForMainFrame()&&(url.startsWith("https://")||url.startsWith("http://")))openExternalLink(url);return !url.startsWith("file:///android_asset/");}
         });
         web.setWebChromeClient(new WebChromeClient(){
@@ -104,22 +104,13 @@ public class PlannerActivity extends Activity {
         if(web!=null)web.setBackgroundColor(color);
     }
     private void finishStartup(){
-        if(web==null||startupRequested)return;startupRequested=true;
-        web.postVisualStateCallback(1,new WebView.VisualStateCallback(){@Override public void onComplete(long requestId){
-            if(web==null||isFinishing()||isDestroyed())return;
-            pageReady=true;
-            root.setBackgroundColor(nativeThemeColor);
-            web.invalidate();
-            android.util.Log.d("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
-            web.evaluateJavascript("JSON.stringify({ready:document.documentElement.dataset.appReady,visibility:document.visibilityState,mainVisibility:getComputedStyle(document.querySelector('main')).visibility,mainHeight:document.querySelector('main').getBoundingClientRect().height,rows:document.querySelectorAll('[data-ice-slot]').length})",value->android.util.Log.i("PlannerStartup","layout: "+value));
-            reportFullyDrawn();
-            web.postOnAnimation(()->{
-                if(web==null||isFinishing()||isDestroyed())return;
-                web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
-                openPendingDate();
-                new Thread(()->ReminderScheduler.restore(PlannerActivity.this)).start();
-            });
-        }});
+        if(web==null||startupRequested||isFinishing()||isDestroyed())return;
+        startupRequested=true;pageReady=true;
+        android.util.Log.i("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
+        web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
+        openPendingDate();
+        workoutQueue.execute(()->ReminderScheduler.restore(getApplicationContext()));
+        web.postOnAnimation(()->{if(!isFinishing()&&!isDestroyed())reportFullyDrawn();});
     }
     private void message(String s){Toast.makeText(this,s,Toast.LENGTH_LONG).show();}
     private void updateNotificationStatus(){if(web==null||!pageReady)return;String status=notificationStatus();if(status.equals(lastNotificationStatus))return;lastNotificationStatus=status;web.evaluateJavascript("window.receiveNotificationStatus&&window.receiveNotificationStatus("+status+")",null);}
@@ -159,7 +150,6 @@ public class PlannerActivity extends Activity {
         @JavascriptInterface public void requestNotifications(){runOnUiThread(()->configureNotifications());}
         @JavascriptInterface public boolean syncReminders(String json){return ReminderScheduler.sync(PlannerActivity.this,json);}
         @JavascriptInterface public void testNotification(){runOnUiThread(()->{if(!ReminderScheduler.notificationsAllowed(PlannerActivity.this)){configureNotifications();return;}ReminderScheduler.notify(PlannerActivity.this,"test","Уведомления работают","Напоминания о делах появятся здесь",java.time.LocalDate.now().toString());message("Проверочное уведомление отправлено");});}
-        @JavascriptInterface public void uiReady(){runOnUiThread(()->finishStartup());}
         @JavascriptInterface public void themeColors(String bg,boolean dark){runOnUiThread(()->{try{int color=Color.parseColor(bg);getSharedPreferences("appearance",MODE_PRIVATE).edit().putInt("background",color).putBoolean("dark",dark).apply();applyNativeTheme(color,dark);}catch(Exception e){}});}
 
 
