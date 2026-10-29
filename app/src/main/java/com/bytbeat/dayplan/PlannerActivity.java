@@ -83,6 +83,11 @@ public class PlannerActivity extends Activity {
         web.addJavascriptInterface(new BackupBridge(),"AndroidFiles");
         web.loadUrl("file:///android_asset/index.html");
     }
+    @Override protected void onStart(){
+        super.onStart();
+        if(Build.VERSION.SDK_INT>=34)overrideActivityTransition(OVERRIDE_TRANSITION_OPEN,R.anim.planner_open,R.anim.planner_hold);
+        else overridePendingTransition(R.anim.planner_open,R.anim.planner_hold);
+    }
     private void applyNativeTheme(int color,boolean dark){
         if(nativeThemeInitialized&&nativeThemeColor==color&&nativeDark==dark)return;
         nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
