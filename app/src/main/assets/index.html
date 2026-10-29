@@ -1176,8 +1176,9 @@ function scrollScheduleToNow(){
  if(!target)target=paper.querySelector('[data-ice-slot]');
  if(target)paper.scrollTop+=target.getBoundingClientRect().top-paper.getBoundingClientRect().top-8;
 }
-window.onPlannerResume=()=>{scrollScheduleToNow();workoutTick()};
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scrollScheduleToNow()});
+let plannerResumeFrame=0;
+window.onPlannerResume=()=>{cancelAnimationFrame(plannerResumeFrame);plannerResumeFrame=requestAnimationFrame(()=>{plannerResumeFrame=0;scrollScheduleToNow();workoutTick()})};
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&!window.AndroidFiles)window.onPlannerResume()});
 initializeExtras();
 if(!state.prefs.mainMenu.includes(tab))tab=state.prefs.mainMenu[0];
 render();
