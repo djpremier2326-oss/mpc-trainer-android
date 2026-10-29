@@ -858,7 +858,7 @@ function extendCalendar(){if(tab!=='calendar')return;const view=$('view'),stream
 
 let calendarTap=null;
 function tapCalendarDate(d,time){const again=calendarTap&&calendarTap.date===d&&time-calendarTap.time>=0&&time-calendarTap.time<=450;calendarTap=again?null:{date:d,time};if(again){navigate(d,'day');return}selected=d;$('date').value=d;$('top-date').textContent=fmt(d,{weekday:'long',day:'numeric',month:'long',...(d.slice(0,4)!==iso().slice(0,4)?{year:'numeric'}:{})});document.querySelectorAll('.cal-cell').forEach(cell=>{const chosen=cell.dataset.date===d;cell.classList.toggle('chosen',chosen);cell.setAttribute('aria-pressed',String(chosen))})}
-function navigate(d,t=tab){if(!validDate(d))return;calendarTap=null;selected=d;tab=t;render();if(tab!=='calendar')$('view').scrollTop=0}
+function navigate(d,t=tab){if(!validDate(d))return;calendarTap=null;selected=d;tab=t;render();if(tab!=='calendar')$('view').scrollTop=0;if(tab==='day')scrollScheduleToNow()}
 function updateSlot(index,text){const count=slots().length;if(!Number.isInteger(index)||index<0||index>=count)return;const rows=count===24?ensureHourlyDay():(state.days[selected]||(state.days[selected]=blank()));rows[index].text=text;persist();$('subtitle').textContent=(count===24?'00:00–24:00':'06:00–23:00')+' · '+occupied(selected)+' из '+count+' блоков заполнено'}
 function setColor(index,color){if(state.prefs.design==='ice')return setIceSlotColor(selected,index,color);if(!Number.isInteger(index)||index<0||index>=slots().length||!Object.hasOwn(COLORS,color))return false;const rows=slots().length===24?ensureHourlyDay():(state.days[selected]||(state.days[selected]=blank()));rows[index].color=color;persist();return true}
 function copyDay(from,to){if(!validDate(from)||!validDate(to)||from===to)return false;if(!cloneDayReminders(from,to))return false;state.days[to]=(state.days[from]||blank()).map(s=>({...s}));if(state.hourlyDays?.[from]||state.prefs.design==='ice'){state.hourlyDays=state.hourlyDays||{};state.hourlyDays[to]=(state.hourlyDays[from]||makeHourlyRows(from)).map(r=>({...r}))}else if(state.hourlyDays)delete state.hourlyDays[to];if(!state.dayColors[from]||state.dayColors[from]==='none')delete state.dayColors[to];else state.dayColors[to]=state.dayColors[from];if(state.prefs.design==='ice'){const marks=iceMarks();if(marks.days[from])marks.days[to]=marks.days[from];else delete marks.days[to];if(marks.slots[from])marks.slots[to]=marks.slots[from].slice();else delete marks.slots[to]}return persist()}
@@ -1163,9 +1163,20 @@ $('view').addEventListener('touchend',e=>{const t=dayFlowTouch;dayFlowTouch=null
 $('view').addEventListener('touchcancel',()=>{dayFlowTouch=null},{passive:true});
 $('view').addEventListener('wheel',e=>{const paper=e.target.closest('.ice-paper');if(!paper||iceFocusedEditor()||Math.abs(e.deltaY)<10)return;const next=e.deltaY>0&&paper.scrollTop+paper.clientHeight>=paper.scrollHeight-2,previous=e.deltaY<0&&paper.scrollTop<=1;if(next||previous){e.preventDefault();turnScheduleDay(next?1:-1)}},{passive:false});
 
+function scrollScheduleToNow(){
+ if(tab!=='day'||selected!==iso()||state.prefs.design!=='ice'||iceFocusedEditor()||document.querySelector('dialog[open]'))return;
+ const paper=document.querySelector('.ice-paper');if(!paper)return;
+ const now=new Date(),minutes=now.getHours()*60+now.getMinutes();let target=null,best=-1;
+ for(const row of paper.querySelectorAll('[data-ice-slot]')){const value=slots()[Number(row.dataset.iceSlot)].time,[h,m]=value.split(':').map(Number),at=h*60+m;if(at<=minutes&&at>best){target=row;best=at}}
+ if(!target)target=paper.querySelector('[data-ice-slot]');
+ if(target)paper.scrollTop+=target.getBoundingClientRect().top-paper.getBoundingClientRect().top-8;
+}
+window.onPlannerResume=()=>scrollScheduleToNow();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')scrollScheduleToNow()});
 initializeExtras();
 if(!state.prefs.mainMenu.includes(tab))tab=state.prefs.mainMenu[0];
 render();
+scrollScheduleToNow();
 document.documentElement.dataset.appReady='true';window.__plannerBooting=false;try{window.AndroidFiles?.uiReady?.()}catch(e){}if(!window.AndroidFiles?.uiReady)requestAnimationFrame(()=>setTimeout(()=>{if(window.__plannerNeedsSave){window.__plannerNeedsSave=false;persist()}},0));
 </script></body></html>
 

@@ -107,7 +107,7 @@ public class PlannerActivity extends Activity {
         ReminderScheduler.restore(this);updateNotificationStatus();message("Уведомления включены");
     }
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==201){updateNotificationStatus();if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)configureNotifications();}}
-    @Override protected void onResume(){super.onResume();if(web!=null&&pageReady)updateNotificationStatus();}
+    @Override protected void onResume(){super.onResume();if(web!=null&&pageReady){updateNotificationStatus();web.evaluateJavascript("window.onPlannerResume&&window.onPlannerResume()",null);}}
     private void openExternalLink(String value){runOnUiThread(()->{try{if(value==null||value.length()>10000)return;Uri uri=Uri.parse(value);if(!("https".equalsIgnoreCase(uri.getScheme())||"http".equalsIgnoreCase(uri.getScheme()))||uri.getHost()==null){message("Нужна ссылка http или https");return;}Intent intent=new Intent(Intent.ACTION_VIEW,uri);intent.addCategory(Intent.CATEGORY_BROWSABLE);startActivity(intent);}catch(Exception e){message("Не удалось открыть ссылку");}});}
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
