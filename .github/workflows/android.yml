@@ -62,7 +62,7 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Install screenshot verifier
-        run: python3 -m pip install Pillow
+        run: python3 -m pip install Pillow websocket-client
       - name: Compare cold launches and hot resumes on Android 15
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -70,7 +70,7 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          emulator-options: -no-window -gpu swiftshader -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
+          emulator-options: -no-window -gpu software -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
           script: python3 scripts/startup-check.py
       - uses: actions/upload-artifact@v4

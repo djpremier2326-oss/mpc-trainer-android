@@ -10,6 +10,8 @@ import statistics
 import subprocess
 import time
 from PIL import Image
+import urllib.request
+import websocket
 
 OUT = pathlib.Path('startup-evidence')
 OUT.mkdir(exist_ok=True)
@@ -42,6 +44,25 @@ def ready():
 def screenshot(name):
     (OUT / (name + '.png')).write_bytes(adb('exec-out', 'screencap', '-p', binary=True))
 
+def inspect_baseline():
+    # v86 is debuggable: inspect its actual DOM rather than guessing from blank pixels.
+    pid = adb('shell', 'pidof', PACKAGE).strip()
+    try:
+        adb('forward', 'tcp:9222', 'localabstract:webview_devtools_remote_' + pid)
+        targets = json.load(urllib.request.urlopen('http://127.0.0.1:9222/json'))
+        (OUT / 'baseline-devtools-targets.json').write_text(json.dumps(targets))
+        ws = websocket.create_connection(targets[0]['webSocketDebuggerUrl'], timeout=8, suppress_origin=True)
+        expression = "JSON.stringify({ready:document.documentElement.dataset.appReady,visibility:document.visibilityState,width:innerWidth,height:innerHeight,bodyHeight:document.body.getBoundingClientRect().height,mainHeight:document.querySelector('main').getBoundingClientRect().height,mainVisibility:getComputedStyle(document.querySelector('main')).visibility,rows:document.querySelectorAll('[data-ice-slot]').length})"
+        ws.send(json.dumps({'id': 1, 'method': 'Runtime.evaluate', 'params': {'expression': expression, 'returnByValue': True}}))
+        while True:
+            result = json.loads(ws.recv())
+            if result.get('id') == 1:
+                (OUT / 'baseline-dom.json').write_text(json.dumps(result))
+                break
+        ws.close()
+    except Exception as error:
+        (OUT / 'baseline-devtools-error.txt').write_text(str(error))
+
 report = {'android': adb('shell', 'getprop', 'ro.build.version.release').strip(),
           'webview': adb('shell', 'dumpsys', 'webviewupdate')}
 try:
@@ -65,6 +86,8 @@ try:
             screenshot(f'{version}-cold-{trial}')
         time.sleep(3)
         screenshot(f'{version}-settled')
+        if version == 'baseline':
+            inspect_baseline()
         if version == 'candidate':
             im = Image.open(OUT / f'{version}-settled.png').convert('RGB')
             center = im.crop((0, im.height // 5, im.width, im.height * 4 // 5))

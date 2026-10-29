@@ -1210,6 +1210,6 @@ if(!state.prefs.mainMenu.includes(tab))tab=state.prefs.mainMenu[0];
 render();
 scrollScheduleToNow();
 workoutInit();
-document.documentElement.dataset.appReady='true';window.__plannerBooting=false;if(!window.AndroidFiles)requestAnimationFrame(()=>setTimeout(()=>{if(window.__plannerNeedsSave){window.__plannerNeedsSave=false;persist()}},0));
+document.documentElement.dataset.appReady='true';window.__plannerBooting=false;try{window.AndroidFiles?.startupMetrics?.(JSON.stringify({ready:true,visibility:document.visibilityState,width:innerWidth,height:innerHeight,bodyHeight:document.body.getBoundingClientRect().height,mainHeight:document.querySelector('main').getBoundingClientRect().height,mainVisibility:getComputedStyle(document.querySelector('main')).visibility,rows:document.querySelectorAll('[data-ice-slot]').length}))}catch(e){};if(!window.AndroidFiles)requestAnimationFrame(()=>setTimeout(()=>{if(window.__plannerNeedsSave){window.__plannerNeedsSave=false;persist()}},0));
 </script></body></html>
 
