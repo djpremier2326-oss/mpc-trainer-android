@@ -70,7 +70,9 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_2
-          emulator-options: -no-window -gpu software -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
+          emulator-build: 13025442
+          ram-size: 2048M
+          emulator-options: -no-window -gpu swiftshader_indirect -feature -Vulkan -no-snapshot -noaudio -no-boot-anim
           disable-animations: false
           script: python3 scripts/startup-check.py
       - uses: actions/upload-artifact@v4

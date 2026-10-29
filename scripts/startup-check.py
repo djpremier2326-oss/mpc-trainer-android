@@ -4,6 +4,7 @@ Keep raw evidence: timings, logs, UI dumps, screenshots and hot-return video.
 The WebView-ready log is checked in addition to am's native-window timing.
 """
 import json
+import base64
 import pathlib
 import re
 import statistics
@@ -59,6 +60,14 @@ def inspect_baseline():
             if result.get('id') == 1:
                 (OUT / 'baseline-dom.json').write_text(json.dumps(result))
                 break
+        ws.send(json.dumps({'id': 3, 'method': 'Page.captureScreenshot', 'params': {'format': 'png'}}))
+        while True:
+            result = json.loads(ws.recv())
+            if result.get('id') == 3:
+                if 'data' in result.get('result', {}):
+                    (OUT / 'baseline-compositor.png').write_bytes(base64.b64decode(result['result']['data']))
+                break
+        screenshot('baseline-after-compositor')
         # Verify the user's graphite theme and a saved task survive the signed upgrade.
         ws.send(json.dumps({'id': 2, 'method': 'Runtime.evaluate', 'params': {
             'expression': "state.prefs.variant='graphite';applyTheme();updateSlot(new Date().getHours(),'STARTUP_CHECK');persist();render();scrollScheduleToNow();'seeded'",
