@@ -101,6 +101,9 @@ public class PlannerActivity extends Activity {
     private void applyNativeTheme(int color,boolean dark){
         if(nativeThemeInitialized&&nativeThemeColor==color&&nativeDark==dark)return;
         nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
+        // Persist the selected launch theme in Android itself, before the next process starts.
+        if(Build.VERSION.SDK_INT>=31)getSplashScreen().setSplashScreenTheme(
+            color==0xff8d8d8d?R.style.PlannerGraphiteLaunchTheme:R.style.PlannerIceLaunchTheme);
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(color));
         getWindow().setStatusBarColor(color);getWindow().setNavigationBarColor(color);
         getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
