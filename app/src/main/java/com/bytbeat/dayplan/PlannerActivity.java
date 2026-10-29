@@ -44,6 +44,23 @@ public class PlannerActivity extends Activity {
     private boolean pendingWorkout;
     private String pendingReminderId;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=20_000_000;
+    private android.graphics.drawable.Drawable createLaunchArtwork(){
+        final android.graphics.Bitmap photo=android.graphics.BitmapFactory.decodeResource(getResources(),R.drawable.planner_launch_photo);
+        return new android.graphics.drawable.Drawable(){
+            private final android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG);
+            @Override public void draw(android.graphics.Canvas canvas){
+                android.graphics.Rect bounds=getBounds();
+                canvas.drawColor(android.graphics.Color.BLACK);
+                float scale=Math.min(bounds.width()/(float)photo.getWidth(),bounds.height()/(float)photo.getHeight());
+                float w=photo.getWidth()*scale,h=photo.getHeight()*scale;
+                float x=bounds.left+(bounds.width()-w)/2f,y=bounds.top+(bounds.height()-h)/2f;
+                canvas.drawBitmap(photo,null,new android.graphics.RectF(x,y,x+w,y+h),paint);
+            }
+            @Override public void setAlpha(int alpha){paint.setAlpha(alpha);}
+            @Override public void setColorFilter(android.graphics.ColorFilter filter){paint.setColorFilter(filter);}
+            @Override public int getOpacity(){return android.graphics.PixelFormat.OPAQUE;}
+        };
+    }
     @Override public void onCreate(Bundle saved) {
         launchStarted=android.os.SystemClock.elapsedRealtime();
         super.onCreate(saved);
@@ -52,16 +69,17 @@ public class PlannerActivity extends Activity {
         android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
         int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
         applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
+        getWindow().setBackgroundDrawable(createLaunchArtwork());
         root=new android.widget.FrameLayout(this);
-        root.setBackgroundColor(0xffb0b5bb);
+        root.setBackgroundColor(0xff000000);
         setContentView(root);
         launchCover=new android.widget.FrameLayout(this);
-        launchCover.setBackgroundColor(0xffb0b5bb);
+        launchCover.setBackgroundColor(0xff000000);
         launchCover.setClickable(true);
         // Draw in window coordinates, exactly like windowBackground. Content insets
         // must crop the artwork rather than resize it and move the bullet holes.
         View artwork=new View(this){
-            private final android.graphics.drawable.Drawable image=getResources().getDrawable(R.drawable.planner_launch,getTheme());
+            private final android.graphics.drawable.Drawable image=createLaunchArtwork();
             private final int[] origin=new int[2];
             @Override protected void onDraw(android.graphics.Canvas canvas){
                 super.onDraw(canvas);
@@ -161,7 +179,7 @@ public class PlannerActivity extends Activity {
         // Persist the selected launch theme in Android itself, before the next process starts.
         if(Build.VERSION.SDK_INT>=31)getSplashScreen().setSplashScreenTheme(
             R.style.PlannerIceLaunchTheme);
-        int chrome=(!pageReady||launchCover!=null)?0xffb0b5bb:color;
+        int chrome=(!pageReady||launchCover!=null)?0xff000000:color;
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(chrome));
         getWindow().setStatusBarColor(chrome);getWindow().setNavigationBarColor(chrome);
         getWindow().getDecorView().setSystemUiVisibility((!pageReady||launchCover!=null||dark)?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
