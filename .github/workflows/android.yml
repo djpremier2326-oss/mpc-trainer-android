@@ -3,6 +3,11 @@ on:
   push:
     branches: [daily-planner-android]
   workflow_dispatch:
+    inputs:
+      startup_baseline_run:
+        description: "Optional workflow run containing baseline raspisanie-apk for upgrade/startup comparison"
+        required: false
+        type: string
 permissions:
   contents: read
   actions: read
@@ -41,6 +46,7 @@ jobs:
           path: raspisanie-drug.apk
           if-no-files-found: error
   startup-check:
+    if: github.event_name == 'workflow_dispatch' && inputs.startup_baseline_run != ''
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 25
@@ -53,7 +59,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           name: raspisanie-apk
-          run-id: 40812188822
+          run-id: ${{ inputs.startup_baseline_run }}
           github-token: ${{ github.token }}
           path: baseline
       - name: Enable KVM
