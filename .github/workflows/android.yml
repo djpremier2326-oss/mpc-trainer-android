@@ -30,3 +30,13 @@ jobs:
           name: raspisanie-apk
           path: raspisanie.apk
           if-no-files-found: error
+      - name: Build friend shift schedule APK
+        run: gradle :app:assembleDebug -PfriendPlanner=true --stacktrace
+      - name: Name friend APK
+        run: cp app/build/outputs/apk/debug/app-debug.apk raspisanie-drug.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: raspisanie-drug-apk
+          path: raspisanie-drug.apk
+          if-no-files-found: error
+
