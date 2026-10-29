@@ -53,19 +53,15 @@ public class PlannerActivity extends Activity {
         int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
         applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
         root=new android.widget.FrameLayout(this);
-        root.setBackgroundColor(0xff1b1d1e);
+        root.setBackgroundColor(0xffb0b5bb);
         setContentView(root);
         launchCover=new android.widget.FrameLayout(this);
-        launchCover.setBackgroundColor(0xff1b1d1e);
+        launchCover.setBackgroundColor(0xffb0b5bb);
         launchCover.setClickable(true);
-        android.widget.ImageView logo=new android.widget.ImageView(this);
-        logo.setImageResource(R.mipmap.ic_black_deeds);
-        int size=(int)(96*getResources().getDisplayMetrics().density);
-        launchCover.addView(logo,new android.widget.FrameLayout.LayoutParams(size,size,android.view.Gravity.CENTER));
-        android.widget.TextView brand=new android.widget.TextView(this);
-        brand.setText("Чёрные дела");brand.setTextColor(Color.WHITE);brand.setTextSize(24);brand.setGravity(android.view.Gravity.CENTER);brand.setTypeface(android.graphics.Typeface.DEFAULT,android.graphics.Typeface.BOLD);
-        brand.setTranslationY(80*getResources().getDisplayMetrics().density);
-        launchCover.addView(brand,new android.widget.FrameLayout.LayoutParams(-1,-2,android.view.Gravity.CENTER));
+        android.widget.ImageView artwork=new android.widget.ImageView(this);
+        artwork.setImageResource(R.drawable.planner_launch_art);
+        artwork.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        launchCover.addView(artwork,new android.widget.FrameLayout.LayoutParams(-1,-1));
         root.addView(launchCover,new android.widget.FrameLayout.LayoutParams(-1,-1));
         // Do not touch android.webkit before the asynchronous startup callback.
         java.util.concurrent.ExecutorService startupExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -152,7 +148,7 @@ public class PlannerActivity extends Activity {
         // Persist the selected launch theme in Android itself, before the next process starts.
         if(Build.VERSION.SDK_INT>=31)getSplashScreen().setSplashScreenTheme(
             R.style.PlannerIceLaunchTheme);
-        int chrome=(!pageReady||launchCover!=null)?0xff1b1d1e:color;
+        int chrome=(!pageReady||launchCover!=null)?0xffb0b5bb:color;
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(chrome));
         getWindow().setStatusBarColor(chrome);getWindow().setNavigationBarColor(chrome);
         getWindow().getDecorView().setSystemUiVisibility((!pageReady||launchCover!=null||dark)?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
@@ -164,7 +160,7 @@ public class PlannerActivity extends Activity {
         startupRequested=true;pageReady=true;
         android.util.Log.i("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
         web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
-        if(launchCover!=null){final WebView current=web;current.postVisualStateCallback(100,new WebView.VisualStateCallback(){@Override public void onComplete(long id){current.postOnAnimation(()->{if(web!=current||isFinishing()||isDestroyed())return;if(launchCover!=null){root.removeView(launchCover);launchCover=null;root.setBackgroundColor(nativeThemeColor);nativeThemeInitialized=false;applyNativeTheme(nativeThemeColor,nativeDark);}});}});}
+        if(launchCover!=null){final WebView current=web;current.postOnAnimation(()->{if(web!=current||isFinishing()||isDestroyed())return;root.removeView(launchCover);launchCover=null;root.setBackgroundColor(nativeThemeColor);nativeThemeInitialized=false;applyNativeTheme(nativeThemeColor,nativeDark);});}
         openPendingDate();
         workoutQueue.execute(()->ReminderScheduler.restore(getApplicationContext()));
         web.postOnAnimation(()->{if(!isFinishing()&&!isDestroyed())reportFullyDrawn();});
