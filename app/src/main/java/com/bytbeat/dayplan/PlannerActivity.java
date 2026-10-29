@@ -30,6 +30,7 @@ public class PlannerActivity extends Activity {
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
     private String pendingBackup;
     private boolean pageReady;
+    private boolean activityResumed;
     private long launchStarted;
     private boolean startupRequested;
     private boolean nativeThemeInitialized,nativeDark;
@@ -92,6 +93,9 @@ public class PlannerActivity extends Activity {
             @Override public boolean onJsAlert(WebView v,String url,String message,JsResult result){new AlertDialog.Builder(PlannerActivity.this).setMessage(message).setPositiveButton("ОК",(d,w)->result.confirm()).setOnCancelListener(d->result.confirm()).show();return true;}
         });
         web.addJavascriptInterface(new BackupBridge(),"AndroidFiles");
+        // Async creation can finish after Activity.onResume or after it went to background.
+        // Newly attached WebView must receive the current lifecycle state in both cases.
+        if(activityResumed)web.onResume();else web.onPause();
         web.loadUrl("file:///android_asset/index.html");
     }
     private void applyNativeTheme(int color,boolean dark){
@@ -124,6 +128,7 @@ public class PlannerActivity extends Activity {
     @Override public void onRequestPermissionsResult(int request,String[] permissions,int[] results){super.onRequestPermissionsResult(request,permissions,results);if(request==201){updateNotificationStatus();if(results.length>0&&results[0]==PackageManager.PERMISSION_GRANTED)configureNotifications();}}
     @Override protected void onResume(){
         super.onResume();
+        activityResumed=true;
         WorkoutTimer.foreground=true;
         if(web!=null)web.onResume();
         if(web!=null&&pageReady){
@@ -132,6 +137,7 @@ public class PlannerActivity extends Activity {
         }
     }
     @Override protected void onPause(){
+        activityResumed=false;
         WorkoutTimer.foreground=false;
         if(web!=null)web.onPause();
         super.onPause();
