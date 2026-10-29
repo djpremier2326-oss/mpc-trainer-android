@@ -8,6 +8,7 @@ def logs():return adb('logcat','-d','-t','4000')
 try:
  adb('wait-for-device');adb('install','-r','candidate/raspisanie.apk');adb('logcat','-c')
  adb('shell','am','start','-W','-n','com.bytbeat.dayplan/.PlannerActivity')
+ subprocess.run(['adb','exec-out','screencap','-p'],stdout=(out/'cold-launch.png').open('wb'),check=True,timeout=20)
  deadline=time.monotonic()+40
  while 'web frame:' not in logs():
   assert time.monotonic()<deadline,'Initial page did not load'
