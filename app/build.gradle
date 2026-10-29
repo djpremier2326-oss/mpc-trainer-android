@@ -9,8 +9,8 @@ android {
         resValue 'string', 'app_name', friendPlanner ? 'Расписание смен' : 'Расписание'
         minSdk 26
         targetSdk 34
-        versionCode 77
-        versionName '2.3.55'
+        versionCode 78
+        versionName '2.3.56'
     }
     buildFeatures { buildConfig true }
     signingConfigs {

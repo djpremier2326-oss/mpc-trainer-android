@@ -45,8 +45,8 @@ public class PlannerActivity extends Activity {
         pendingWorkout=getIntent().getBooleanExtra("openWorkout",false);
         pendingOpenDate=getIntent().getStringExtra("openDate");pendingReminderId=getIntent().getStringExtra("openReminderId");
         android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
-        int background=appearance.getInt("background",0xff03192e);
-        applyNativeTheme(background,appearance.getBoolean("dark",true));
+        int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
+        applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
         web=new WebView(this);
         web.setBackgroundColor(background);
         root=new android.widget.FrameLayout(this);root.setBackgroundColor(background);

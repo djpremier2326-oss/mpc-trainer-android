@@ -144,3 +144,5 @@ body[data-design=ice][data-variant=graphite] .deposit:not([aria-pressed=true]) s
 body[data-design=ice][data-variant=graphite] .saving-caption,
 body[data-design=ice][data-variant=graphite] .saving-legend,
 body[data-design=ice][data-variant=graphite] .saving-details{color:#000000}
+
+body[data-design=ice][data-friend-schedule=true] .calendar-month .cal-cell.today{border-color:#ff0000!important;box-shadow:inset 0 0 0 1px #ff0000!important;opacity:1}
