@@ -9,6 +9,7 @@ import re
 import statistics
 import subprocess
 import time
+from PIL import Image
 
 OUT = pathlib.Path('startup-evidence')
 OUT.mkdir(exist_ok=True)
@@ -59,6 +60,10 @@ try:
             screenshot(f'{version}-cold-{trial}')
         time.sleep(3)
         screenshot(f'{version}-settled')
+        if version == 'candidate':
+            im = Image.open(OUT / f'{version}-settled.png').convert('RGB')
+            center = im.crop((0, im.height // 5, im.width, im.height * 4 // 5))
+            assert len(center.getcolors(center.width * center.height)) > 1000, 'Ready signal fired but screen is blank'
         # uiautomator's waitForIdle can time out on animated WebView content.
         # Preserve its result, but don't abort comparison of both APKs on this.
         dump = adb('shell', 'uiautomator', 'dump', '/sdcard/planner-ui.xml')

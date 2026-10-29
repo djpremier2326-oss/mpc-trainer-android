@@ -71,6 +71,9 @@ public class PlannerActivity extends Activity {
     private void initializeWeb(int background){
         if(isFinishing()||isDestroyed()||web!=null)return;
         web=new WebView(this);
+        // Keep it attached and measured, but reveal only the prepared compositor frame.
+        // VisualStateCallback guarantees the next draw, not that a draw already occurred.
+        web.setVisibility(View.INVISIBLE);
         web.setBackgroundColor(background);
         root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));
         WebSettings settings=web.getSettings();
@@ -109,6 +112,8 @@ public class PlannerActivity extends Activity {
             if(web==null||isFinishing()||isDestroyed())return;
             pageReady=true;
             root.setBackgroundColor(nativeThemeColor);
+            web.setVisibility(View.VISIBLE);
+            web.invalidate();
             android.util.Log.d("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
             reportFullyDrawn();
             web.postOnAnimation(()->{
