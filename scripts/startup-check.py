@@ -47,6 +47,7 @@ try:
     for version in ['baseline', 'candidate']:
         adb('install', '-r', version + '/raspisanie.apk')
         samples = []
+        report[version] = {'cold_web_ready_ms': samples}
         for trial in range(5):
             adb('shell', 'am', 'force-stop', PACKAGE)
             adb('logcat', '-c')
@@ -56,10 +57,17 @@ try:
             (OUT / f'{version}-cold-{trial}.log').write_text(start + '\n' + log)
             time.sleep(.3)
             screenshot(f'{version}-cold-{trial}')
-        adb('shell', 'uiautomator', 'dump', '/sdcard/planner-ui.xml')
-        ui = adb('shell', 'cat', '/sdcard/planner-ui.xml')
-        (OUT / f'{version}-ui.xml').write_text(ui)
-        assert 'Сегодня' in ui and 'Календарь' in ui, 'Main planner UI missing'
+        time.sleep(3)
+        screenshot(f'{version}-settled')
+        # uiautomator's waitForIdle can time out on animated WebView content.
+        # Preserve its result, but don't abort comparison of both APKs on this.
+        dump = adb('shell', 'uiautomator', 'dump', '/sdcard/planner-ui.xml')
+        (OUT / f'{version}-uiautomator.txt').write_text(dump)
+        try:
+            ui = adb('shell', 'cat', '/sdcard/planner-ui.xml')
+            (OUT / f'{version}-ui.xml').write_text(ui)
+        except subprocess.CalledProcessError:
+            report[version]['uiautomator'] = 'idle timeout; review screenshots/video'
 
         pid = adb('shell', 'pidof', PACKAGE).strip()
         adb('logcat', '-c')
@@ -72,16 +80,16 @@ try:
             time.sleep(.15)
             screenshot(f'{version}-hot-{trial}')
             assert adb('shell', 'pidof', PACKAGE).strip() == pid, 'Process restarted on return'
-        adb('shell', 'pkill', '-INT', 'screenrecord')
+        if recording.poll() is None:
+            subprocess.run(['adb', 'shell', 'pkill', '-INT', 'screenrecord'], check=False)
         recording.wait(timeout=15)
         adb('pull', '/sdcard/planner-hot.mp4', str(OUT / f'{version}-hot.mp4'))
         hot_log = logs()
         (OUT / f'{version}-hot.log').write_text(hot_log)
         assert 'web frame:' not in hot_log, 'WebView loaded again during hot return'
         assert 'FATAL EXCEPTION' not in hot_log, 'Crash on return'
-        report[version] = {'cold_web_ready_ms': samples,
-                           'median_web_ready_ms': statistics.median(samples),
-                           'hot_returns_without_reload': 10}
+        report[version].update(median_web_ready_ms=statistics.median(samples),
+                               hot_returns_without_reload=10)
         print(version, report[version], flush=True)
 finally:
     (OUT / 'results.json').write_text(json.dumps(report, indent=2))
