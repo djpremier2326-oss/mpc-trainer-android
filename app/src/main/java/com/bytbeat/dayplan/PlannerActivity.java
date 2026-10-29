@@ -114,7 +114,7 @@ public class PlannerActivity extends Activity {
                 photoCallback=callback;
                 Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES).setType("image/*");
                 if(Build.VERSION.SDK_INT>=35)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_LAUNCH_TAB,android.provider.MediaStore.PICK_IMAGES_TAB_ALBUMS);
-                Intent gallery=new Intent(Intent.ACTION_PICK,android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI).setType("image/*");
+                Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,"image/*");
                 Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
                 for(Intent pick:new Intent[]{gallery,picker,fallback}){
                     try{startActivityForResult(pick,103);return true;}
