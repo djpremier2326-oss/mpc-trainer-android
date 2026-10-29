@@ -58,9 +58,22 @@ public class PlannerActivity extends Activity {
         launchCover=new android.widget.FrameLayout(this);
         launchCover.setBackgroundColor(0xffb0b5bb);
         launchCover.setClickable(true);
-        android.widget.ImageView artwork=new android.widget.ImageView(this);
-        artwork.setImageResource(R.drawable.planner_launch_art);
-        artwork.setScaleType(android.widget.ImageView.ScaleType.FIT_XY);
+        // Draw in window coordinates, exactly like windowBackground. Content insets
+        // must crop the artwork rather than resize it and move the bullet holes.
+        View artwork=new View(this){
+            private final android.graphics.drawable.Drawable image=getResources().getDrawable(R.drawable.planner_launch,getTheme());
+            private final int[] origin=new int[2];
+            @Override protected void onDraw(android.graphics.Canvas canvas){
+                super.onDraw(canvas);
+                View decor=getWindow().getDecorView();
+                getLocationInWindow(origin);
+                int save=canvas.save();
+                canvas.translate(-origin[0],-origin[1]);
+                image.setBounds(0,0,decor.getWidth(),decor.getHeight());
+                image.draw(canvas);
+                canvas.restoreToCount(save);
+            }
+        };
         launchCover.addView(artwork,new android.widget.FrameLayout.LayoutParams(-1,-1));
         root.addView(launchCover,new android.widget.FrameLayout.LayoutParams(-1,-1));
         // Do not touch android.webkit before the asynchronous startup callback.
