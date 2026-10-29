@@ -24,6 +24,7 @@ try:
  # Exercise actual touch scrolling after recovery.
  for i in range(6):adb('shell','input','swipe','500','1450','500','650','300')
  assert adb('shell','pidof','com.bytbeat.dayplan').strip()==host,'Host exited during scrolling'
+ assert re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan/',adb('shell','dumpsys','activity','activities')),'App left foreground during scrolling'
  (out/'result.txt').write_text('PASS: renderer killed, host survives, page reload completes, six scroll gestures do not exit host')
 finally:
  try:(out/'logcat.txt').write_text(logs())

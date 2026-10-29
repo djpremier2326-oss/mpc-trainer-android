@@ -103,7 +103,7 @@ public class PlannerActivity extends Activity {
                 return true;
             }
             @Override public void onPageFinished(WebView view,String url){
-                if(url.equals("file:///android_asset/index.html"))view.post(()->finishStartup());
+                if(url.equals("file:///android_asset/index.html"))view.post(()->{if(view==web)finishStartup();});
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){String url=request.getUrl().toString();if(request.isForMainFrame()&&(url.startsWith("https://")||url.startsWith("http://")))openExternalLink(url);return !url.startsWith("file:///android_asset/");}
         });
