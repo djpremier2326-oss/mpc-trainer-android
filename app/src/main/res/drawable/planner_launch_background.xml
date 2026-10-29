@@ -1,4 +1,0 @@
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item><shape><solid android:color="#8d8d8d"/></shape></item>
-    <item android:width="112dp" android:height="112dp" android:gravity="center" android:drawable="@drawable/planner_launch_icon"/>
-</layer-list>

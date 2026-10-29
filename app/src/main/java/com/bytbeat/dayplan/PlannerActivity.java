@@ -33,7 +33,6 @@ public class PlannerActivity extends Activity {
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
     private String pendingBackup;
     private boolean pageReady;
-    private android.widget.ImageView startupCover;
     private long launchStarted;
     private boolean startupRequested;
     private boolean nativeThemeInitialized,nativeDark;
@@ -53,34 +52,15 @@ public class PlannerActivity extends Activity {
         applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
         launchStarted=android.os.SystemClock.elapsedRealtime();
         root=new android.widget.FrameLayout(this);
-        root.setBackgroundColor(0xff8d8d8d);
-        startupCover=new android.widget.ImageView(this);
-        startupCover.setImageResource(R.drawable.planner_launch_icon);
-        startupCover.setScaleType(android.widget.ImageView.ScaleType.FIT_CENTER);
-        startupCover.setContentDescription(getString(R.string.app_name));
-        int iconSize=(int)(112*getResources().getDisplayMetrics().density);
-        android.widget.FrameLayout.LayoutParams iconLayout=new android.widget.FrameLayout.LayoutParams(iconSize,iconSize,android.view.Gravity.CENTER);
-        root.addView(startupCover,iconLayout);
+        root.setBackgroundColor(background);
         setContentView(root);
-        // Draw a native frame before initializing Chromium. Never block pre-draw.
-        root.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){
-            @Override public boolean onPreDraw(){
-                root.getViewTreeObserver().removeOnPreDrawListener(this);
-                android.util.Log.d("PlannerStartup","native frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
-                root.postOnAnimation(()->root.post(()->initializeWeb(background)));
-                return true;
-            }
-        });
+        initializeWeb(background);
     }
     private void initializeWeb(int background){
         if(isFinishing()||isDestroyed()||web!=null)return;
         web=new WebView(this);
         web.setBackgroundColor(background);
-        root.addView(web,0,new android.widget.FrameLayout.LayoutParams(-1,-1));
-        // A native cover remains above the WebView until its first rendered frame.
-        View launchBackground=new View(this);launchBackground.setBackgroundColor(0xff8d8d8d);
-        root.addView(launchBackground,1,new android.widget.FrameLayout.LayoutParams(-1,-1));
-        launchBackground.setTag("planner-launch-background");
+        root.addView(web,new android.widget.FrameLayout.LayoutParams(-1,-1));
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
         // Retain rasterized tiles while the Activity is behind another app.
@@ -121,9 +101,6 @@ public class PlannerActivity extends Activity {
         web.postVisualStateCallback(1,new WebView.VisualStateCallback(){@Override public void onComplete(long requestId){
             if(web==null||isFinishing()||isDestroyed())return;
             pageReady=true;
-            View launchBackground=root.findViewWithTag("planner-launch-background");
-            if(launchBackground!=null)root.removeView(launchBackground);
-            if(startupCover!=null){root.removeView(startupCover);startupCover=null;}
             root.setBackgroundColor(nativeThemeColor);
             android.util.Log.d("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
             root.invalidate();
