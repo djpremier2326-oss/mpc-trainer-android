@@ -10,8 +10,8 @@ android {
         manifestPlaceholders = [launcherIcon: friendPlanner ? '@drawable/ic_planner' : '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 79
-        versionName '2.3.57'
+        versionCode 80
+        versionName '2.3.58'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
