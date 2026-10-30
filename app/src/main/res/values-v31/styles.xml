@@ -1,1 +1,16 @@
-<resources><style name="AppTheme" parent="@style/PlannerBaseTheme"><item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item><item name="android:windowSplashScreenBackground">#000000</item></style><style name="PlannerIceLaunchTheme" parent="@style/AppTheme"/><style name="PlannerGraphiteLaunchTheme" parent="@style/AppTheme"/></resources>
+<resources>
+    <style name="AppTheme" parent="@style/PlannerBaseTheme">
+        <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
+        <item name="android:windowSplashScreenAnimationDuration">0</item>
+        <item name="android:windowSplashScreenBackground">#03192e</item>
+    </style>
+    <style name="PlannerIceLaunchTheme" parent="@style/AppTheme"/>
+    <style name="PlannerGraphiteLaunchTheme" parent="@style/AppTheme">
+        <item name="android:windowBackground">#8d8d8d</item>
+        <item name="android:windowSplashScreenBackground">#8d8d8d</item>
+        <item name="android:statusBarColor">#8d8d8d</item>
+        <item name="android:navigationBarColor">#8d8d8d</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
+</resources>

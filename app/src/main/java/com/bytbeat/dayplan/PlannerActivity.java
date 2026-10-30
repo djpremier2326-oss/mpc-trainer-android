@@ -27,7 +27,6 @@ import org.json.JSONObject;
 
 public class PlannerActivity extends Activity {
     private WebView web;
-    private android.widget.FrameLayout launchCover;
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
     private android.webkit.ValueCallback<Uri[]> photoCallback;
     private String pendingBackup;
@@ -47,36 +46,30 @@ public class PlannerActivity extends Activity {
     private boolean pendingWorkout;
     private String pendingReminderId;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=50_000_000;
-    private android.graphics.drawable.Drawable createLaunchArtwork(){
-        final android.graphics.Bitmap photo=android.graphics.BitmapFactory.decodeResource(getResources(),R.drawable.planner_launch_photo);
-        return new android.graphics.drawable.Drawable(){
-            private final android.graphics.Paint paint=new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG);
-            @Override public void draw(android.graphics.Canvas canvas){
-                android.graphics.Rect bounds=getBounds();
-                canvas.drawColor(android.graphics.Color.BLACK);
-                float scale=Math.min(bounds.width()/(float)photo.getWidth(),bounds.height()/(float)photo.getHeight());
-                float w=photo.getWidth()*scale,h=photo.getHeight()*scale;
-                float x=bounds.left+(bounds.width()-w)/2f,y=bounds.top+(bounds.height()-h)/2f;
-                canvas.drawBitmap(photo,null,new android.graphics.RectF(x,y,x+w,y+h),paint);
-            }
-            @Override public void setAlpha(int alpha){paint.setAlpha(alpha);}
-            @Override public void setColorFilter(android.graphics.ColorFilter filter){paint.setColorFilter(filter);}
-            @Override public int getOpacity(){return android.graphics.PixelFormat.OPAQUE;}
-        };
-    }
     @Override public void onCreate(Bundle saved) {
         launchStarted=android.os.SystemClock.elapsedRealtime();
+        android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
+        boolean dark=appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT);
+        setTheme(dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme);
         super.onCreate(saved);
+        // Keep the platform launch transition; no app-owned splash or extra animation.
+        if(Build.VERSION.SDK_INT>=31)getSplashScreen().setOnExitAnimationListener(screen->screen.remove());
         pendingWorkout=getIntent().getBooleanExtra("openWorkout",false);
         pendingOpenDate=getIntent().getStringExtra("openDate");pendingReminderId=getIntent().getStringExtra("openReminderId");
-        android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
         int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
         applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
-        getWindow().setBackgroundDrawable(createLaunchArtwork());
         root=new android.widget.FrameLayout(this);
-        root.setBackgroundColor(0xff000000);
+        root.setBackgroundColor(background);
         setContentView(root);
-        showLaunchCover();
+        // Let Android reveal the real first page rather than an empty WebView frame.
+        // This listener removes itself permanently: resumes never wait or animate again.
+        root.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){
+            @Override public boolean onPreDraw(){
+                if(!pageReady&&recoveryButton==null)return false;
+                root.getViewTreeObserver().removeOnPreDrawListener(this);
+                return true;
+            }
+        });
         // Do not touch android.webkit before the asynchronous startup callback.
         java.util.concurrent.ExecutorService startupExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
         androidx.webkit.WebViewCompat.startUpWebView(getApplicationContext(),
@@ -94,37 +87,12 @@ public class PlannerActivity extends Activity {
                 }
             });
     }
-    private void showLaunchCover(){
-        if(launchCover!=null||root==null)return;
-        launchCover=new android.widget.FrameLayout(this);
-        launchCover.setBackgroundColor(0xff000000);
-        launchCover.setClickable(true);
-        // Draw in window coordinates, exactly like windowBackground. Content insets
-        // must crop the artwork rather than resize it and move the bullet holes.
-        View artwork=new View(this){
-            private final android.graphics.drawable.Drawable image=createLaunchArtwork();
-            private final int[] origin=new int[2];
-            @Override protected void onDraw(android.graphics.Canvas canvas){
-                super.onDraw(canvas);
-                View decor=getWindow().getDecorView();
-                getLocationInWindow(origin);
-                int save=canvas.save();
-                canvas.translate(-origin[0],-origin[1]);
-                image.setBounds(0,0,decor.getWidth(),decor.getHeight());
-                image.draw(canvas);
-                canvas.restoreToCount(save);
-            }
-        };
-        launchCover.addView(artwork,new android.widget.FrameLayout.LayoutParams(-1,-1));
-        root.addView(launchCover,new android.widget.FrameLayout.LayoutParams(-1,-1));
-    }
     private void recoverRenderer(){
         if(isFinishing()||isDestroyed()||web!=null)return;
         pendingRendererRecovery=true;
         if(!activityResumed)return;
         pendingRendererRecovery=false;
         if(recoveryButton!=null){root.removeView(recoveryButton);recoveryButton=null;}
-        showLaunchCover();
         initializeWeb(nativeThemeColor);
     }
     private void initializeWeb(int background){
@@ -168,6 +136,9 @@ public class PlannerActivity extends Activity {
                 }
                 return true;
             }
+            @Override public void onPageCommitVisible(WebView view,String url){
+                if(view==web&&url.equals("file:///android_asset/index.html"))finishStartup();
+            }
             @Override public void onPageFinished(WebView view,String url){
                 if(url.equals("file:///android_asset/index.html"))view.post(()->{if(view==web)finishStartup();});
             }
@@ -208,12 +179,12 @@ public class PlannerActivity extends Activity {
         nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
         // Persist the selected launch theme in Android itself, before the next process starts.
         if(Build.VERSION.SDK_INT>=31)getSplashScreen().setSplashScreenTheme(
-            R.style.PlannerIceLaunchTheme);
-        int chrome=(!pageReady||launchCover!=null)?0xff000000:color;
+            dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme);
+        int chrome=color;
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(chrome));
         getWindow().setStatusBarColor(chrome);getWindow().setNavigationBarColor(chrome);
-        getWindow().getDecorView().setSystemUiVisibility((!pageReady||launchCover!=null||dark)?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-        if(root!=null&&pageReady)root.setBackgroundColor(color);
+        getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
+        if(root!=null)root.setBackgroundColor(color);
         if(web!=null)web.setBackgroundColor(color);
     }
     private void finishStartup(){
@@ -222,7 +193,7 @@ public class PlannerActivity extends Activity {
         rendererRecovery.onReady(android.os.SystemClock.elapsedRealtime());
         android.util.Log.i("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
         web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
-        if(launchCover!=null){final WebView current=web;current.postOnAnimation(()->{if(web!=current||isFinishing()||isDestroyed())return;root.removeView(launchCover);launchCover=null;root.setBackgroundColor(nativeThemeColor);nativeThemeInitialized=false;applyNativeTheme(nativeThemeColor,nativeDark);});}
+        root.invalidate();
         openPendingDate();
         workoutQueue.execute(()->ReminderScheduler.restore(getApplicationContext()));
         web.postOnAnimation(()->{if(!isFinishing()&&!isDestroyed())reportFullyDrawn();});
