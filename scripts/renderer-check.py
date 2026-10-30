@@ -6,7 +6,12 @@ def adb(*args):
  return r.stdout.decode(errors='replace')
 def logs():return adb('logcat','-d','-s','PlannerRenderer:I','PlannerStartup:I','ActivityManager:I','AndroidRuntime:E')
 try:
- adb('wait-for-device');adb('install','-r','candidate/raspisanie.apk');adb('logcat','-c')
+ adb('wait-for-device')
+ adb('root');adb('wait-for-device')
+ assert 'uid=0' in adb('shell','id'),'Rooted test image required for direct renderer eviction'
+ # Let post-boot package optimization settle before exercising Activity focus.
+ time.sleep(12)
+ adb('install','-r','candidate/raspisanie.apk');adb('logcat','-c')
  adb('shell','am','start','-W','-n','com.bytbeat.dayplan/.PlannerActivity')
  subprocess.run(['adb','exec-out','screencap','-p'],stdout=(out/'cold-launch.png').open('wb'),check=True,timeout=20)
  deadline=time.monotonic()+40
@@ -16,7 +21,7 @@ try:
  host=adb('shell','pidof','com.bytbeat.dayplan').strip()
  text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
  assert matches,'Could not identify this app renderer'
- adb('shell','am','crash',matches[-1])
+ adb('shell','kill','-9',matches[-1])
  deadline=time.monotonic()+40
  while True:
   text=logs()
@@ -30,10 +35,14 @@ try:
  for cycle in range(3):
   before=logs().count('web frame:')
   adb('shell','input','keyevent','KEYCODE_HOME')
+  deadline=time.monotonic()+15
+  while re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan/',adb('shell','dumpsys','activity','activities')):
+   assert time.monotonic()<deadline,'Activity did not enter background'
+   time.sleep(.25)
   text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
   assert matches,'Could not identify renderer before background exit'
   exits=text.count('Renderer exited;')
-  adb('shell','am','crash',matches[-1])
+  adb('shell','kill','-9',matches[-1])
   # WebView / OS may defer the background crash notification until resume.
   # Do not wait for that notification before bringing the app back.
   time.sleep(.75)
