@@ -46,7 +46,7 @@ public class PlannerActivity extends Activity {
     private String pendingOpenDate;
     private boolean pendingWorkout;
     private String pendingReminderId;
-    private static final int SAVE=101, OPEN=102, MAX_BYTES=20_000_000;
+    private static final int SAVE=101, OPEN=102, MAX_BYTES=50_000_000;
     private android.graphics.drawable.Drawable createLaunchArtwork(){
         final android.graphics.Bitmap photo=android.graphics.BitmapFactory.decodeResource(getResources(),R.drawable.planner_launch_photo);
         return new android.graphics.drawable.Drawable(){
@@ -177,10 +177,14 @@ public class PlannerActivity extends Activity {
             @Override public boolean onShowFileChooser(WebView view,android.webkit.ValueCallback<Uri[]> callback,WebChromeClient.FileChooserParams params){
                 if(photoCallback!=null)photoCallback.onReceiveValue(null);
                 photoCallback=callback;
-                Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES).setType("image/*");
+                boolean withVideo=false;
+                for(String type:params.getAcceptTypes())if(type!=null&&type.contains("video"))withVideo=true;
+                String mediaType=withVideo?"*/*":"image/*";
+                Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES).setType(mediaType);
                 if(Build.VERSION.SDK_INT>=35)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_LAUNCH_TAB,android.provider.MediaStore.PICK_IMAGES_TAB_ALBUMS);
-                Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,"image/*");
-                Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType("image/*");
+                Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(withVideo?android.provider.MediaStore.Files.getContentUri("external"):android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,mediaType);
+                Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mediaType);
+                if(withVideo){String[] types={"image/*","video/*"};gallery.putExtra(Intent.EXTRA_MIME_TYPES,types);picker.putExtra(Intent.EXTRA_MIME_TYPES,types);fallback.putExtra(Intent.EXTRA_MIME_TYPES,types);}
                 for(Intent pick:new Intent[]{gallery,picker,fallback}){
                     try{startActivityForResult(pick,103);return true;}
                     catch(android.content.ActivityNotFoundException unavailable){}
