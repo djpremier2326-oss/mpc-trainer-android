@@ -53,7 +53,6 @@ public class PlannerActivity extends Activity {
         setTheme(dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme);
         super.onCreate(saved);
         // Keep the platform launch transition; no app-owned splash or extra animation.
-        if(Build.VERSION.SDK_INT>=31)getSplashScreen().setOnExitAnimationListener(screen->screen.remove());
         pendingWorkout=getIntent().getBooleanExtra("openWorkout",false);
         pendingOpenDate=getIntent().getStringExtra("openDate");pendingReminderId=getIntent().getStringExtra("openReminderId");
         int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
