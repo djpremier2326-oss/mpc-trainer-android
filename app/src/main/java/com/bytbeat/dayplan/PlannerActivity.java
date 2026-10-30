@@ -136,11 +136,15 @@ public class PlannerActivity extends Activity {
                 }
                 return true;
             }
-            @Override public void onPageCommitVisible(WebView view,String url){
-                if(view==web&&url.equals("file:///android_asset/index.html"))finishStartup();
-            }
             @Override public void onPageFinished(WebView view,String url){
-                if(url.equals("file:///android_asset/index.html"))view.post(()->{if(view==web)finishStartup();});
+                if(url.equals("file:///android_asset/index.html"))view.post(()->{
+                    if(view!=web||isFinishing()||isDestroyed())return;
+                    // page commit can precede the planner's bottom-of-document render.
+                    // Wait for its pixels, not a timer or an empty document commit.
+                    view.postVisualStateCallback(0,new WebView.VisualStateCallback(){
+                        @Override public void onComplete(long id){if(view==web)finishStartup();}
+                    });
+                });
             }
             @Override public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request){String url=request.getUrl().toString();if(request.isForMainFrame()&&(url.startsWith("https://")||url.startsWith("http://")))openExternalLink(url);return !url.startsWith("file:///android_asset/");}
         });

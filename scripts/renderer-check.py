@@ -18,6 +18,8 @@ try:
  while 'web frame:' not in logs():
   assert time.monotonic()<deadline,'Initial page did not load'
   time.sleep(.25)
+ time.sleep(.25)
+ subprocess.run(['adb','exec-out','screencap','-p'],stdout=(out/'first-page.png').open('wb'),check=True,timeout=20)
  host=adb('shell','pidof','com.bytbeat.dayplan').strip()
  text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
  assert matches,'Could not identify this app renderer'
