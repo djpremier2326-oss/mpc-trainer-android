@@ -35,7 +35,9 @@ public class PlannerActivity extends Activity {
     private boolean activityResumed;
     private long launchStarted;
     private boolean startupRequested;
-    private int rendererRecoveries;
+    private final RendererRecoveryPolicy rendererRecovery=new RendererRecoveryPolicy();
+    private boolean pendingRendererRecovery;
+    private View recoveryButton;
     private boolean nativeThemeInitialized,nativeDark;
     private int nativeThemeColor;
     private String lastNotificationStatus;
@@ -73,6 +75,26 @@ public class PlannerActivity extends Activity {
         root=new android.widget.FrameLayout(this);
         root.setBackgroundColor(0xff000000);
         setContentView(root);
+        showLaunchCover();
+        // Do not touch android.webkit before the asynchronous startup callback.
+        java.util.concurrent.ExecutorService startupExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
+        androidx.webkit.WebViewCompat.startUpWebView(getApplicationContext(),
+            new androidx.webkit.WebViewStartUpConfig.Builder(startupExecutor).build(),
+            new androidx.webkit.WebViewOutcomeReceiver<androidx.webkit.WebViewStartUpResult,androidx.webkit.WebViewStartupException>(){
+                @Override public void onResult(androidx.webkit.WebViewStartUpResult result){
+                    startupExecutor.shutdown();
+                    android.util.Log.i("PlannerStartup","engine ready: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms; UI work="+result.getTotalTimeInUiThreadMillis());
+                    initializeWeb(nativeThemeColor);
+                }
+                @Override public void onError(androidx.webkit.WebViewStartupException error){
+                    startupExecutor.shutdown();
+                    android.util.Log.e("PlannerStartup","Async startup failed; using standard initialization",error);
+                    initializeWeb(nativeThemeColor);
+                }
+            });
+    }
+    private void showLaunchCover(){
+        if(launchCover!=null||root==null)return;
         launchCover=new android.widget.FrameLayout(this);
         launchCover.setBackgroundColor(0xff000000);
         launchCover.setClickable(true);
@@ -94,25 +116,20 @@ public class PlannerActivity extends Activity {
         };
         launchCover.addView(artwork,new android.widget.FrameLayout.LayoutParams(-1,-1));
         root.addView(launchCover,new android.widget.FrameLayout.LayoutParams(-1,-1));
-        // Do not touch android.webkit before the asynchronous startup callback.
-        java.util.concurrent.ExecutorService startupExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
-        androidx.webkit.WebViewCompat.startUpWebView(getApplicationContext(),
-            new androidx.webkit.WebViewStartUpConfig.Builder(startupExecutor).build(),
-            new androidx.webkit.WebViewOutcomeReceiver<androidx.webkit.WebViewStartUpResult,androidx.webkit.WebViewStartupException>(){
-                @Override public void onResult(androidx.webkit.WebViewStartUpResult result){
-                    startupExecutor.shutdown();
-                    android.util.Log.i("PlannerStartup","engine ready: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms; UI work="+result.getTotalTimeInUiThreadMillis());
-                    initializeWeb(nativeThemeColor);
-                }
-                @Override public void onError(androidx.webkit.WebViewStartupException error){
-                    startupExecutor.shutdown();
-                    android.util.Log.e("PlannerStartup","Async startup failed; using standard initialization",error);
-                    initializeWeb(nativeThemeColor);
-                }
-            });
+    }
+    private void recoverRenderer(){
+        if(isFinishing()||isDestroyed()||web!=null)return;
+        pendingRendererRecovery=true;
+        if(!activityResumed)return;
+        pendingRendererRecovery=false;
+        if(recoveryButton!=null){root.removeView(recoveryButton);recoveryButton=null;}
+        showLaunchCover();
+        initializeWeb(nativeThemeColor);
     }
     private void initializeWeb(int background){
         if(isFinishing()||isDestroyed()||web!=null)return;
+        if(!activityResumed){pendingRendererRecovery=true;return;}
+        pendingRendererRecovery=false;
         web=new WebView(this);
         web.setBackgroundColor(background);
         root.addView(web,0,new android.widget.FrameLayout.LayoutParams(-1,-1));
@@ -126,19 +143,25 @@ public class PlannerActivity extends Activity {
         settings.setAllowUniversalAccessFromFileURLs(false);
         web.setWebViewClient(new WebViewClient(){
             @Override public boolean onRenderProcessGone(WebView view,android.webkit.RenderProcessGoneDetail detail){
-                android.util.Log.e("PlannerRenderer","Renderer exited; crashed="+detail.didCrash());
+                boolean current=view==web;
+                android.util.Log.e("PlannerRenderer","Renderer exited; crashed="+detail.didCrash()+"; foreground="+activityResumed+"; current="+current);
                 getSharedPreferences("diagnostics",MODE_PRIVATE).edit()
                     .putLong("rendererExitAt",System.currentTimeMillis()).putBoolean("rendererCrashed",detail.didCrash()).apply();
-                if(view==web){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}web=null;pageReady=false;startupRequested=false;lastNotificationStatus=null;}
+                if(current){
+                    if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}
+                    web=null;pageReady=false;startupRequested=false;lastNotificationStatus=null;
+                }
                 root.removeView(view);view.removeJavascriptInterface("AndroidFiles");view.destroy();
-                if(!isFinishing()&&!isDestroyed()){
-                    if(rendererRecoveries++==0){root.post(()->initializeWeb(nativeThemeColor));}
+                if(current&&!isFinishing()&&!isDestroyed()){
+                    boolean automatic=rendererRecovery.onExit(detail.didCrash(),activityResumed,android.os.SystemClock.elapsedRealtime());
+                    if(automatic){pendingRendererRecovery=true;root.post(()->recoverRenderer());}
                     else {
+                        pendingRendererRecovery=false;
                         android.widget.Button retry=new android.widget.Button(PlannerActivity.this);
-                        retry.setText("Восстановить экран");
+                        recoveryButton=retry;retry.setText("Восстановить экран");
                         android.widget.FrameLayout.LayoutParams params=new android.widget.FrameLayout.LayoutParams(-2,-2,android.view.Gravity.CENTER);
                         root.addView(retry,params);
-                        retry.setOnClickListener(v->{root.removeView(retry);initializeWeb(nativeThemeColor);});
+                        retry.setOnClickListener(v->{rendererRecovery.reset();recoverRenderer();});
                     }
                 }
                 return true;
@@ -189,6 +212,7 @@ public class PlannerActivity extends Activity {
     private void finishStartup(){
         if(web==null||startupRequested||isFinishing()||isDestroyed())return;
         startupRequested=true;pageReady=true;
+        rendererRecovery.onReady(android.os.SystemClock.elapsedRealtime());
         android.util.Log.i("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
         web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
         if(launchCover!=null){final WebView current=web;current.postOnAnimation(()->{if(web!=current||isFinishing()||isDestroyed())return;root.removeView(launchCover);launchCover=null;root.setBackgroundColor(nativeThemeColor);nativeThemeInitialized=false;applyNativeTheme(nativeThemeColor,nativeDark);});}
@@ -210,6 +234,7 @@ public class PlannerActivity extends Activity {
         super.onResume();
         activityResumed=true;
         WorkoutTimer.foreground=true;
+        if(pendingRendererRecovery&&web==null)recoverRenderer();
         if(web!=null)web.onResume();
         if(web!=null&&pageReady){
             updateNotificationStatus();
