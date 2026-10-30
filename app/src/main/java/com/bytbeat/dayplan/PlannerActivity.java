@@ -37,6 +37,7 @@ public class PlannerActivity extends Activity {
     private boolean startupRequested;
     private final RendererRecoveryPolicy rendererRecovery=new RendererRecoveryPolicy();
     private boolean pendingRendererRecovery;
+    private boolean rendererWasBackgrounded;
     private View recoveryButton;
     private boolean nativeThemeInitialized,nativeDark;
     private int nativeThemeColor;
@@ -130,6 +131,7 @@ public class PlannerActivity extends Activity {
         if(isFinishing()||isDestroyed()||web!=null)return;
         if(!activityResumed){pendingRendererRecovery=true;return;}
         pendingRendererRecovery=false;
+        rendererWasBackgrounded=false;
         web=new WebView(this);
         web.setBackgroundColor(background);
         root.addView(web,0,new android.widget.FrameLayout.LayoutParams(-1,-1));
@@ -153,7 +155,7 @@ public class PlannerActivity extends Activity {
                 }
                 root.removeView(view);view.removeJavascriptInterface("AndroidFiles");view.destroy();
                 if(current&&!isFinishing()&&!isDestroyed()){
-                    boolean automatic=rendererRecovery.onExit(detail.didCrash(),activityResumed,android.os.SystemClock.elapsedRealtime());
+                    boolean automatic=rendererRecovery.onExit(detail.didCrash(),activityResumed&&!rendererWasBackgrounded,android.os.SystemClock.elapsedRealtime());
                     if(automatic){pendingRendererRecovery=true;root.post(()->recoverRenderer());}
                     else {
                         pendingRendererRecovery=false;
@@ -235,7 +237,13 @@ public class PlannerActivity extends Activity {
         activityResumed=true;
         WorkoutTimer.foreground=true;
         if(pendingRendererRecovery&&web==null)recoverRenderer();
-        if(web!=null)web.onResume();
+        if(web!=null){
+            final WebView resumed=web;
+            resumed.onResume();
+            // A dead renderer may report its background exit only after resume.
+            // Clear the marker only after the same live renderer answers.
+            resumed.evaluateJavascript("true",value->{if(web==resumed)rendererWasBackgrounded=false;});
+        }
         if(web!=null&&pageReady){
             updateNotificationStatus();
             web.evaluateJavascript("window.onPlannerResume&&window.onPlannerResume()",null);
@@ -243,6 +251,7 @@ public class PlannerActivity extends Activity {
     }
     @Override protected void onPause(){
         activityResumed=false;
+        rendererWasBackgrounded=true;
         WorkoutTimer.foreground=false;
         if(web!=null)web.onPause();
         super.onPause();
