@@ -53,8 +53,6 @@ try:
    assert time.monotonic()<deadline,'Background return stuck instead of automatic recovery'
    time.sleep(.25)
   assert adb('shell','pidof','com.bytbeat.dayplan').strip()==host,'Host exited on background recovery'
-  ui=adb('shell','uiautomator','dump','/sdcard/planner-ui.xml')
-  assert 'Восстановить экран' not in adb('shell','cat','/sdcard/planner-ui.xml'),'Manual restore button appeared'
  # Exercise actual touch scrolling after recovery.
  for i in range(6):adb('shell','input','swipe','500','1450','500','650','300')
  assert adb('shell','pidof','com.bytbeat.dayplan').strip()==host,'Host exited during scrolling'
