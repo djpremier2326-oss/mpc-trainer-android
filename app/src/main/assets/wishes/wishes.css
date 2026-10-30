@@ -5,3 +5,5 @@ body[data-view=wishes] .toolbar,body[data-view=wishes] .app-heading{display:none
 .wishes-heading{align-items:flex-start;flex-direction:column;gap:12px}.wishes-heading h2{font-size:23px;line-height:1.2}.wishes-heading-actions{display:flex;align-items:center;gap:9px}.wish-shuffle{display:grid;place-items:center;min-width:44px;min-height:44px;padding:10px}.wish-shuffle svg{width:22px;height:22px}.wish-shuffle:disabled{opacity:.4}
 
 .wishes-heading-actions{align-self:flex-end}.wish-image{position:relative}.wish-play{position:absolute;z-index:1;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;place-items:center;width:58px;height:58px;border-radius:50%;background:#000a;color:#fff;font-size:27px;pointer-events:none}.wish-detail-video{display:block;width:100%;max-height:60dvh;background:#000;border-radius:12px}#wish-draft-video{display:block;width:100%;max-height:220px;margin-top:12px;border-radius:8px}#wish-draft-video[hidden]{display:none}
+
+#wish-draft-image[hidden]{display:none}
