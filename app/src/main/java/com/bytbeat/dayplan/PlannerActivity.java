@@ -180,11 +180,12 @@ public class PlannerActivity extends Activity {
                 boolean withVideo=false;
                 for(String type:params.getAcceptTypes())if(type!=null&&type.contains("video"))withVideo=true;
                 String mediaType=withVideo?"*/*":"image/*";
-                Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES).setType(mediaType);
+                Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES);
+                if(!withVideo)picker.setType("image/*");
                 if(Build.VERSION.SDK_INT>=35)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_LAUNCH_TAB,android.provider.MediaStore.PICK_IMAGES_TAB_ALBUMS);
                 Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(withVideo?android.provider.MediaStore.Files.getContentUri("external"):android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,mediaType);
                 Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mediaType);
-                if(withVideo){String[] types={"image/*","video/*"};gallery.putExtra(Intent.EXTRA_MIME_TYPES,types);picker.putExtra(Intent.EXTRA_MIME_TYPES,types);fallback.putExtra(Intent.EXTRA_MIME_TYPES,types);}
+                if(withVideo){String[] types={"image/*","video/*"};gallery.putExtra(Intent.EXTRA_MIME_TYPES,types);fallback.putExtra(Intent.EXTRA_MIME_TYPES,types);}
                 for(Intent pick:new Intent[]{gallery,picker,fallback}){
                     try{startActivityForResult(pick,103);return true;}
                     catch(android.content.ActivityNotFoundException unavailable){}
