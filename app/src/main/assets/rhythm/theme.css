@@ -1,186 +1,233 @@
-/* Rhythm theme — color-only overrides. No geometry, spacing or behavior changes. */
+/* Rhythm theme — palette-only overrides. Existing layout, sizes and behavior stay unchanged. */
 body[data-design=ice][data-variant=rhythm]{
-  --rh-paper:#f7f6f1;
-  --rh-white:#ffffff;
+  --rh-bg:#f3f2ec;
+  --rh-surface:#ffffff;
+  --rh-inset:#e8e7e1;
+  --rh-soft:#f1ffad;
+  --rh-lime:#dfff00;
   --rh-black:#0b0b0a;
-  --rh-yellow:#f3f700;
-  --rh-yellow-soft:#fffbb8;
-  --rh-gray:#e9e8e4;
-  --rh-gray-2:#c9c8c3;
-  --rh-muted:#777773;
-  --ice-cyan:#f3f700;
+  --rh-charcoal:#252523;
+  --rh-line:#c8c7c0;
+  --rh-muted:#73726d;
+  --ice-cyan:#dfff00;
   --ice-ink:#0b0b0a;
-  --ice-paper:#f7f6f1;
-  background:#f7f6f1;
+  --ice-paper:#f3f2ec;
+  --app-bg:#f3f2ec;
+  --surface:#ffffff;
+  --card:#ffffff;
+  --control:#e8e7e1;
+  --control-text:#0b0b0a;
+  --outline:#c8c7c0;
+  --inset:#e8e7e1;
+  --card-edge:#0b0b0a;
+  --text:#0b0b0a;
+  --muted:#73726d;
+  --border:#c8c7c0;
+  --accent:#dfff00;
+  --on-accent:#0b0b0a;
+  background:#f3f2ec;
   color:#0b0b0a;
 }
 body[data-design=ice][data-variant=rhythm] main,
-body[data-design=ice][data-variant=rhythm] .ice-home,
-body[data-design=ice][data-variant=rhythm] .ice-paper{background:#f7f6f1;color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .ice-home{background:#f3f2ec;color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .ice-paper{background:#e8e7e1;color:#0b0b0a;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .app-heading,
 body[data-design=ice][data-variant=rhythm] .date-title,
 body[data-design=ice][data-variant=rhythm] .period-title,
 body[data-design=ice][data-variant=rhythm] .header-icon{color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .sub,
 body[data-design=ice][data-variant=rhythm] .ice-time-end,
-body[data-design=ice][data-variant=rhythm] .ice-day-boundary{color:#777773}
+body[data-design=ice][data-variant=rhythm] .ice-day-boundary{color:#73726d}
 
-body[data-design=ice][data-variant=rhythm] .tabs{background:#0b0b0a;border-top-color:#0b0b0a}
+/* Bottom navigation: black shell, acid-lime active state. */
+body[data-design=ice][data-variant=rhythm] .tabs{background:#0b0b0a;border-top-color:#0b0b0a;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .tabs>.tab{color:#ffffff}
-body[data-design=ice][data-variant=rhythm] .tabs>.tab.active{color:#f3f700}
-body[data-design=ice][data-variant=rhythm] .tabs>.tab.active:after{background:#f3f700;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .ice-compose{background:#f3f700;color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .tabs>.tab.active{color:#dfff00}
+body[data-design=ice][data-variant=rhythm] .tabs>.tab.active:after{background:#dfff00;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-compose{background:#dfff00;color:#0b0b0a;border:0!important;box-shadow:none!important}
+body[data-design=ice][data-variant=rhythm] .ice-compose::before,
+body[data-design=ice][data-variant=rhythm] .ice-compose::after{content:none!important;display:none!important}
 
-body[data-design=ice][data-variant=rhythm] .ice-week{background:#ffffff;border-color:#e9e8e4}
+/* Day strip and schedule. */
+body[data-design=ice][data-variant=rhythm] .ice-week{background:#ffffff;border-color:#c8c7c0}
 body[data-design=ice][data-variant=rhythm] .ice-week button{color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .ice-week button[aria-current=date]{background:#f3f700;color:#0b0b0a;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .ice-week button i{background:#c9c8c3}
+body[data-design=ice][data-variant=rhythm] .ice-week button[aria-current=date]{background:#dfff00;color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-week button i{background:#9d9c96;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .ice-week button i.has-plans,
-body[data-design=ice][data-variant=rhythm] .ice-week button[aria-current=date] i{background:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .ice-week .ice-sunday{color:#777773}
-
-body[data-design=ice][data-variant=rhythm] .ice-time-block{background:var(--ice-card,#ffffff);border-color:#c9c8c3;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .ice-time-block[data-color=none]{border-left-color:#f3f700}
+body[data-design=ice][data-variant=rhythm] .ice-week button[aria-current=date] i{background:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-week .ice-sunday{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry,
+body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-time-block[data-color=none] .ice-entry:before{background:#dfff00;opacity:1}
 body[data-design=ice][data-variant=rhythm] .ice-hours,
 body[data-design=ice][data-variant=rhythm] .ice-hours span,
 body[data-design=ice][data-variant=rhythm] .ice-entry textarea,
+body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry textarea,
 body[data-design=ice][data-variant=rhythm] .ice-entry-reminder{color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .ice-entry textarea::placeholder{color:#777773}
+body[data-design=ice][data-variant=rhythm] .ice-entry textarea::placeholder{color:#73726d}
 body[data-design=ice][data-variant=rhythm] .ice-color-button{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .ice-time-block[data-color=none] .ice-color-button i{background:#f3f700;border-color:#f3f700;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry-reminder.has-reminder{background:#f3f700;color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-time-block[data-color=none] .ice-color-button i{background:#dfff00;border-color:#dfff00;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry-reminder.has-reminder{background:#dfff00;color:#0b0b0a;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .ice-entry-reminder.has-reminder svg{fill:#0b0b0a;stroke:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .ice-time-block.ice-row-editing{outline-color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .ice-time-block.ice-row-editing .ice-entry{background:#ffffff;color:#0b0b0a;border-color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .ice-time-block.ice-row-editing textarea{color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .ice-day-tools>button,
-body[data-design=ice][data-variant=rhythm] .day-quick-tools .btn{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
+body[data-design=ice][data-variant=rhythm] .day-quick-tools .btn{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .btn.primary,
 body[data-design=ice][data-variant=rhythm] .ice-row-done,
-body[data-design=ice][data-variant=rhythm] #ice-edit-done{background:#f3f700;color:#0b0b0a;border-color:#f3f700;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] #ice-edit-done{background:#dfff00;color:#0b0b0a;border-color:#dfff00;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .btn:not(.primary),
-body[data-design=ice][data-variant=rhythm] .date-input{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .date-input{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
 
-body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none],
-body[data-design=ice][data-variant=rhythm] .calendar-month,
-body[data-design=ice][data-variant=rhythm] .savings-top,
-body[data-design=ice][data-variant=rhythm] .saving-stats,
-body[data-design=ice][data-variant=rhythm] .note-card,
-body[data-design=ice][data-variant=rhythm] .event-card,
-body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]),
-body[data-design=ice][data-variant=rhythm] .wish-card{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
-body[data-design=ice][data-variant=rhythm] .overview.today[data-day-color=none]{border-color:#f3f700}
+/* Week: cards are visually separate from the page; controls are dark. */
+body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none]{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .overview.today[data-day-color=none]{border-color:#dfff00;box-shadow:inset 0 0 0 1px #dfff00}
 body[data-design=ice][data-variant=rhythm] .overview-head,
-body[data-design=ice][data-variant=rhythm] .preview-line p,
-body[data-design=ice][data-variant=rhythm] .event-main,
-body[data-design=ice][data-variant=rhythm] .note-card p,
-body[data-design=ice][data-variant=rhythm] .note-card .note-pin-label{color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .preview-line p{color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .overview-head small,
 body[data-design=ice][data-variant=rhythm] .preview-line span,
-body[data-design=ice][data-variant=rhythm] .empty,
-body[data-design=ice][data-variant=rhythm] .note-card small,
-body[data-design=ice][data-variant=rhythm] .event-main small{color:#777773}
-body[data-design=ice][data-variant=rhythm] .preview-line{border-color:#e9e8e4}
+body[data-design=ice][data-variant=rhythm] .empty{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .preview-line{border-color:#e8e7e1}
+body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none] .day-color-button,
+body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none] .color-trigger{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none] .day-color-button i,
+body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none] .color-trigger i{border-color:#dfff00}
 
+/* Calendar: white month panel, warm-grey cells, lime selected date. User day colors remain untouched. */
+body[data-design=ice][data-variant=rhythm] .calendar-jump,
+body[data-design=ice][data-variant=rhythm].calendar-view .calendar-jump,
+body[data-design=ice][data-variant=rhythm].calendar-view .calendar-hint{background:#f3f2ec}
+body[data-design=ice][data-variant=rhythm] .calendar-month{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .calendar-month h2{color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .calendar-month .weekday{color:#777773}
-body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell:not(.chosen){background:#f7f6f1;color:#0b0b0a;border-color:#e9e8e4}
-body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.outside:not(.chosen){background:#e9e8e4;color:#777773}
-body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.chosen{background:#f3f700;color:#0b0b0a;border-color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.today{border-color:#0b0b0a!important;box-shadow:inset 0 0 0 1px #0b0b0a!important}
-body[data-design=ice][data-variant=rhythm] .month-watermark{color:#e9e8e4}
-body[data-design=ice][data-variant=rhythm] .jump{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
-body[data-design=ice][data-variant=rhythm] .calendar-hint{color:#777773}
+body[data-design=ice][data-variant=rhythm] .calendar-month .weekday{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:not(.chosen){background:#e8e7e1;color:#0b0b0a;border-color:#e8e7e1}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.outside[data-day-color=none]:not(.chosen){background:#f3f2ec;color:#9a9993}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.chosen[data-day-color=none]{background:#dfff00!important;color:#0b0b0a!important;border-color:#0b0b0a!important}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.today{border-color:#0b0b0a!important;box-shadow:inset 0 0 0 2px #0b0b0a!important}
+body[data-design=ice][data-variant=rhythm] .month-watermark{color:#e8e7e1}
+body[data-design=ice][data-variant=rhythm] .jump{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] .calendar-hint{color:#73726d}
 
-body[data-design=ice][data-variant=rhythm] .saving-goal,
-body[data-design=ice][data-variant=rhythm] .saving-stats strong,
-body[data-design=ice][data-variant=rhythm] .saving-stats strong.saved-money,
-body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]){color:#0b0b0a;text-shadow:none}
+/* Savings: black summary + white stats + lime progress/selection. */
+body[data-design=ice][data-variant=rhythm] .savings-top{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .savings-top .saving-goal,
+body[data-design=ice][data-variant=rhythm] .savings-top strong{color:#ffffff}
 body[data-design=ice][data-variant=rhythm] .savings-top small,
-body[data-design=ice][data-variant=rhythm] .goal-name,
+body[data-design=ice][data-variant=rhythm] .savings-top .goal-name{color:#d5d4cf}
+body[data-design=ice][data-variant=rhythm] .saving-stats{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .saving-stats strong,
+body[data-design=ice][data-variant=rhythm] .saving-stats strong.saved-money{color:#0b0b0a;text-shadow:none}
 body[data-design=ice][data-variant=rhythm] .saving-stats small,
-body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]) small,
 body[data-design=ice][data-variant=rhythm] .saving-caption,
 body[data-design=ice][data-variant=rhythm] .saving-legend,
-body[data-design=ice][data-variant=rhythm] .saving-details{color:#777773}
-body[data-design=ice][data-variant=rhythm] .saving-progress{background:#e9e8e4;border-color:#e9e8e4}
-body[data-design=ice][data-variant=rhythm] .saving-progress i{background:#f3f700;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .saving-details{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .saving-progress{background:#0b0b0a;border-color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .saving-progress i{background:#dfff00;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]){background:#e8e7e1;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]) small{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]{background:#dfff00;color:#0b0b0a;border-color:#0b0b0a;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true] small,
-body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]::after{color:#f3f700}
-body[data-design=ice][data-variant=rhythm] .complete-banner{background:#f3f700;color:#0b0b0a;border-color:#f3f700}
+body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]::after{color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .complete-banner{background:#dfff00;color:#0b0b0a;border-color:#0b0b0a}
 
-body[data-design=ice][data-variant=rhythm].note-open #view,
+/* Notes: list and editor use different surfaces; toolbar is black. */
+body[data-design=ice][data-variant=rhythm] .note-card{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;border-left-color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .note-card p,
+body[data-design=ice][data-variant=rhythm] .note-card small{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .note-card .note-pin-label{color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm].note-open #view{background:#e8e7e1;color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .note-full-head,
 body[data-design=ice][data-variant=rhythm] .note-rich,
-body[data-design=ice][data-variant=rhythm] .note-full-status{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
+body[data-design=ice][data-variant=rhythm] .note-full-status{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0}
 body[data-design=ice][data-variant=rhythm] .note-full-head #note-title,
 body[data-design=ice][data-variant=rhythm] .note-rich{color:#0b0b0a;caret-color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .note-full-head #note-title::placeholder,
 body[data-design=ice][data-variant=rhythm] .note-rich:empty::before,
-body[data-design=ice][data-variant=rhythm] .note-full-status{color:#777773}
-body[data-design=ice][data-variant=rhythm] .note-rich a{color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .note-full-status{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .note-rich a{color:#596900}
 body[data-design=ice][data-variant=rhythm] .note-format{background:#0b0b0a;border-color:#0b0b0a;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .note-format .format-btn{background:#232322;color:#ffffff;border-color:#777773}
+body[data-design=ice][data-variant=rhythm] .note-format .format-btn{background:#252523;color:#ffffff;border-color:#4a4a47}
 body[data-design=ice][data-variant=rhythm] .note-format .format-btn[aria-pressed=true],
 body[data-design=ice][data-variant=rhythm] .note-format .note-calc-toggle,
-body[data-design=ice][data-variant=rhythm] #note-calendar-toggle{background:#f3f700!important;color:#0b0b0a!important;border-color:#f3f700!important;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] #note-calendar-toggle{background:#dfff00!important;color:#0b0b0a!important;border-color:#dfff00!important;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] #note-copy-text{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .note-swipe-actions [data-note-pin]{background:#f3f700;color:#0b0b0a;border-color:#f3f700}
-
-body[data-design=ice][data-variant=rhythm] .note-calendar-panel{background:#f7f6f1;color:#0b0b0a;border-color:#c9c8c3;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .note-swipe-actions [data-note-pin]{background:#dfff00;color:#0b0b0a;border-color:#dfff00}
+body[data-design=ice][data-variant=rhythm] .note-calendar-panel{background:#e8e7e1;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .note-calendar-head button,
-body[data-design=ice][data-variant=rhythm] .note-calendar-month-label{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .note-calendar-month-label{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .note-calendar-weekday,
-body[data-design=ice][data-variant=rhythm] .note-calendar-caption{color:#777773}
-body[data-design=ice][data-variant=rhythm] .note-calendar-day:not([data-colored=true]){background:#ffffff;color:#0b0b0a;border-color:#e9e8e4}
-body[data-design=ice][data-variant=rhythm] .note-calendar-day.picked{background:#f3f700!important;color:#0b0b0a!important;border-color:#0b0b0a;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .note-calendar-caption{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .note-calendar-day:not([data-colored=true]){background:#ffffff;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] .note-calendar-day.picked{background:#dfff00!important;color:#0b0b0a!important;border-color:#0b0b0a;box-shadow:none}
 
+/* Calculator: black frame, white display, grey numbers, lime operators. */
 body[data-design=ice][data-variant=rhythm] #calculator-dialog,
 body[data-design=ice][data-variant=rhythm] #note-calc-dock .note-calculator{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a;box-shadow:none}
 body[data-design=ice][data-variant=rhythm] .calc-head,
 body[data-design=ice][data-variant=rhythm] #note-calc-dock .calc-head{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .calc-screen,
-body[data-design=ice][data-variant=rhythm] #note-calc-dock .calc-screen{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
+body[data-design=ice][data-variant=rhythm] #note-calc-dock .calc-screen{background:#ffffff;color:#0b0b0a;border-color:#ffffff}
 body[data-design=ice][data-variant=rhythm] .calc-expression,
 body[data-design=ice][data-variant=rhythm] .calc-result,
 body[data-design=ice][data-variant=rhythm] #note-calc-dock .calc-expression,
 body[data-design=ice][data-variant=rhythm] #note-calc-dock .calc-result{color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] .calc-key{background:#e9e8e4;color:#0b0b0a;border-color:#c9c8c3;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] .calc-key.calc-op{background:#ffffff;color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .calc-key{background:#e8e7e1;color:#0b0b0a;border-color:#e8e7e1;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .calc-key.calc-op{background:#dfff00;color:#0b0b0a;border-color:#dfff00}
 body[data-design=ice][data-variant=rhythm] .calc-equals,
-body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key.calc-equals{background:#f3f700!important;color:#0b0b0a!important;border-color:#f3f700!important;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key.calc-equals{background:#ffffff!important;color:#0b0b0a!important;border-color:#ffffff!important;box-shadow:none}
 
-body[data-design=ice][data-variant=rhythm] dialog,
-body[data-design=ice][data-variant=rhythm] #ice-menu-dialog{background:#f7f6f1;color:#0b0b0a;border-color:#c9c8c3;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] dialog::backdrop{background:#0b0b0a66}
-body[data-design=ice][data-variant=rhythm] .field input,
-body[data-design=ice][data-variant=rhythm] .field select,
-body[data-design=ice][data-variant=rhythm] .field textarea,
-body[data-design=ice][data-variant=rhythm] select,
-body[data-design=ice][data-variant=rhythm] input{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
-body[data-design=ice][data-variant=rhythm] .dialog-note{color:#777773}
-body[data-design=ice][data-variant=rhythm] #ice-tools-list>button{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
-body[data-design=ice][data-variant=rhythm] #ice-tools-list>button>span:first-child{background:#f3f700;color:#0b0b0a}
-body[data-design=ice][data-variant=rhythm] #ice-tools-list small{color:#777773}
-body[data-design=ice][data-variant=rhythm] .ice-menu-heading{color:#0b0b0a}
-
+/* Events and reminders. */
+body[data-design=ice][data-variant=rhythm] .event-card{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .event-main{color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .event-main small{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .event-toggle{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .event-toggle[aria-pressed=true],
-body[data-design=ice][data-variant=rhythm] .bell-on{color:#0b0b0a;background:#f3f700;border-color:#f3f700}
+body[data-design=ice][data-variant=rhythm] .bell-on{color:#0b0b0a;background:#dfff00;border-color:#dfff00}
 body[data-design=ice][data-variant=rhythm] .permission-banner,
-body[data-design=ice][data-variant=rhythm] .permissions-ok{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
+body[data-design=ice][data-variant=rhythm] .permissions-ok{background:#f1ffad;color:#0b0b0a;border-color:#c4d100}
 
-body[data-design=ice][data-variant=rhythm] .workout-page{--workout-paper:#f7f6f1;--workout-ink:#0b0b0a;--workout-accent:#f3f700;--workout-on:#0b0b0a;color:#0b0b0a}
+/* Wishes and workout. */
+body[data-design=ice][data-variant=rhythm] .wish-card{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] .wish-card:nth-child(odd){background:#f1ffad}
+body[data-design=ice][data-variant=rhythm] .workout-page{--workout-paper:#f3f2ec;--workout-ink:#0b0b0a;--workout-accent:#dfff00;--workout-on:#0b0b0a;color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .workout-preview b,
 body[data-design=ice][data-variant=rhythm] .workout-set,
 body[data-design=ice][data-variant=rhythm] .workout-card,
 body[data-design=ice][data-variant=rhythm] .workout-detail,
-body[data-design=ice][data-variant=rhythm] .workout-record{background:#ffffff;color:#0b0b0a;border-color:#c9c8c3}
-body[data-design=ice][data-variant=rhythm] .workout-set[aria-pressed=true]{background:#f3f700;color:#0b0b0a;border-color:#f3f700}
+body[data-design=ice][data-variant=rhythm] .workout-record{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] .workout-set[aria-pressed=true]{background:#dfff00;color:#0b0b0a;border-color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .workout-timer{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
+
+/* Dialogs and settings use clear surface hierarchy. */
+body[data-design=ice][data-variant=rhythm] dialog,
+body[data-design=ice][data-variant=rhythm] #ice-menu-dialog{background:#ffffff;color:#0b0b0a;border-color:#c8c7c0;box-shadow:none}
+body[data-design=ice][data-variant=rhythm] dialog::backdrop{background:#0b0b0a66}
+body[data-design=ice][data-variant=rhythm] .dialog-head button{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .field input,
+body[data-design=ice][data-variant=rhythm] .field select,
+body[data-design=ice][data-variant=rhythm] .field textarea,
+body[data-design=ice][data-variant=rhythm] select,
+body[data-design=ice][data-variant=rhythm] input{background:#e8e7e1;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] .dialog-note{color:#73726d}
+body[data-design=ice][data-variant=rhythm] .settings-buttons .btn{background:#e8e7e1;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] .settings-buttons .settings-theme{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .settings-buttons .settings-theme small{color:#dfff00}
+body[data-design=ice][data-variant=rhythm] .theme-variant{background:#e8e7e1;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] .theme-variant[aria-pressed=true]{background:#0b0b0a;color:#ffffff;border-color:#dfff00;outline-color:#dfff00}
+
+/* Plus menu: no colored square tiles around icons. */
+body[data-design=ice][data-variant=rhythm] #ice-menu-dialog{background:#ffffff}
+body[data-design=ice][data-variant=rhythm] #ice-tools-list>button{background:transparent;color:#0b0b0a;border-color:#c8c7c0}
+body[data-design=ice][data-variant=rhythm] #ice-tools-list>button>span:first-child{background:transparent!important;color:#dfff00!important;box-shadow:none!important;outline:0!important}
+body[data-design=ice][data-variant=rhythm] #ice-tools-list>button>span:first-child svg{color:#8aa000!important}
+body[data-design=ice][data-variant=rhythm] #ice-tools-list small{color:#73726d}
+body[data-design=ice][data-variant=rhythm] #ice-tools-list b{color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] .ice-menu-heading{color:#0b0b0a}
 
 body[data-design=ice][data-variant=rhythm] #ice-undo,
 body[data-design=ice][data-variant=rhythm] .toast{background:#0b0b0a;color:#ffffff;border-color:#0b0b0a;box-shadow:none}
-body[data-design=ice][data-variant=rhythm] #ice-undo button{background:#f3f700;color:#0b0b0a}
+body[data-design=ice][data-variant=rhythm] #ice-undo button{background:#dfff00;color:#0b0b0a}
 body[data-design=ice][data-variant=rhythm] .btn:focus-visible,
 body[data-design=ice][data-variant=rhythm] input:focus,
 body[data-design=ice][data-variant=rhythm] select:focus,
-body[data-design=ice][data-variant=rhythm] textarea:focus{outline-color:#f3f700}
+body[data-design=ice][data-variant=rhythm] textarea:focus{outline-color:#dfff00}
