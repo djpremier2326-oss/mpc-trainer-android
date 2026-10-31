@@ -27,6 +27,8 @@ jobs:
         run: base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
       - name: Register Rhythm theme
         run: python3 scripts/apply-rhythm-theme.py
+      - name: Update theme preview cards
+        run: python3 scripts/apply-theme-preview-fixes.py
       - name: Test reminder timing
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build APK
