@@ -218,3 +218,47 @@ body[data-design=ice][data-variant=blueberry] .calc-screen{background:#c9b8c3;co
 body[data-design=ice][data-variant=blueberry] .calc-head{background:#748290;color:#f4eef2;border-color:#424049}
 body[data-design=ice][data-variant=blueberry] .note-swipe-actions [data-note-pin]{background:#dc9dac;color:#424049}
 body[data-design=ice][data-variant=blueberry] .btn:focus-visible,body[data-design=ice][data-variant=blueberry] input:focus,body[data-design=ice][data-variant=blueberry] select:focus{outline-color:#424049}
+/* Revised hierarchy: gray task surfaces, charcoal controls, lavender secondary
+   surfaces and restrained rose highlights. Exact five supplied swatches. */
+body[data-design=ice][data-variant=blueberry]{--ice-cyan:#dc9dac;--ice-paper:#748290;--ice-ink:#424049;--on-accent:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .ice-city-photo img{filter:none;opacity:1;object-position:50% 50%}
+body[data-design=ice][data-variant=blueberry] .ice-hero.ice-city-hero:after{background:linear-gradient(0deg,#a5afbb 0%,#a5afbbef 9%,#a5afbb88 24%,transparent 49%)}
+body[data-design=ice][data-variant=blueberry] .ice-time-block{background:var(--ice-card,#a5afbb);border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .ice-time-block[data-color=none]{border-left-color:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .ice-time-block[data-color=none] .ice-color-button i{background:#c9b8c3;border-color:#c9b8c3;box-shadow:none}
+body[data-design=ice][data-variant=blueberry] .ice-day-tools>button{background:#424049;color:#c9b8c3;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .ice-day-tools>button:first-child{background:#c9b8c3;color:#424049;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .ice-color-button{background:#424049;border-color:#424049;color:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .ice-time-block .ice-entry-reminder.has-reminder{background:#424049;color:#c9b8c3;box-shadow:none}
+body[data-design=ice][data-variant=blueberry] .ice-entry-reminder.has-reminder svg{fill:#c9b8c3;stroke:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .ice-week button[aria-current=date]{background:#424049;color:#c9b8c3;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .tabs>.tab{color:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .btn.primary,body[data-design=ice][data-variant=blueberry] .ice-row-done,body[data-design=ice][data-variant=blueberry] #ice-edit-done{background:#424049;color:#c9b8c3;border-color:#424049;box-shadow:none}
+body[data-design=ice][data-variant=blueberry] .calendar-month,body[data-design=ice][data-variant=blueberry] .savings-top,body[data-design=ice][data-variant=blueberry] .saving-stats,body[data-design=ice][data-variant=blueberry] .note-card,body[data-design=ice][data-variant=blueberry] .deposit:not([aria-pressed=true]),body[data-design=ice][data-variant=blueberry] .overview[data-day-color=none]{background:#a5afbb;color:#424049;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .note-card{border-left-color:#748290}
+body[data-design=ice][data-variant=blueberry] .calendar-month h2{background:#c9b8c3;color:#424049}
+body[data-design=ice][data-variant=blueberry] .calendar-month .cal-cell:not(.chosen){background:#c9b8c3;color:#424049;border-color:#748290}
+body[data-design=ice][data-variant=blueberry] .calendar-month .cal-cell.outside:not(.chosen){background:#a5afbb;color:#424049}
+body[data-design=ice][data-variant=blueberry] .calendar-month .cal-cell.chosen{background:#424049;color:#c9b8c3;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .deposit[aria-pressed=true],body[data-design=ice][data-variant=blueberry] .complete-banner{background:#424049;color:#c9b8c3;border-color:#424049;box-shadow:none}
+body[data-design=ice][data-variant=blueberry] .deposit[aria-pressed=true] small,body[data-design=ice][data-variant=blueberry] .deposit[aria-pressed=true]::after{color:#dc9dac}
+body[data-design=ice][data-variant=blueberry] .savings-top .btn.primary{background:#424049;color:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .btn:not(.primary),body[data-design=ice][data-variant=blueberry] .date-input{background:#c9b8c3;color:#424049;border-color:#424049;box-shadow:none}
+body[data-design=ice][data-variant=blueberry].note-open #view,body[data-design=ice][data-variant=blueberry] .note-full-head,body[data-design=ice][data-variant=blueberry] .note-rich,body[data-design=ice][data-variant=blueberry] .note-full-status{background:#a5afbb;color:#424049;border-color:#748290}
+body[data-design=ice][data-variant=blueberry] .note-format .format-btn{background:#c9b8c3;color:#424049;border-color:#c9b8c3;box-shadow:none}
+body[data-design=ice][data-variant=blueberry] .note-format .format-btn[aria-pressed=true],body[data-design=ice][data-variant=blueberry] .note-format .note-calc-toggle,body[data-design=ice][data-variant=blueberry] #note-calendar-toggle{background:#a5afbb!important;color:#424049!important;border-color:#a5afbb!important;box-shadow:none}
+body[data-design=ice][data-variant=blueberry] .note-format .note-calc-toggle[aria-expanded=true],body[data-design=ice][data-variant=blueberry] #note-calendar-toggle[aria-expanded=true]{background:#dc9dac!important;color:#424049!important;border-color:#dc9dac!important}
+body[data-design=ice][data-variant=blueberry] .note-calendar-day.picked{background:#a5afbb!important;color:#424049!important;border-color:#dc9dac;box-shadow:inset 0 0 0 2px #dc9dac}
+body[data-design=ice][data-variant=blueberry] #note-copy-text{background:#424049;color:#c9b8c3;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .workout-page{--workout-paper:#a5afbb;--workout-accent:#424049;--workout-on:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] .workout-preview b,body[data-design=ice][data-variant=blueberry] .workout-set{background:#c9b8c3;color:#424049;border-color:#748290}
+body[data-design=ice][data-variant=blueberry] .workout-set[aria-pressed=true]{background:#424049;color:#c9b8c3;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] .workout-set.next{outline-color:#424049}
+body[data-design=ice][data-variant=blueberry] .wish-card{background:#a5afbb;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] #ice-tools-list>button{background:#a5afbb;color:#424049;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] #ice-menu-dialog{background:#748290;color:#c9b8c3;border-color:#424049}
+body[data-design=ice][data-variant=blueberry] #ice-menu-dialog .dialog-head{color:#c9b8c3}
+body[data-design=ice][data-variant=blueberry] #ice-undo button{background:#c9b8c3;color:#424049}
+body[data-design=ice][data-variant=blueberry] .ice-time-end,body[data-design=ice][data-variant=blueberry] .ice-day-boundary{color:#424049}
+body[data-design=ice][data-variant=blueberry] .ice-city-photo img{object-position:50% 0%}
+body[data-design=ice][data-variant=blueberry] .ice-time-block:not([data-color=none]) .ice-color-button{background:var(--ice-ink);border-color:var(--ice-ink)}
