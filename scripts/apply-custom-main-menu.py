@@ -55,19 +55,19 @@ replace_once(
 )
 
 # One divider only: attach it to the nav container instead of any individual button.
-# This keeps it stable when the three configurable buttons change or move.
+# The divider uses one fixed large height in every theme.
 nav_fix = '''<style id="custom-main-menu-nav-fix">
 body[data-design=ice] .tabs{position:relative}
-body[data-design=ice] .tabs::before{content:"";position:absolute;right:81px;top:50%;transform:translateY(-50%);width:1px;height:42px;background:var(--ice-cyan,var(--accent,#06d5fa));opacity:1;pointer-events:none}
+body[data-design=ice] .tabs::before{content:"";position:absolute;right:81px;top:50%;transform:translateY(-50%);width:1px;height:56px;background:var(--ice-cyan,var(--accent,#06d5fa));opacity:1;pointer-events:none}
 body[data-design=ice] .tabs>.tab::before{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.tab[data-tab=calendar]::before{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.ice-compose::before,body[data-design=ice] .tabs>.ice-compose::after{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.tab.active::after{left:28%!important;right:28%!important}
-@media(max-width:350px){body[data-design=ice] .tabs::before{right:65px}}
+@media(max-width:350px){body[data-design=ice] .tabs::before{right:65px;height:56px}}
 </style>'''
 replace_once('</head>', nav_fix + '</head>', 'nav divider cleanup')
 
 if text == original:
     raise SystemExit('Custom main menu patch made no changes')
 path.write_text(text, encoding='utf-8')
-print('Custom main menu enabled for Ice UI with one stable divider')
+print('Custom main menu enabled for Ice UI with one large divider in every theme')
