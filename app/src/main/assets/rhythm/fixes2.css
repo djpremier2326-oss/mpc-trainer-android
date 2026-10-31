@@ -1,11 +1,105 @@
-/* Rhythm v8 — targeted device fixes only. */
+/* Rhythm v9 — stronger page/card hierarchy across every section. */
 
-/* Bottom navigation divider before the + button: acid lime, never blue. */
+/* The global customizable-nav patch owns the single divider before +. */
 body[data-design=ice][data-variant=rhythm] .tabs>.tab:nth-child(3){
-  border-right:1px solid #dfff00!important;
+  border-right:0!important;
 }
 
-/* Savings contribution cells: black/white until selected, lime/black after tap. */
+/* Darker warm-grey canvas, bright cards and clear inset controls. */
+body[data-design=ice][data-variant=rhythm]{
+  --rh-bg:#d8d7d1;
+  --rh-surface:#ffffff;
+  --rh-inset:#ecebe6;
+  --ice-paper:#d8d7d1;
+  --app-bg:#d8d7d1;
+  --surface:#ffffff;
+  --card:#ffffff;
+  --control:#ecebe6;
+  --inset:#ecebe6;
+  background:#d8d7d1!important;
+}
+body[data-design=ice][data-variant=rhythm] main,
+body[data-design=ice][data-variant=rhythm] .ice-home,
+body[data-design=ice][data-variant=rhythm] #view{
+  background:#d8d7d1;
+}
+body[data-design=ice][data-variant=rhythm] .ice-paper{
+  background:#d8d7d1!important;
+}
+
+/* Today: white schedule rows sit clearly above the darker page. */
+body[data-design=ice][data-variant=rhythm] .ice-week{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+}
+body[data-design=ice][data-variant=rhythm] .ice-time-block,
+body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry,
+body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry{
+  background:#ffffff!important;
+}
+
+/* Week: cards must read as separate surfaces, not as part of the page. */
+body[data-design=ice][data-variant=rhythm] .overview[data-day-color=none]{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+}
+body[data-design=ice][data-variant=rhythm] .preview-line{
+  border-color:#ecebe6!important;
+}
+
+/* Calendar: darker page, white month cards, softer inner day cells. */
+body[data-design=ice][data-variant=rhythm] .calendar-jump,
+body[data-design=ice][data-variant=rhythm].calendar-view .calendar-jump,
+body[data-design=ice][data-variant=rhythm].calendar-view .calendar-hint{
+  background:#d8d7d1!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month{
+  background:#ffffff!important;
+  border-color:#0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:not(.chosen):not(.outside){
+  background:#f1f0eb!important;
+  border-color:#d0cfc9!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none].outside:not(.chosen){
+  background:#dfded8!important;
+  border-color:#dfded8!important;
+}
+body[data-design=ice][data-variant=rhythm] .jump,
+body[data-design=ice][data-variant=rhythm] .date-input{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+}
+
+/* Notes: darker page behind white note cards and editor sheets. */
+body[data-design=ice][data-variant=rhythm] .note-card{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+  border-left-color:#0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm].note-open #view{
+  background:#d8d7d1!important;
+}
+body[data-design=ice][data-variant=rhythm] .note-full-head,
+body[data-design=ice][data-variant=rhythm] .note-rich,
+body[data-design=ice][data-variant=rhythm] .note-full-status{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+}
+body[data-design=ice][data-variant=rhythm] .note-calendar-panel{
+  background:#ecebe6!important;
+  border-color:#b9b8b2!important;
+}
+body[data-design=ice][data-variant=rhythm] .note-calendar-day:not([data-colored=true]){
+  background:#ffffff!important;
+  border-color:#c9c8c2!important;
+}
+
+/* Savings: keep black summary and black contribution buttons, but separate them from the page. */
+body[data-design=ice][data-variant=rhythm] .saving-stats{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+}
 body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]){
   background:#0b0b0a!important;
   color:#ffffff!important;
@@ -26,4 +120,40 @@ body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true] strong,
 body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true] small,
 body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]::after{
   color:#0b0b0a!important;
+}
+
+/* Events, wishes and workout: same dark canvas / light card hierarchy. */
+body[data-design=ice][data-variant=rhythm] .event-card,
+body[data-design=ice][data-variant=rhythm] .wish-card,
+body[data-design=ice][data-variant=rhythm] .workout-preview b,
+body[data-design=ice][data-variant=rhythm] .workout-set,
+body[data-design=ice][data-variant=rhythm] .workout-card,
+body[data-design=ice][data-variant=rhythm] .workout-detail,
+body[data-design=ice][data-variant=rhythm] .workout-record{
+  background:#ffffff!important;
+  border-color:#b9b8b2!important;
+}
+body[data-design=ice][data-variant=rhythm] .wish-card:nth-child(odd){
+  background:#f1ffad!important;
+}
+body[data-design=ice][data-variant=rhythm] .workout-page{
+  --workout-paper:#d8d7d1;
+}
+
+/* Settings/dialog fields use a third, lighter grey so they do not merge with cards. */
+body[data-design=ice][data-variant=rhythm] .field input,
+body[data-design=ice][data-variant=rhythm] .field select,
+body[data-design=ice][data-variant=rhythm] .field textarea,
+body[data-design=ice][data-variant=rhythm] select,
+body[data-design=ice][data-variant=rhythm] input,
+body[data-design=ice][data-variant=rhythm] .settings-buttons .btn,
+body[data-design=ice][data-variant=rhythm] .theme-variant{
+  background:#ecebe6!important;
+  border-color:#b9b8b2!important;
+}
+
+/* Calculator keeps its existing black/lime logic, only its page is separated from white keys. */
+body[data-design=ice][data-variant=rhythm] #calculator-dialog,
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .note-calculator{
+  background:#d8d7d1!important;
 }
