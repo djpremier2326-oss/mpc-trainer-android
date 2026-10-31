@@ -25,6 +25,8 @@ jobs:
           gradle-version: '8.11.1'
       - name: Restore stable debug signing
         run: base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
+      - name: Register Rhythm theme
+        run: python3 scripts/apply-rhythm-theme.py
       - name: Test reminder timing
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build APK
