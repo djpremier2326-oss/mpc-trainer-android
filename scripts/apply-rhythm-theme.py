@@ -23,7 +23,7 @@ replace_once(
 )
 replace_once(
     '<link rel="stylesheet" href="blueberry/theme.css"></head>',
-    '<link rel="stylesheet" href="blueberry/theme.css"><link rel="stylesheet" href="rhythm/theme.css"><link rel="stylesheet" href="rhythm/fixes.css"></head>',
+    '<link rel="stylesheet" href="blueberry/theme.css"><link rel="stylesheet" href="rhythm/theme.css"><link rel="stylesheet" href="rhythm/fixes.css"><link rel="stylesheet" href="rhythm/fixes2.css"></head>',
     'rhythm stylesheet link'
 )
 replace_once(
