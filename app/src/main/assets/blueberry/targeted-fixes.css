@@ -1,0 +1,101 @@
+/* Blueberry: targeted fixes only for Calendar, Notes and Calculator. */
+
+/* Calendar */
+body[data-design=ice][data-variant=blueberry] .calendar-month{
+  background:#c9b8c3!important;
+  color:#424049!important;
+  border-color:#424049!important;
+  box-shadow:0 3px 10px #4240491f!important;
+}
+body[data-design=ice][data-variant=blueberry] .calendar-month .cal-cell:not(.chosen):not([data-day-color]),
+body[data-design=ice][data-variant=blueberry] .calendar-month .cal-cell[data-day-color=none]:not(.chosen){
+  background:#e5dce1!important;
+  color:#424049!important;
+  border-color:#8f828b!important;
+}
+body[data-design=ice][data-variant=blueberry] .calendar-month .cal-cell.outside:not(.chosen){
+  background:#a5afbb!important;
+  color:#667381!important;
+}
+body[data-design=ice][data-variant=blueberry] .calendar-month .weekday{color:#5d6169!important}
+body[data-design=ice][data-variant=blueberry] .calendar-jump .jump,
+body[data-design=ice][data-variant=blueberry] .calendar-jump .btn,
+body[data-design=ice][data-variant=blueberry] .date-input{
+  background:#c9b8c3!important;
+  color:#424049!important;
+  border-color:#667381!important;
+}
+
+/* Notes */
+body[data-design=ice][data-variant=blueberry] .notes-tools input,
+body[data-design=ice][data-variant=blueberry] .note-editor input{
+  background:#c9b8c3!important;
+  color:#424049!important;
+  border-color:#667381!important;
+}
+body[data-design=ice][data-variant=blueberry] .note-card{
+  background:#d8cbd3!important;
+  color:#424049!important;
+  border-color:#667381!important;
+  border-left-color:#424049!important;
+  box-shadow:0 3px 9px #42404918!important;
+}
+body[data-design=ice][data-variant=blueberry].note-open #view,
+body[data-design=ice][data-variant=blueberry] .note-full-head,
+body[data-design=ice][data-variant=blueberry] .note-rich,
+body[data-design=ice][data-variant=blueberry] .note-full-status{
+  background:#d8cbd3!important;
+  color:#424049!important;
+}
+body[data-design=ice][data-variant=blueberry] .note-format,
+body[data-design=ice][data-variant=blueberry] .note-colors{
+  background:#a5afbb!important;
+  border-color:#667381!important;
+}
+
+/* Full-screen calculator */
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-head{
+  background:transparent!important;
+  color:#424049!important;
+}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-head button{
+  background:#424049!important;
+  color:#fff!important;
+  border-color:#424049!important;
+}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-screen{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-expression,
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-result{color:#424049!important}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-key{
+  background:#d8cbd3!important;
+  color:#424049!important;
+  border-color:#667381!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-key.calc-operator{
+  background:#424049!important;
+  color:#fff!important;
+  border-color:#424049!important;
+}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-key[data-calc-key="C"],
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-key[data-calc-key="⌫"]{
+  background:#a5afbb!important;
+  color:#424049!important;
+  border-color:#667381!important;
+}
+body[data-design=ice][data-variant=blueberry] #calculator-dialog .calc-key.calc-equals{
+  background:#dc9dac!important;
+  color:#424049!important;
+  border-color:#dc9dac!important;
+}
+
+/* Calculator inside Notes */
+body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-head{background:transparent!important;color:#424049!important}
+body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-screen{background:#d8cbd3!important;border-color:#667381!important}
+body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-key{background:#d8cbd3!important;color:#424049!important;border-color:#667381!important}
+body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-key.calc-operator{background:#424049!important;color:#fff!important;border-color:#424049!important}
+body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-key.calc-equals{background:#dc9dac!important;color:#424049!important;border-color:#dc9dac!important}
