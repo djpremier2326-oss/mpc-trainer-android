@@ -1,0 +1,29 @@
+/* Rhythm v8 — targeted device fixes only. */
+
+/* Bottom navigation divider before the + button: acid lime, never blue. */
+body[data-design=ice][data-variant=rhythm] .tabs>.tab:nth-child(3){
+  border-right:1px solid #dfff00!important;
+}
+
+/* Savings contribution cells: black/white until selected, lime/black after tap. */
+body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]){
+  background:#0b0b0a!important;
+  color:#ffffff!important;
+  border-color:#0b0b0a!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]) strong,
+body[data-design=ice][data-variant=rhythm] .deposit:not([aria-pressed=true]) small{
+  color:#ffffff!important;
+}
+body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]{
+  background:#dfff00!important;
+  color:#0b0b0a!important;
+  border-color:#dfff00!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true] strong,
+body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true] small,
+body[data-design=ice][data-variant=rhythm] .deposit[aria-pressed=true]::after{
+  color:#0b0b0a!important;
+}
