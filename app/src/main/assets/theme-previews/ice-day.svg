@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393 852">
+  <defs>
+    <linearGradient id="shade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="55%" stop-color="#03192e" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#03192e" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+  <rect width="393" height="852" fill="#03192e"/>
+  <image href="../ice/new-york-city.jpg" x="0" y="0" width="393" height="168" preserveAspectRatio="xMidYMid slice"/>
+  <rect x="0" y="0" width="393" height="168" fill="url(#shade)"/>
+  <text x="18" y="151" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="#fff">Четверг, 29 октября</text>
+  <rect x="0" y="168" width="393" height="72" rx="18" fill="#f8fcff" stroke="#78a9ca"/>
+  <g font-family="system-ui,sans-serif" text-anchor="middle">
+    <g fill="#52708e" font-size="9"><text x="29" y="188">Пн</text><text x="84" y="188">Вт</text><text x="140" y="188">Ср</text><text x="196" y="188">Чт</text><text x="252" y="188">Пт</text><text x="308" y="188" fill="#e53a52">Сб</text><text x="364" y="188" fill="#e53a52">Вс</text></g>
+    <g fill="#102e4b" font-size="18" font-weight="700"><text x="29" y="211">26</text><text x="84" y="211">27</text><text x="140" y="211">28</text></g>
+    <rect x="171" y="179" width="50" height="51" rx="12" fill="#14c9ed"/>
+    <text x="196" y="211" font-size="18" font-weight="800" fill="#05263f">29</text>
+    <text x="252" y="211" font-size="18" font-weight="700" fill="#102e4b">30</text><text x="308" y="211" font-size="18" font-weight="700" fill="#e53a52">31</text><text x="364" y="211" font-size="18" font-weight="700" fill="#e53a52">1</text>
+  </g>
+  <rect x="10" y="250" width="373" height="44" rx="12" fill="#f5fbff" stroke="#a9cce2"/><circle cx="28" cy="272" r="5" fill="none" stroke="#4d88ad"/><text x="43" y="277" font-family="system-ui,sans-serif" font-size="12" fill="#173b5b">Цвет дня</text><rect x="340" y="258" width="34" height="28" rx="9" fill="#e8f6fd" stroke="#aacde3"/>
+  <g font-family="system-ui,sans-serif">
+    <g transform="translate(10 306)"><rect width="373" height="82" rx="16" fill="#fff" stroke="#a7cce5"/><rect width="4" height="82" rx="2" fill="#22c7f0"/><text x="16" y="27" font-size="14" font-weight="800" fill="#153855">00:00</text><text x="16" y="46" font-size="9" fill="#7890a4">Изменить</text><text x="78" y="30" font-size="12" fill="#91a3b2">Планы на это время</text><rect x="332" y="14" width="31" height="54" rx="10" fill="#eef8fd"/><circle cx="347" cy="42" r="6" fill="#12c9ed"/></g>
+    <g transform="translate(10 399)"><rect width="373" height="82" rx="16" fill="#fff" stroke="#a7cce5"/><rect width="4" height="82" rx="2" fill="#22c7f0"/><text x="16" y="27" font-size="14" font-weight="800" fill="#153855">01:00</text><text x="16" y="46" font-size="9" fill="#7890a4">Изменить</text><text x="78" y="30" font-size="12" fill="#91a3b2">Планы на это время</text><rect x="332" y="14" width="31" height="54" rx="10" fill="#eef8fd"/><circle cx="347" cy="42" r="6" fill="#12c9ed"/></g>
+    <g transform="translate(10 492)"><rect width="373" height="82" rx="16" fill="#fff" stroke="#a7cce5"/><rect width="4" height="82" rx="2" fill="#22c7f0"/><text x="16" y="27" font-size="14" font-weight="800" fill="#153855">02:00</text><text x="16" y="46" font-size="9" fill="#7890a4">Изменить</text><text x="78" y="30" font-size="12" fill="#91a3b2">Планы на это время</text><rect x="332" y="14" width="31" height="54" rx="10" fill="#eef8fd"/><circle cx="347" cy="42" r="6" fill="#12c9ed"/></g>
+    <g transform="translate(10 585)"><rect width="373" height="82" rx="16" fill="#fff" stroke="#a7cce5"/><rect width="4" height="82" rx="2" fill="#22c7f0"/><text x="16" y="27" font-size="14" font-weight="800" fill="#153855">03:00</text><text x="16" y="46" font-size="9" fill="#7890a4">Изменить</text><text x="78" y="30" font-size="12" fill="#91a3b2">Планы на это время</text><rect x="332" y="14" width="31" height="54" rx="10" fill="#eef8fd"/><circle cx="347" cy="42" r="6" fill="#12c9ed"/></g>
+  </g>
+  <rect x="0" y="760" width="393" height="92" rx="28" fill="#03192e"/>
+  <g font-family="system-ui,sans-serif" font-size="10" text-anchor="middle"><text x="58" y="823" fill="#13d9fc">Сегодня</text><text x="154" y="823" fill="#e6f2fa">Неделя</text><text x="250" y="823" fill="#e6f2fa">Календарь</text><circle cx="342" cy="802" r="31" fill="#13d9fc"/><text x="342" y="812" fill="#06213a" font-size="34">+</text></g>
+</svg>
