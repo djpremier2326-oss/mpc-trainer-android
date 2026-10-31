@@ -54,19 +54,20 @@ replace_once(
     'show setting in Ice'
 )
 
-# Remove the old divider that was tied specifically to the Calendar button.
-# With a customizable menu that divider can land in the middle of the bar.
+# One divider only: attach it to the nav container instead of any individual button.
+# This keeps it stable when the three configurable buttons change or move.
 nav_fix = '''<style id="custom-main-menu-nav-fix">
+body[data-design=ice] .tabs{position:relative}
+body[data-design=ice] .tabs::before{content:"";position:absolute;right:81px;top:50%;transform:translateY(-50%);width:1px;height:42px;background:var(--ice-cyan,var(--accent,#06d5fa));opacity:1;pointer-events:none}
 body[data-design=ice] .tabs>.tab::before{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.tab[data-tab=calendar]::before{content:none!important;display:none!important}
+body[data-design=ice] .tabs>.ice-compose::before,body[data-design=ice] .tabs>.ice-compose::after{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.tab.active::after{left:28%!important;right:28%!important}
-body[data-design=ice] .tabs>.ice-compose{position:relative!important}
-body[data-design=ice] .tabs>.ice-compose::before{content:""!important;display:block!important;position:absolute!important;left:-10px!important;top:50%!important;transform:translateY(-50%)!important;width:1px!important;height:42px!important;background:var(--accent,#06d5fa)!important;opacity:1!important;pointer-events:none!important}
-body[data-design=ice][data-variant=rhythm] .tabs>.ice-compose::before{background:#dfff00!important}
+@media(max-width:350px){body[data-design=ice] .tabs::before{right:65px}}
 </style>'''
 replace_once('</head>', nav_fix + '</head>', 'nav divider cleanup')
 
 if text == original:
     raise SystemExit('Custom main menu patch made no changes')
 path.write_text(text, encoding='utf-8')
-print('Custom main menu enabled for Ice UI with clean dividers')
+print('Custom main menu enabled for Ice UI with one stable divider')
