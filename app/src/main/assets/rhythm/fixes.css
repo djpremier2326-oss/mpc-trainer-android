@@ -11,7 +11,34 @@ body[data-design=ice][data-variant=rhythm] .ice-week .ice-sunday>i{
   box-shadow:none!important;
 }
 
-/* Remove the inherited blue rail/edge from schedule cards. */
+/* Remove every inherited blue edge from the actual schedule card used on device. */
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none]{
+  --edge:#c8c7c0!important;
+  --rail:#0b0b0a!important;
+  background:#ffffff!important;
+  border-color:#c8c7c0!important;
+  border-left-color:#0b0b0a!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none] .time{
+  color:#0b0b0a!important;
+  border-right-color:#e8e7e1!important;
+}
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none] .time span,
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none] textarea::placeholder{
+  color:#73726d!important;
+}
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none] textarea{
+  color:#0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none] .color-trigger{
+  background:#0b0b0a!important;
+  color:#ffffff!important;
+  border-color:#0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm] .slot[data-color=none] .color-trigger i{
+  background:#dfff00!important;
+}
 body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry,
 body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry{
   border-color:#c8c7c0!important;
@@ -23,6 +50,107 @@ body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry:
   background:#0b0b0a!important;
   opacity:1!important;
   box-shadow:none!important;
+}
+
+/* Calendar hierarchy: page -> white month card -> white day cells -> dark weekends -> lime selected day. */
+body[data-design=ice][data-variant=rhythm] .calendar-month{
+  background:#ffffff!important;
+  border-color:#0b0b0a!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month h2{
+  color:#0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .weekday{
+  color:#0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .weekday:nth-child(6),
+body[data-design=ice][data-variant=rhythm] .calendar-month .weekday:nth-child(7){
+  color:#df2338!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:not(.chosen):not(.outside){
+  background:#ffffff!important;
+  color:#0b0b0a!important;
+  border-color:#d7d6d0!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none].outside:not(.chosen){
+  background:#e8e7e1!important;
+  color:#9a9993!important;
+  border-color:#e8e7e1!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:nth-of-type(7n+6):not(.chosen):not(.outside),
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:nth-of-type(7n+7):not(.chosen):not(.outside){
+  background:#252523!important;
+  color:#ffffff!important;
+  border-color:#252523!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.chosen[data-day-color=none]{
+  background:#dfff00!important;
+  color:#0b0b0a!important;
+  border-color:#0b0b0a!important;
+  box-shadow:inset 0 0 0 2px #0b0b0a!important;
+}
+body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.today[data-day-color=none]:not(.chosen){
+  border-color:#dfff00!important;
+  box-shadow:inset 0 0 0 2px #dfff00!important;
+}
+body[data-design=ice][data-variant=rhythm] .month-watermark{
+  color:#dfff00!important;
+  opacity:.09!important;
+}
+
+/* Calculator: remove the empty black header slab and give key groups clear roles. */
+body[data-design=ice][data-variant=rhythm] #calculator-dialog{
+  background:#f3f2ec!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .note-calculator{
+  background:#f3f2ec!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-head{
+  background:transparent!important;
+  color:#0b0b0a!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-head button{
+  background:#0b0b0a!important;
+  color:#dfff00!important;
+  border-color:#0b0b0a!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-screen{
+  background:#0b0b0a!important;
+  color:#ffffff!important;
+  border:1px solid #0b0b0a!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-expression{
+  color:#dfff00!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-result{
+  color:#ffffff!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key{
+  background:#ffffff!important;
+  color:#0b0b0a!important;
+  border-color:#d7d6d0!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key.calc-operator{
+  background:#dfff00!important;
+  color:#0b0b0a!important;
+  border-color:#dfff00!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key[data-calc-key="C"],
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key[data-calc-key="⌫"]{
+  background:#252523!important;
+  color:#ffffff!important;
+  border-color:#252523!important;
+}
+body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key.calc-equals{
+  background:#0b0b0a!important;
+  color:#dfff00!important;
+  border-color:#0b0b0a!important;
 }
 
 /* Small explanatory/help text must stay neutral, never inherited blue. */
@@ -51,8 +179,6 @@ body[data-design=ice][data-variant=rhythm] .workout-record small,
 body[data-design=ice][data-variant=rhythm] .workout-record p{
   color:#73726d!important;
 }
-
-/* Keep text inside the black rest timer readable. */
 body[data-design=ice][data-variant=rhythm] .workout-timer small,
 body[data-design=ice][data-variant=rhythm] .workout-timer p{
   color:#ffffff!important;
