@@ -56,6 +56,7 @@ replace_once(
 
 # One divider only: attach it to the nav container instead of any individual button.
 # The divider uses one fixed large height in every theme.
+# Calendar cleanup also lives here so it applies to every Ice theme variant.
 nav_fix = '''<style id="custom-main-menu-nav-fix">
 body[data-design=ice] .tabs{position:relative}
 body[data-design=ice] .tabs::before{content:"";position:absolute;right:81px;top:50%;transform:translateY(-50%);width:1px;height:56px;background:var(--ice-cyan,var(--accent,#06d5fa));opacity:1;pointer-events:none}
@@ -63,6 +64,9 @@ body[data-design=ice] .tabs>.tab::before{content:none!important;display:none!imp
 body[data-design=ice] .tabs>.tab[data-tab=calendar]::before{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.ice-compose::before,body[data-design=ice] .tabs>.ice-compose::after{content:none!important;display:none!important}
 body[data-design=ice] .tabs>.tab.active::after{left:28%!important;right:28%!important}
+body.calendar-view #view{padding-top:0!important}
+body.calendar-view .calendar-jump{padding-top:0!important}
+body[data-design=ice][data-variant=blueberry] .calendar-month h2{background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;padding-left:0!important;padding-right:0!important}
 @media(max-width:350px){body[data-design=ice] .tabs::before{right:65px;height:56px}}
 </style>'''
 replace_once('</head>', nav_fix + '</head>', 'nav divider cleanup')
@@ -70,4 +74,4 @@ replace_once('</head>', nav_fix + '</head>', 'nav divider cleanup')
 if text == original:
     raise SystemExit('Custom main menu patch made no changes')
 path.write_text(text, encoding='utf-8')
-print('Custom main menu enabled for Ice UI with one large divider in every theme')
+print('Custom main menu enabled with calendar cleanup and one large divider in every theme')
