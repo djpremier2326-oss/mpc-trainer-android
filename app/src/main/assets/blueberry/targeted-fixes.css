@@ -99,3 +99,6 @@ body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-screen{backg
 body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-key{background:#d8cbd3!important;color:#424049!important;border-color:#667381!important}
 body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-key.calc-operator{background:#424049!important;color:#fff!important;border-color:#424049!important}
 body[data-design=ice][data-variant=blueberry] #note-calc-dock .calc-key.calc-equals{background:#dc9dac!important;color:#424049!important;border-color:#dc9dac!important}
+
+/* More options heading */
+body[data-design=ice][data-variant=blueberry] #ice-menu-title{color:#000!important}
