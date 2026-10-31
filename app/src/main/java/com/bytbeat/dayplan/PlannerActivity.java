@@ -50,7 +50,7 @@ public class PlannerActivity extends Activity {
         launchStarted=android.os.SystemClock.elapsedRealtime();
         android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
         boolean dark=appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT);
-        setTheme(dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme);
+        setTheme(launchTheme(appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e),dark));
         super.onCreate(saved);
         // Keep the platform launch transition; no app-owned splash or extra animation.
         pendingWorkout=getIntent().getBooleanExtra("openWorkout",false);
@@ -177,12 +177,13 @@ public class PlannerActivity extends Activity {
         if(activityResumed)web.onResume();else web.onPause();
         web.loadUrl("file:///android_asset/index.html");
     }
+    private int launchTheme(int color,boolean dark){return color==0xffa5afbb?R.style.PlannerBlueberryLaunchTheme:dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme;}
     private void applyNativeTheme(int color,boolean dark){
         if(nativeThemeInitialized&&nativeThemeColor==color&&nativeDark==dark)return;
         nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
         // Persist the selected launch theme in Android itself, before the next process starts.
         if(Build.VERSION.SDK_INT>=31)getSplashScreen().setSplashScreenTheme(
-            dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme);
+            launchTheme(color,dark));
         int chrome=color;
         getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(chrome));
         getWindow().setStatusBarColor(chrome);getWindow().setNavigationBarColor(chrome);

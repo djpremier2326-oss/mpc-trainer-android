@@ -18,4 +18,11 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowLightNavigationBar">true</item>
     </style>
+    <style name="PlannerBlueberryLaunchTheme" parent="@style/AppTheme">
+        <item name="android:windowBackground">#a5afbb</item>
+        <item name="android:statusBarColor">#a5afbb</item>
+        <item name="android:navigationBarColor">#a5afbb</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+    </style>
 </resources>
