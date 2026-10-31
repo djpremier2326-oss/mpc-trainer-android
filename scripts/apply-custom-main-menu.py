@@ -48,14 +48,25 @@ replace_once(
     'menu preview order'
 )
 
-# The current Ice CSS intentionally hid this older setting. Re-enable it now that Ice honors the setting.
 replace_once(
     "body[data-design=ice] #main-menu-open{display:none}",
     "body[data-design=ice] #main-menu-open{display:block}",
     'show setting in Ice'
 )
 
+# Remove the old divider that was tied specifically to the Calendar button.
+# With a customizable menu that divider can land in the middle of the bar.
+nav_fix = '''<style id="custom-main-menu-nav-fix">
+body[data-design=ice] .tabs>.tab::before{content:none!important;display:none!important}
+body[data-design=ice] .tabs>.tab[data-tab=calendar]::before{content:none!important;display:none!important}
+body[data-design=ice] .tabs>.tab.active::after{left:28%!important;right:28%!important}
+body[data-design=ice] .tabs>.ice-compose{position:relative!important}
+body[data-design=ice] .tabs>.ice-compose::before{content:""!important;display:block!important;position:absolute!important;left:-10px!important;top:50%!important;transform:translateY(-50%)!important;width:1px!important;height:42px!important;background:var(--accent,#06d5fa)!important;opacity:1!important;pointer-events:none!important}
+body[data-design=ice][data-variant=rhythm] .tabs>.ice-compose::before{background:#dfff00!important}
+</style>'''
+replace_once('</head>', nav_fix + '</head>', 'nav divider cleanup')
+
 if text == original:
     raise SystemExit('Custom main menu patch made no changes')
 path.write_text(text, encoding='utf-8')
-print('Custom main menu enabled for Ice UI')
+print('Custom main menu enabled for Ice UI with clean dividers')
