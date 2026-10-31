@@ -27,6 +27,8 @@ jobs:
         run: base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
       - name: Register Rhythm theme
         run: python3 scripts/apply-rhythm-theme.py
+      - name: Enable customizable main menu
+        run: python3 scripts/apply-custom-main-menu.py
       - name: Update theme preview cards
         run: python3 scripts/apply-theme-preview-fixes.py
       - name: Test reminder timing
@@ -103,7 +105,7 @@ jobs:
           path: candidate
       - name: Enable KVM
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - uses: reactivecircus/android-emulator-runner@v2
