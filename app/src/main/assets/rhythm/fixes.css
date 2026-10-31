@@ -52,7 +52,7 @@ body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry:
   box-shadow:none!important;
 }
 
-/* Calendar hierarchy: page -> white month card -> white day cells -> dark weekends -> lime selected day. */
+/* Calendar hierarchy: white month card, light cells, red weekends, lime selected day. */
 body[data-design=ice][data-variant=rhythm] .calendar-month{
   background:#ffffff!important;
   border-color:#0b0b0a!important;
@@ -80,9 +80,9 @@ body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-co
 }
 body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:nth-of-type(7n+6):not(.chosen):not(.outside),
 body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell[data-day-color=none]:nth-of-type(7n+7):not(.chosen):not(.outside){
-  background:#252523!important;
-  color:#ffffff!important;
-  border-color:#252523!important;
+  background:#ffffff!important;
+  color:#df2338!important;
+  border-color:#d7d6d0!important;
 }
 body[data-design=ice][data-variant=rhythm] .calendar-month .cal-cell.chosen[data-day-color=none]{
   background:#dfff00!important;
@@ -99,7 +99,7 @@ body[data-design=ice][data-variant=rhythm] .month-watermark{
   opacity:.09!important;
 }
 
-/* Calculator: remove the empty black header slab and give key groups clear roles. */
+/* Calculator: display blends into page; key groups stay clearly separated. */
 body[data-design=ice][data-variant=rhythm] #calculator-dialog{
   background:#f3f2ec!important;
 }
@@ -119,16 +119,16 @@ body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-head button{
   box-shadow:none!important;
 }
 body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-screen{
-  background:#0b0b0a!important;
-  color:#ffffff!important;
-  border:1px solid #0b0b0a!important;
+  background:transparent!important;
+  color:#0b0b0a!important;
+  border:0!important;
   box-shadow:none!important;
 }
 body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-expression{
-  color:#dfff00!important;
+  color:#73726d!important;
 }
 body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-result{
-  color:#ffffff!important;
+  color:#0b0b0a!important;
 }
 body[data-design=ice][data-variant=rhythm] #calculator-dialog .calc-key{
   background:#ffffff!important;
