@@ -1,0 +1,59 @@
+/* Rhythm refinements from device review. Color-only overrides. */
+body[data-design=ice][data-variant=rhythm] .ice-week button:nth-child(6),
+body[data-design=ice][data-variant=rhythm] .ice-week button:nth-child(7),
+body[data-design=ice][data-variant=rhythm] .ice-week .ice-sunday{
+  color:#df2338!important;
+}
+body[data-design=ice][data-variant=rhythm] .ice-week button:nth-child(6)>i,
+body[data-design=ice][data-variant=rhythm] .ice-week button:nth-child(7)>i,
+body[data-design=ice][data-variant=rhythm] .ice-week .ice-sunday>i{
+  background:#df2338!important;
+  box-shadow:none!important;
+}
+
+/* Remove the inherited blue rail/edge from schedule cards. */
+body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry,
+body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry{
+  border-color:#c8c7c0!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=rhythm] .ice-time-block .ice-entry:before,
+body[data-design=ice][data-variant=rhythm] .ice-time-block[data-color=none] .ice-entry:before,
+body[data-design=ice][data-variant=rhythm] .ice-time-block.has-entry .ice-entry:before{
+  background:#0b0b0a!important;
+  opacity:1!important;
+  box-shadow:none!important;
+}
+
+/* Small explanatory/help text must stay neutral, never inherited blue. */
+body[data-design=ice][data-variant=rhythm] .sub,
+body[data-design=ice][data-variant=rhythm] .dialog-note,
+body[data-design=ice][data-variant=rhythm] .calendar-hint,
+body[data-design=ice][data-variant=rhythm] .empty,
+body[data-design=ice][data-variant=rhythm] .empty-events,
+body[data-design=ice][data-variant=rhythm] .overview-head small,
+body[data-design=ice][data-variant=rhythm] .preview-line span,
+body[data-design=ice][data-variant=rhythm] .note-card p,
+body[data-design=ice][data-variant=rhythm] .note-card small,
+body[data-design=ice][data-variant=rhythm] .event-main small,
+body[data-design=ice][data-variant=rhythm] .saving-caption,
+body[data-design=ice][data-variant=rhythm] .saving-legend,
+body[data-design=ice][data-variant=rhythm] .saving-details,
+body[data-design=ice][data-variant=rhythm] #ice-tools-list small,
+body[data-design=ice][data-variant=rhythm] .workout-heading small,
+body[data-design=ice][data-variant=rhythm] .workout-intro,
+body[data-design=ice][data-variant=rhythm] .workout-help,
+body[data-design=ice][data-variant=rhythm] .workout-card>small,
+body[data-design=ice][data-variant=rhythm] .workout-stage small,
+body[data-design=ice][data-variant=rhythm] .workout-set small,
+body[data-design=ice][data-variant=rhythm] .workout-set span,
+body[data-design=ice][data-variant=rhythm] .workout-record small,
+body[data-design=ice][data-variant=rhythm] .workout-record p{
+  color:#73726d!important;
+}
+
+/* Keep text inside the black rest timer readable. */
+body[data-design=ice][data-variant=rhythm] .workout-timer small,
+body[data-design=ice][data-variant=rhythm] .workout-timer p{
+  color:#ffffff!important;
+}
