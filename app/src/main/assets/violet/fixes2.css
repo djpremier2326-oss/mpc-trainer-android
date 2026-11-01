@@ -226,3 +226,32 @@ body[data-design=ice][data-variant=violet] .calc-head button,
 body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="C"],
 body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="⌫"]{border-color:#7a5799!important}
 body[data-design=ice][data-variant=violet] dialog::backdrop{background:rgba(0,0,0,.72)!important}
+
+/* More-options menu: separate rounded cards, matching the rest of Violet. */
+body[data-design=ice][data-variant=violet] #ice-tools-list{
+  display:grid!important;
+  gap:10px!important;
+  padding-top:4px!important;
+}
+body[data-design=ice][data-variant=violet] #ice-tools-list>button{
+  min-height:68px!important;
+  padding:12px 14px!important;
+  border:1px solid #c59af2!important;
+  border-radius:16px!important;
+  background:#fbf8ff!important;
+  color:#171322!important;
+  box-shadow:0 4px 12px rgba(165,107,216,.14)!important;
+  overflow:hidden!important;
+}
+body[data-design=ice][data-variant=violet] #ice-tools-list>button>span:first-child svg{
+  color:#a56bd8!important;
+}
+body[data-design=ice][data-variant=violet] #ice-tools-list strong{
+  color:#171322!important;
+}
+body[data-design=ice][data-variant=violet] #ice-tools-list small{
+  color:#71677f!important;
+}
+body[data-design=ice][data-variant=violet] #ice-tools-list b{
+  color:#a56bd8!important;
+}
