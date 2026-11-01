@@ -1,0 +1,24 @@
+/* Violet Neon — targeted fixes only. */
+
+/* Calculator: remove the large display panel, keep the value directly on the page. */
+body[data-design=ice][data-variant=violet] .calc-screen,
+body[data-design=ice][data-variant=violet] #note-calc-dock .calc-screen{
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=violet] .calc-head,
+body[data-design=ice][data-variant=violet] .calc-expression,
+body[data-design=ice][data-variant=violet] .calc-result,
+body[data-design=ice][data-variant=violet] #note-calc-dock .calc-expression,
+body[data-design=ice][data-variant=violet] #note-calc-dock .calc-result{
+  color:#171322!important;
+}
+
+/* Notes: copy button must be solid black. */
+body[data-design=ice][data-variant=violet] #note-copy-text{
+  background:#0b0b0b!important;
+  color:#ffffff!important;
+  border-color:#0b0b0b!important;
+  box-shadow:none!important;
+}
