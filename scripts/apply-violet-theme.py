@@ -16,11 +16,14 @@ replace_once(
     'startup variant'
 )
 
-violet_link = '<link rel="stylesheet" href="violet/theme.css">'
-if violet_link not in text:
-    if '</head>' not in text:
-        raise SystemExit('Violet patch failed: head close not found')
-    text = text.replace('</head>', violet_link + '</head>', 1)
+for violet_link in (
+    '<link rel="stylesheet" href="violet/theme.css">',
+    '<link rel="stylesheet" href="violet/fixes2.css">',
+):
+    if violet_link not in text:
+        if '</head>' not in text:
+            raise SystemExit('Violet patch failed: head close not found')
+        text = text.replace('</head>', violet_link + '</head>', 1)
 
 replace_once(
     "['ice','graphite','blueberry','rhythm'].includes(p.variant)",
