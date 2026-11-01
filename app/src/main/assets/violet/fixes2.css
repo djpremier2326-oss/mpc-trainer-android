@@ -22,3 +22,10 @@ body[data-design=ice][data-variant=violet] #note-copy-text{
   border-color:#0b0b0b!important;
   box-shadow:none!important;
 }
+
+/* Selected date in the top week strip: keep weekday and day number readable on the lavender tile. */
+body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date],
+body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] span,
+body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] strong{
+  color:#171322!important;
+}
