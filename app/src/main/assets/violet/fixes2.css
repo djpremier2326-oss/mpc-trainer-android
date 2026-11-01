@@ -154,10 +154,48 @@ body[data-design=ice][data-variant=violet] .ice-week button:nth-child(7),
 body[data-design=ice][data-variant=violet] .ice-week .ice-sunday{color:#c59af2!important}
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date]{background:#c59af2!important;box-shadow:0 0 14px rgba(197,154,242,.48)!important}
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] i{background:#8d62bd!important}
-body[data-design=ice][data-variant=violet] .ice-time-block,
-body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none]{border-color:#c59af2!important;border-left-color:#a56bd8!important;box-shadow:0 5px 16px rgba(165,107,216,.22)!important}
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none]{border-color:#c59af2!important;border-left-color:#a56bd8!important;background:#fbf8ff!important;box-shadow:0 5px 16px rgba(165,107,216,.22)!important}
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-entry{background:#fbf8ff!important;color:#171322!important}
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-hours,
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-entry textarea,
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-entry-reminder{color:#171322!important}
 body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-entry:before{background:#a56bd8!important}
 body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-color-button i{background:#c59af2!important;border-color:#c59af2!important;box-shadow:0 0 9px rgba(197,154,242,.55)!important}
+
+/* Colored task cards must use the user-selected color instead of Violet's default lavender card. */
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]){
+  background:var(--ice-card)!important;
+  border-color:var(--ice-mark)!important;
+  border-left:5px solid var(--ice-mark)!important;
+  box-shadow:0 5px 16px color-mix(in srgb,var(--ice-mark) 24%,transparent)!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-entry,
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-time-block.has-entry .ice-entry{
+  background:var(--ice-card)!important;
+  color:var(--ice-ink)!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-hours,
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-hours span,
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-entry textarea,
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-entry textarea::placeholder,
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-entry-reminder{
+  color:var(--ice-ink)!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-hours{
+  border-right-color:color-mix(in srgb,var(--ice-ink) 18%,transparent)!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-entry:before,
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]) .ice-color-button i{
+  background:var(--ice-mark)!important;
+  border-color:var(--ice-mark)!important;
+}
+
+/* Black outer contour around the color picker beside the bell. */
+body[data-design=ice][data-variant=violet] .ice-color-button{
+  outline:2px solid #000000!important;
+  outline-offset:0!important;
+}
+
 body[data-design=ice][data-variant=violet] .btn.primary,
 body[data-design=ice][data-variant=violet] .ice-row-done,
 body[data-design=ice][data-variant=violet] #ice-edit-done{background:#c59af2!important;color:#111!important;border-color:#d9b9f7!important;box-shadow:0 0 10px rgba(197,154,242,.35)!important}
