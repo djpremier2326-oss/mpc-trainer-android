@@ -31,6 +31,8 @@ jobs:
         run: python3 scripts/apply-custom-main-menu.py
       - name: Update theme preview cards
         run: python3 scripts/apply-theme-preview-fixes.py
+      - name: Register Violet Neon theme
+        run: python3 scripts/apply-violet-theme.py
       - name: Increase wishes video limit
         run: python3 scripts/apply-wishes-video-limit.py
       - name: Test reminder timing
