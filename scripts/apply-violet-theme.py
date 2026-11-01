@@ -16,11 +16,11 @@ replace_once(
     'startup variant'
 )
 
-replace_once(
-    '<link rel="stylesheet" href="blueberry/theme.css"><link rel="stylesheet" href="rhythm/theme.css"><link rel="stylesheet" href="rhythm/fixes.css"><link rel="stylesheet" href="rhythm/fixes2.css"></head>',
-    '<link rel="stylesheet" href="blueberry/theme.css"><link rel="stylesheet" href="rhythm/theme.css"><link rel="stylesheet" href="rhythm/fixes.css"><link rel="stylesheet" href="rhythm/fixes2.css"><link rel="stylesheet" href="violet/theme.css"></head>',
-    'violet stylesheet'
-)
+violet_link = '<link rel="stylesheet" href="violet/theme.css">'
+if violet_link not in text:
+    if '</head>' not in text:
+        raise SystemExit('Violet patch failed: head close not found')
+    text = text.replace('</head>', violet_link + '</head>', 1)
 
 replace_once(
     "['ice','graphite','blueberry','rhythm'].includes(p.variant)",
