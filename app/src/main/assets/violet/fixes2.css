@@ -17,9 +17,9 @@ body[data-design=ice][data-variant=violet] #note-calc-dock .calc-result{
 
 /* Notes: copy button must be solid black. */
 body[data-design=ice][data-variant=violet] #note-copy-text{
-  background:#0b0b0b!important;
+  background:#000000!important;
   color:#ffffff!important;
-  border-color:#0b0b0b!important;
+  border-color:#000000!important;
   box-shadow:none!important;
 }
 
@@ -28,4 +28,61 @@ body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date],
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] span,
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] strong{
   color:#171322!important;
+}
+
+/* Violet Neon: every dark-purple surface is pure black, matching the basketball-court reference. */
+body[data-design=ice][data-variant=violet]{
+  --violet-night:#000000;
+  --violet-night-2:#000000;
+}
+body[data-design=ice][data-variant=violet] .ice-tribute,
+body[data-design=ice][data-variant=violet] .tabs,
+body[data-design=ice][data-variant=violet] .ice-week,
+body[data-design=ice][data-variant=violet] .ice-day-tools>button,
+body[data-design=ice][data-variant=violet] .day-quick-tools .btn,
+body[data-design=ice][data-variant=violet] .overview[data-day-color=none] .day-color-button,
+body[data-design=ice][data-variant=violet] .overview[data-day-color=none] .color-trigger,
+body[data-design=ice][data-variant=violet] .saving-progress,
+body[data-design=ice][data-variant=violet] .deposit:not([aria-pressed=true]),
+body[data-design=ice][data-variant=violet] .note-format,
+body[data-design=ice][data-variant=violet] .note-format .format-btn,
+body[data-design=ice][data-variant=violet] .note-calendar-head button,
+body[data-design=ice][data-variant=violet] .note-calendar-month-label,
+body[data-design=ice][data-variant=violet] #calculator-dialog,
+body[data-design=ice][data-variant=violet] #note-calc-dock .note-calculator,
+body[data-design=ice][data-variant=violet] .calc-head button,
+body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="C"],
+body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="⌫"],
+body[data-design=ice][data-variant=violet] .event-toggle,
+body[data-design=ice][data-variant=violet] .workout-timer,
+body[data-design=ice][data-variant=violet] .dialog-head button,
+body[data-design=ice][data-variant=violet] .settings-buttons .settings-theme,
+body[data-design=ice][data-variant=violet] .theme-variant[aria-pressed=true],
+body[data-design=ice][data-variant=violet] #ice-undo,
+body[data-design=ice][data-variant=violet] .toast{
+  background:#000000!important;
+  color:#ffffff!important;
+  border-color:#2a2a2a!important;
+}
+body[data-design=ice][data-variant=violet] .savings-top{
+  background:#000000!important;
+  color:#ffffff!important;
+  border-color:#2a2a2a!important;
+}
+body[data-design=ice][data-variant=violet] .tabs{
+  border-top-color:#242424!important;
+}
+body[data-design=ice][data-variant=violet] .ice-week{
+  border-color:#242424!important;
+}
+body[data-design=ice][data-variant=violet] .note-format{
+  border-color:#2a2a2a!important;
+}
+body[data-design=ice][data-variant=violet] .calc-head button,
+body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="C"],
+body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="⌫"]{
+  border-color:#5f2d78!important;
+}
+body[data-design=ice][data-variant=violet] dialog::backdrop{
+  background:rgba(0,0,0,.72)!important;
 }
