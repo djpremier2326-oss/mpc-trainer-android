@@ -95,7 +95,7 @@ body[data-design=ice][data-variant=violet] .calc-expression,
 body[data-design=ice][data-variant=violet] .calc-result,
 body[data-design=ice][data-variant=violet] #note-calc-dock .calc-expression,
 body[data-design=ice][data-variant=violet] #note-calc-dock .calc-result{
-  color:#171322!important;
+  color:#ffffff!important;
 }
 
 /* Notes: copy button must be solid black. */
@@ -254,4 +254,15 @@ body[data-design=ice][data-variant=violet] #ice-tools-list small{
 }
 body[data-design=ice][data-variant=violet] #ice-tools-list b{
   color:#a56bd8!important;
+}
+
+
+/* Calculator display text must stay readable on the black calculator surface. */
+body[data-design=ice][data-variant=violet] #calculator-dialog .calc-head,
+body[data-design=ice][data-variant=violet] #calculator-dialog .calc-expression,
+body[data-design=ice][data-variant=violet] #calculator-dialog .calc-result,
+body[data-design=ice][data-variant=violet] #note-calc-dock .calc-head,
+body[data-design=ice][data-variant=violet] #note-calc-dock .calc-expression,
+body[data-design=ice][data-variant=violet] #note-calc-dock .calc-result{
+  color:#ffffff!important;
 }
