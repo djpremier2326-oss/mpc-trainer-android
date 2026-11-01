@@ -6,3 +6,16 @@
 .workout-history-delete{position:absolute;right:0;top:0;bottom:0;width:88px;border:0;background:#c52e3b;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;font-size:11px;touch-action:manipulation}
 .workout-history-row:focus-within .workout-record{transform:translateX(-88px)}
 @media(prefers-reduced-motion:reduce){.workout-history-row .workout-record{transition:none}}
+
+/* Violet theme readability fixes. */
+body[data-design=ice][data-variant=violet] .workout-heading small{display:none!important}
+body[data-design=ice][data-variant=violet] .workout-intro,
+body[data-design=ice][data-variant=violet] .workout-help,
+body[data-design=ice][data-variant=violet] .workout-card>small,
+body[data-design=ice][data-variant=violet] .workout-stage small,
+body[data-design=ice][data-variant=violet] .workout-set small,
+body[data-design=ice][data-variant=violet] .workout-set span,
+body[data-design=ice][data-variant=violet] .workout-record small,
+body[data-design=ice][data-variant=violet] .workout-record p{color:#111!important}
+body[data-design=ice][data-variant=violet] .workout-timer small,
+body[data-design=ice][data-variant=violet] .workout-timer p{color:#fff!important}
