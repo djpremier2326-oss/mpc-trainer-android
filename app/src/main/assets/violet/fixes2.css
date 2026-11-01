@@ -12,13 +12,21 @@ body[data-design=ice][data-variant=violet]{
   --accent:#c59af2;
 }
 
-/* Home hero: pure black instead of the city photo, lavender Nike Swoosh, soft bottom transition. */
+/* Home hero: pure black instead of the city photo, lavender Nike Swoosh, date back at the bottom, and a soft fade-out. */
 body[data-design=ice][data-variant=violet] .ice-tribute{
   background:#000000!important;
   position:relative!important;
   overflow:hidden!important;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 74%,rgba(0,0,0,.95) 84%,rgba(0,0,0,.55) 93%,transparent 100%)!important;
+  mask-image:linear-gradient(to bottom,#000 0%,#000 74%,rgba(0,0,0,.95) 84%,rgba(0,0,0,.55) 93%,transparent 100%)!important;
 }
 body[data-design=ice][data-variant=violet] .ice-tupac-photo{
+  left:0!important;
+  right:0!important;
+  top:0!important;
+  bottom:0!important;
+  width:100%!important;
+  height:100%!important;
   background:#000000!important;
   background-image:none!important;
   -webkit-mask-image:none!important;
@@ -33,15 +41,15 @@ body[data-design=ice][data-variant=violet] .ice-tribute::before{
   position:absolute!important;
   z-index:1!important;
   left:50%!important;
-  top:42%!important;
-  width:min(58vw,360px)!important;
-  height:min(25vw,150px)!important;
+  top:46%!important;
+  width:min(60vw,390px)!important;
+  height:min(26vw,160px)!important;
   transform:translate(-50%,-50%)!important;
   background-repeat:no-repeat!important;
   background-position:center!important;
   background-size:contain!important;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 69 32'%3E%3Cpath fill='%23c59af2' d='M68.56 4L18.4 25.36Q12.16 28 7.92 28q-4.8 0-6.96-3.36-1.36-2.16-.8-5.48t2.96-7.08q2-3.04 6.56-8-1.6 2.56-2.24 5.28-1.2 5.12 2.16 7.52Q11.2 18 14 18q2.24 0 5.04-.72z'/%3E%3C/svg%3E")!important;
-  filter:drop-shadow(0 0 16px rgba(197,154,242,.34))!important;
+  filter:drop-shadow(0 0 20px rgba(197,154,242,.40))!important;
   pointer-events:none!important;
 }
 body[data-design=ice][data-variant=violet] .ice-tribute::after{
@@ -51,16 +59,28 @@ body[data-design=ice][data-variant=violet] .ice-tribute::after{
   left:0!important;
   right:0!important;
   bottom:0!important;
-  height:34%!important;
+  height:42%!important;
   pointer-events:none!important;
-  background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,.30) 40%,#000000 100%)!important;
+  background:linear-gradient(to bottom,rgba(0,0,0,0) 0%,rgba(0,0,0,.18) 38%,rgba(0,0,0,.55) 68%,rgba(0,0,0,0) 100%)!important;
 }
 body[data-design=ice][data-variant=violet] .ice-tribute .ice-date-line,
 body[data-design=ice][data-variant=violet] .ice-tribute .date-title{
-  position:relative!important;
+  position:absolute!important;
   z-index:2!important;
+  left:18px!important;
+  right:18px!important;
+  top:auto!important;
+  bottom:16px!important;
+  margin:0!important;
+  min-height:unset!important;
   color:#ffffff!important;
   text-shadow:none!important;
+}
+body[data-design=ice][data-variant=violet] .ice-tribute .ice-date-line span,
+body[data-design=ice][data-variant=violet] .ice-tribute .date-title{
+  display:inline-block!important;
+  font-weight:700!important;
+  letter-spacing:-.02em!important;
 }
 
 /* Calculator: remove the large display panel, keep the value directly on the page. */
