@@ -1,5 +1,17 @@
 /* Violet Neon — targeted fixes only. */
 
+/* Main palette: pure black + lavender from the latest reference. */
+body[data-design=ice][data-variant=violet]{
+  --violet-night:#000000;
+  --violet-night-2:#000000;
+  --violet-accent:#c59af2;
+  --violet-accent-2:#a56bd8;
+  --violet-edge:#c59af2;
+  --violet-soft:#eadcf8;
+  --ice-cyan:#c59af2;
+  --accent:#c59af2;
+}
+
 /* Calculator: remove the large display panel, keep the value directly on the page. */
 body[data-design=ice][data-variant=violet] .calc-screen,
 body[data-design=ice][data-variant=violet] #note-calc-dock .calc-screen{
@@ -27,14 +39,10 @@ body[data-design=ice][data-variant=violet] #note-copy-text{
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date],
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] span,
 body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] strong{
-  color:#171322!important;
+  color:#111111!important;
 }
 
-/* Violet Neon: every dark-purple surface is pure black, matching the basketball-court reference. */
-body[data-design=ice][data-variant=violet]{
-  --violet-night:#000000;
-  --violet-night-2:#000000;
-}
+/* Every dark-purple surface is pure black. */
 body[data-design=ice][data-variant=violet] .ice-tribute,
 body[data-design=ice][data-variant=violet] .tabs,
 body[data-design=ice][data-variant=violet] .ice-week,
@@ -59,30 +67,53 @@ body[data-design=ice][data-variant=violet] .dialog-head button,
 body[data-design=ice][data-variant=violet] .settings-buttons .settings-theme,
 body[data-design=ice][data-variant=violet] .theme-variant[aria-pressed=true],
 body[data-design=ice][data-variant=violet] #ice-undo,
-body[data-design=ice][data-variant=violet] .toast{
-  background:#000000!important;
-  color:#ffffff!important;
-  border-color:#2a2a2a!important;
-}
+body[data-design=ice][data-variant=violet] .toast,
 body[data-design=ice][data-variant=violet] .savings-top{
   background:#000000!important;
   color:#ffffff!important;
   border-color:#2a2a2a!important;
 }
-body[data-design=ice][data-variant=violet] .tabs{
-  border-top-color:#242424!important;
+
+/* Lavender is the main accent everywhere instead of pink/magenta. */
+body[data-design=ice][data-variant=violet] .tabs>.tab.active{color:#c59af2!important}
+body[data-design=ice][data-variant=violet] .tabs>.tab.active:after{background:#c59af2!important;box-shadow:0 0 10px rgba(197,154,242,.75)!important}
+body[data-design=ice][data-variant=violet] .ice-compose{background:#c59af2!important;color:#111!important;border-color:#e4c9ff!important;box-shadow:0 0 18px rgba(197,154,242,.5)!important}
+body[data-design=ice][data-variant=violet] .ice-week button:nth-child(6),
+body[data-design=ice][data-variant=violet] .ice-week button:nth-child(7),
+body[data-design=ice][data-variant=violet] .ice-week .ice-sunday{color:#c59af2!important}
+body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date]{background:#c59af2!important;box-shadow:0 0 14px rgba(197,154,242,.48)!important}
+body[data-design=ice][data-variant=violet] .ice-week button[aria-current=date] i{background:#8d62bd!important}
+body[data-design=ice][data-variant=violet] .ice-time-block,
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none]{border-color:#c59af2!important;border-left-color:#a56bd8!important;box-shadow:0 5px 16px rgba(165,107,216,.22)!important}
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-entry:before{background:#a56bd8!important}
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none] .ice-color-button i{background:#c59af2!important;border-color:#c59af2!important;box-shadow:0 0 9px rgba(197,154,242,.55)!important}
+body[data-design=ice][data-variant=violet] .btn.primary,
+body[data-design=ice][data-variant=violet] .ice-row-done,
+body[data-design=ice][data-variant=violet] #ice-edit-done{background:#c59af2!important;color:#111!important;border-color:#d9b9f7!important;box-shadow:0 0 10px rgba(197,154,242,.35)!important}
+body[data-design=ice][data-variant=violet] .overview.today[data-day-color=none]{border-color:#c59af2!important;box-shadow:0 0 0 1px #c59af2,0 5px 16px rgba(165,107,216,.22)!important}
+body[data-design=ice][data-variant=violet] .calendar-month .cal-cell.chosen[data-day-color=none]{background:#c59af2!important;color:#111!important;border-color:#a56bd8!important;box-shadow:0 0 12px rgba(197,154,242,.42)!important}
+body[data-design=ice][data-variant=violet] .deposit[aria-pressed=true],
+body[data-design=ice][data-variant=violet] .note-format .format-btn[aria-pressed=true],
+body[data-design=ice][data-variant=violet] .note-format .note-calc-toggle,
+body[data-design=ice][data-variant=violet] #note-calendar-toggle,
+body[data-design=ice][data-variant=violet] .note-calendar-day.picked,
+body[data-design=ice][data-variant=violet] .event-toggle[aria-pressed=true],
+body[data-design=ice][data-variant=violet] .bell-on,
+body[data-design=ice][data-variant=violet] .workout-set[aria-pressed=true],
+body[data-design=ice][data-variant=violet] #ice-undo button{
+  background:#c59af2!important;
+  color:#111!important;
+  border-color:#a56bd8!important;
 }
-body[data-design=ice][data-variant=violet] .ice-week{
-  border-color:#242424!important;
-}
-body[data-design=ice][data-variant=violet] .note-format{
-  border-color:#2a2a2a!important;
-}
+body[data-design=ice][data-variant=violet] .calc-key.calc-op,
+body[data-design=ice][data-variant=violet] .calc-key.calc-operator{background:#a56bd8!important;color:#fff!important;border-color:#c59af2!important}
+body[data-design=ice][data-variant=violet] .calc-equals,
+body[data-design=ice][data-variant=violet] #calculator-dialog .calc-key.calc-equals{background:#c59af2!important;color:#111!important;border-color:#e4c9ff!important;box-shadow:0 0 14px rgba(197,154,242,.42)!important}
+
+body[data-design=ice][data-variant=violet] .tabs{border-top-color:#242424!important}
+body[data-design=ice][data-variant=violet] .ice-week{border-color:#242424!important}
+body[data-design=ice][data-variant=violet] .note-format{border-color:#2a2a2a!important}
 body[data-design=ice][data-variant=violet] .calc-head button,
 body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="C"],
-body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="⌫"]{
-  border-color:#5f2d78!important;
-}
-body[data-design=ice][data-variant=violet] dialog::backdrop{
-  background:rgba(0,0,0,.72)!important;
-}
+body[data-design=ice][data-variant=violet] .calc-key[data-calc-key="⌫"]{border-color:#7a5799!important}
+body[data-design=ice][data-variant=violet] dialog::backdrop{background:rgba(0,0,0,.72)!important}
