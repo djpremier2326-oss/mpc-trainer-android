@@ -24,11 +24,11 @@ function violetTaskIcon(text){
 '''
 text = text.replace(marker, helper + '\n' + marker, 1)
 
-old = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
-new = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'',taskIcon=violetTaskIcon(r.text);return `"
-if old not in text:
-    raise SystemExit('Violet task icons: event function signature not found')
-text = text.replace(old, new, 1)
+old_tail = "bell=rem?.enabled?'●':'';return `"
+new_tail = "bell=rem?.enabled?'●':'',taskIcon=violetTaskIcon(r.text);return `"
+if old_tail not in text:
+    raise SystemExit('Violet task icons: event function tail not found')
+text = text.replace(old_tail, new_tail, 1)
 
 old_card = "<strong>${esc(r.text)}</strong>${bell?`<i class=\"violet-reminder-mark\" aria-label=\"Уведомление включено\">${bell}</i>`:''}</button>"
 new_card = "<strong>${esc(r.text)}</strong>${taskIcon?`<span class=\"violet-task-auto-icon\">${taskIcon}</span>`:''}${bell?`<i class=\"violet-reminder-mark\" aria-label=\"Уведомление включено\">${bell}</i>`:''}</button>"
@@ -37,7 +37,7 @@ if old_card not in text:
 text = text.replace(old_card, new_card, 1)
 
 style = r'''<style id="violet-task-auto-icons">
-body[data-design=ice][data-variant=violet] .violet-event-card{padding-right:46px!important;position:absolute!important}
+body[data-design=ice][data-variant=violet] .violet-event-card{padding-right:46px!important}
 body[data-design=ice][data-variant=violet] .violet-task-auto-icon{position:absolute;right:12px;top:50%;transform:translateY(-50%);width:25px;height:25px;display:grid;place-items:center;color:currentColor;opacity:.9;pointer-events:none}
 body[data-design=ice][data-variant=violet] .violet-task-icon-svg{width:25px;height:25px;display:block}
 body[data-design=ice][data-variant=violet] .violet-event-card.is-short{padding-right:38px!important}
