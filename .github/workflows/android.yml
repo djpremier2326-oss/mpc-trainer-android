@@ -35,6 +35,8 @@ jobs:
         run: python3 scripts/apply-violet-theme.py
       - name: Enable Violet ranged timeline
         run: python3 scripts/apply-violet-timeline-v3.py
+      - name: Align Violet hour labels inside rows
+        run: python3 scripts/apply-violet-axis-fix.py
       - name: Increase wishes video limit
         run: python3 scripts/apply-wishes-video-limit.py
       - name: Rename wishes to favorites
