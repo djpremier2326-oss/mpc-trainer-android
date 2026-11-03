@@ -1,0 +1,188 @@
+/* Violet timeline experiment — calendar-like task list on the Today screen only. */
+body[data-design=ice][data-variant=violet] .ice-paper{
+  background:#121214!important;
+  color:#fff!important;
+  padding:0 0 18px!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-grid{
+  background:#121214!important;
+  padding:0!important;
+}
+body[data-design=ice][data-variant=violet] .ice-day-tools{
+  margin:0!important;
+  padding:10px 12px!important;
+  background:#121214!important;
+  border-bottom:1px solid #2b2b2f!important;
+}
+
+/* One hour = one timeline row. Empty hours stay compact. */
+body[data-design=ice][data-variant=violet] .ice-time-block,
+body[data-design=ice][data-variant=violet] .ice-time-block[data-color=none],
+body[data-design=ice][data-variant=violet] .ice-time-block:not([data-color=none]){
+  display:grid!important;
+  grid-template-columns:66px minmax(0,1fr)!important;
+  min-height:58px!important;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  border-bottom:1px solid #2b2b2f!important;
+  border-radius:0!important;
+  background:#171719!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+body[data-design=ice][data-variant=violet] .ice-hours{
+  align-self:stretch!important;
+  display:flex!important;
+  flex-direction:column!important;
+  justify-content:flex-start!important;
+  align-items:flex-start!important;
+  padding:8px 8px 0!important;
+  border:0!important;
+  border-right:1px solid #343438!important;
+  background:#171719!important;
+  color:#a9a9b0!important;
+  font-variant-numeric:tabular-nums!important;
+}
+body[data-design=ice][data-variant=violet] .ice-hours time{
+  font-size:14px!important;
+  font-weight:500!important;
+  line-height:1.2!important;
+  color:#b8b8bf!important;
+}
+body[data-design=ice][data-variant=violet] .ice-hours span{
+  margin-top:3px!important;
+  font-size:9px!important;
+  color:#77777f!important;
+}
+
+/* Empty hour: just a writable timeline cell. */
+body[data-design=ice][data-variant=violet] .ice-time-block:not(.has-entry) .ice-entry{
+  min-height:57px!important;
+  height:57px!important;
+  margin:0!important;
+  padding:8px 8px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#d6d6dc!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not(.has-entry) .ice-entry textarea{
+  min-height:40px!important;
+  height:40px!important;
+  padding:6px 4px!important;
+  color:#e6e6ea!important;
+  font-size:13px!important;
+  font-weight:500!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not(.has-entry) .ice-entry textarea::placeholder{
+  color:#696972!important;
+  opacity:1!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not(.has-entry) .ice-card-actions{
+  opacity:0!important;
+  pointer-events:none!important;
+  transition:opacity .12s ease!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block:not(.has-entry):focus-within .ice-card-actions{
+  opacity:1!important;
+  pointer-events:auto!important;
+}
+
+/* Filled task: a real calendar event block inside the time grid. */
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry{
+  min-height:94px!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-entry{
+  position:relative!important;
+  align-self:stretch!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 62px!important;
+  min-height:80px!important;
+  height:auto!important;
+  margin:6px 7px!important;
+  padding:9px 7px 8px 11px!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:var(--ice-card)!important;
+  color:var(--ice-ink)!important;
+  box-shadow:0 3px 10px rgba(0,0,0,.28)!important;
+}
+/* No manual color = neutral gray event, like the reference. */
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry[data-color=none] .ice-entry{
+  background:#505054!important;
+  color:#ffffff!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-entry textarea{
+  min-height:58px!important;
+  height:auto!important;
+  max-height:90px!important;
+  padding:1px 4px!important;
+  color:inherit!important;
+  font-size:14px!important;
+  font-weight:600!important;
+  line-height:1.4!important;
+  overflow:auto!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-entry textarea::placeholder{
+  color:currentColor!important;
+  opacity:.52!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-card-actions{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:flex-end!important;
+  gap:3px!important;
+  padding-top:1px!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-entry-reminder,
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-color-button{
+  flex:none!important;
+  width:28px!important;
+  min-width:28px!important;
+  height:36px!important;
+  padding:4px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry .ice-color-button{
+  border-radius:8px!important;
+  outline:1.5px solid #000!important;
+  outline-offset:-1px!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.has-entry[data-color=black] .ice-color-button{
+  outline-color:#fff!important;
+}
+
+body[data-design=ice][data-variant=violet] .ice-time-end,
+body[data-design=ice][data-variant=violet] .ice-day-boundary{
+  background:#121214!important;
+  color:#898990!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-end{
+  height:32px!important;
+  padding:8px 0 0 10px!important;
+  border-bottom:1px solid #2b2b2f!important;
+}
+body[data-design=ice][data-variant=violet] .ice-day-boundary{
+  padding:14px 0 18px!important;
+}
+
+/* Keep row editing usable: editing simply expands the event. */
+body[data-design=ice][data-variant=violet] .ice-time-block.ice-row-editing,
+body[data-design=ice][data-variant=violet] .ice-time-block.ice-row-editing.has-entry{
+  min-height:150px!important;
+  outline:none!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.ice-row-editing .ice-entry{
+  min-height:136px!important;
+  margin:6px 7px!important;
+  border-radius:10px!important;
+}
+body[data-design=ice][data-variant=violet] .ice-time-block.ice-row-editing textarea{
+  min-height:104px!important;
+  font-size:15px!important;
+}
