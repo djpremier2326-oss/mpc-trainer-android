@@ -19,25 +19,44 @@ text = text.replace(old_scroll, new_scroll, 1)
 style = '''<style id="violet-day-tools-fix">
 body[data-design=ice][data-variant=violet] .violet-day-tools{
   margin:0!important;
-  padding:10px 20px 12px!important;
-  display:grid!important;
-  grid-template-columns:minmax(0,1fr) 64px 64px!important;
-  gap:8px!important;
+  padding:3px 16px 5px!important;
+  display:flex!important;
+  justify-content:flex-end!important;
+  align-items:center!important;
+  gap:10px!important;
   background:#000!important;
+  min-height:40px!important;
 }
 body[data-design=ice][data-variant=violet] .violet-day-tools button{
-  min-height:48px!important;
-  background:#000!important;
-  color:#b98ad9!important;
-  border:2px solid #b98ad9!important;
+  width:auto!important;
+  min-width:0!important;
+  min-height:34px!important;
+  height:34px!important;
+  padding:0 5px!important;
+  background:transparent!important;
+  color:#fff!important;
+  border:0!important;
+  border-radius:0!important;
   box-shadow:none!important;
 }
-body[data-design=ice][data-variant=violet] .violet-day-tools button svg{
-  color:#b98ad9!important;
-  stroke:currentColor!important;
-}
 body[data-design=ice][data-variant=violet] .violet-day-tools button:first-child{
-  justify-content:flex-start!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  font-size:15px!important;
+  font-weight:700!important;
+}
+body[data-design=ice][data-variant=violet] .violet-day-tools button:not(:first-child){
+  width:36px!important;
+  flex:0 0 36px!important;
+  justify-content:center!important;
+  padding:0!important;
+}
+body[data-design=ice][data-variant=violet] .violet-day-tools button svg{
+  width:22px!important;
+  height:22px!important;
+  color:#fff!important;
+  stroke:currentColor!important;
 }
 </style>'''
 if '</head>' not in text:
@@ -47,4 +66,4 @@ text = text.replace('</head>', style + '</head>', 1)
 if text == original:
     raise SystemExit('Violet tools/autoscroll patch made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet day tools restored, restyled, and timeline now opens at current hour')
+print('Violet day tools restored, compacted, and timeline now opens at current hour')
