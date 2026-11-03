@@ -47,6 +47,8 @@ jobs:
         run: python3 scripts/apply-violet-timeline-sizing-fix.py
       - name: Add Violet automatic task icons
         run: python3 scripts/apply-violet-task-icons.py
+      - name: Enable editable saved task and day colors
+        run: python3 scripts/apply-custom-colors.py
       - name: Increase wishes video limit
         run: python3 scripts/apply-wishes-video-limit.py
       - name: Rename wishes to favorites
