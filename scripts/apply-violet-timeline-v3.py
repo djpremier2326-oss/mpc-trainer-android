@@ -13,7 +13,8 @@ const VIOLET_BUSY_HOUR=84;
 let violetEditorIndex=null,violetSwipeState=null,violetIgnoreClick=false;
 function violetClockMinutes(value){const m=/^(\d{2}):(\d{2})$/.exec(value||'');if(!m)return 0;return Math.max(0,Math.min(1439,Number(m[1])*60+Number(m[2])))}
 function violetDefaultEnd(start){const end=Math.min(1439,violetClockMinutes(start)+30),h=Math.floor(end/60),m=end%60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
-function violetTaskEnd(row){const s=violetClockMinutes(row?.time),raw=row?.endTime;return /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(raw||'')&&violetClockMinutes(raw)>s?raw:violetDefaultEnd(row?.time||'00:00')}
+function violetLegacyEnd(start){const end=Math.min(1439,violetClockMinutes(start)+60),h=Math.floor(end/60),m=end%60;return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')}
+function violetTaskEnd(row){const s=violetClockMinutes(row?.time),raw=row?.endTime;return /^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(raw||'')&&violetClockMinutes(raw)>s?raw:violetLegacyEnd(row?.time||'00:00')}
 function violetBuildLayout(rows){
  const busy=Array(24).fill(false);
  rows.forEach(r=>{const s=violetClockMinutes(r.time),e=Math.max(s+1,violetClockMinutes(violetTaskEnd(r)));for(let h=0;h<24;h++){if(s<(h+1)*60&&e>h*60)busy[h]=true}});
