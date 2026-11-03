@@ -33,6 +33,8 @@ jobs:
         run: python3 scripts/apply-theme-preview-fixes.py
       - name: Register Violet Neon theme
         run: python3 scripts/apply-violet-theme.py
+      - name: Enable Violet ranged timeline
+        run: python3 scripts/apply-violet-timeline-v2.py
       - name: Increase wishes video limit
         run: python3 scripts/apply-wishes-video-limit.py
       - name: Rename wishes to favorites
