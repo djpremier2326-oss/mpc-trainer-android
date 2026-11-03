@@ -210,6 +210,11 @@ body[data-design=ice][data-variant=violet] #violet-editor-done{
 body.violet-editor-open #app-footer{opacity:.28;pointer-events:none}
 
 /* In Violet the floating + above the footer adds tasks; the footer button itself is the tools menu. */
+body[data-design=ice][data-variant=violet] .tabs>.ice-compose{
+  background:#000!important;
+  border:2px solid #c59af2!important;
+  box-shadow:0 0 0 1px rgba(197,154,242,.14),0 5px 18px rgba(0,0,0,.4)!important;
+}
 body[data-design=ice][data-variant=violet] .tabs>.ice-compose svg{display:none!important}
 body[data-design=ice][data-variant=violet] .tabs>.ice-compose::before{
   content:""!important;
@@ -217,9 +222,9 @@ body[data-design=ice][data-variant=violet] .tabs>.ice-compose::before{
   width:29px!important;
   height:21px!important;
   background:
-    linear-gradient(#000,#000) top center/29px 3px no-repeat,
-    linear-gradient(#000,#000) center/29px 3px no-repeat,
-    linear-gradient(#000,#000) bottom center/29px 3px no-repeat!important;
+    linear-gradient(#c59af2,#c59af2) top center/29px 3px no-repeat,
+    linear-gradient(#c59af2,#c59af2) center/29px 3px no-repeat,
+    linear-gradient(#c59af2,#c59af2) bottom center/29px 3px no-repeat!important;
   border-radius:0!important;
 }
 body[data-design=ice][data-variant=violet] .tabs>.ice-compose::after{content:none!important;display:none!important}
