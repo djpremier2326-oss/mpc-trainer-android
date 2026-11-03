@@ -32,6 +32,14 @@ if old_class not in text:
     raise SystemExit('Violet sizing fix failed: event card class not found')
 text = text.replace(old_class, new_class, 1)
 
+# uiIcon() has no trash glyph and falls back to the calendar/day icon. Use a
+# dedicated trash SVG for the swipe action so Delete always shows a bin.
+old_trash = "${uiIcon('trash')}<small>Удалить</small>"
+new_trash = '<svg class="ui-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7"/></svg><small>Удалить</small>'
+if old_trash not in text:
+    raise SystemExit('Violet sizing fix failed: delete icon marker not found')
+text = text.replace(old_trash, new_trash, 1)
+
 style = '''<style id="violet-timeline-sizing-fix">
 body[data-design=ice][data-variant=violet] .violet-event-wrap{
   min-height:0!important;
@@ -102,4 +110,4 @@ else:
 if text == original:
     raise SystemExit('Violet sizing fix made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet timeline rows set to 42px; event blocks get a 1px gap above and below')
+print('Violet timeline rows set to 42px; event blocks get a 1px gap and Delete uses trash icon')
