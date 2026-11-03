@@ -43,6 +43,8 @@ jobs:
         run: python3 scripts/apply-violet-axis-fix.py
       - name: Compact Violet timeline blocks
         run: python3 scripts/apply-violet-timeline-sizing-fix.py
+      - name: Add Violet automatic task icons
+        run: python3 scripts/apply-violet-task-icons.py
       - name: Increase wishes video limit
         run: python3 scripts/apply-wishes-video-limit.py
       - name: Rename wishes to favorites
@@ -90,7 +92,7 @@ jobs:
           path: baseline
       - name: Enable KVM
         run: |
-          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm-all.rules
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Install screenshot verifier
