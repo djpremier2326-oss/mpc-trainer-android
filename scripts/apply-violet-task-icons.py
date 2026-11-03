@@ -11,6 +11,8 @@ helper = r'''
 function violetTaskIcon(text){
  const t=(text||'').toLowerCase();
  const svg=(body)=>`<svg class="violet-task-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${body}</svg>`;
+ if(/подъ[её]м|проснуться|встать|будильник/.test(t)) return svg('<circle cx="12" cy="13" r="7"/><path d="M12 10v4l3 2M5 4 2.5 6.5M19 4l2.5 2.5M7 20l-1 2M17 20l1 2"/>');
+ if(/сон|спать|отбой|ложиться|лечь спать/.test(t)) return svg('<path d="M20 15.5A8 8 0 0 1 8.5 4 8.5 8.5 0 1 0 20 15.5Z"/>');
  if(/баскетбол|баскет/.test(t)) return svg('<circle cx="12" cy="12" r="9"/><path d="M3.5 9.5c4.5.7 8.4 4.6 9.1 11M20.5 14.5c-4.5-.7-8.4-4.6-9.1-11M7.2 4.4c2.8 2.5 7.8 2.5 10.6 0M6.2 18.9c2.9-2.5 8.7-2.5 11.6 0"/>');
  if(/завтрак|обед|ужин|перекус|поесть|еда/.test(t)) return svg('<path d="M7 3v8M4.5 3v5.5A2.5 2.5 0 0 0 7 11a2.5 2.5 0 0 0 2.5-2.5V3M7 11v10M15 3v18M15 3c3.5 1.5 4.5 5 2.5 8H15"/>');
  if(/работа|работать|смена|офис|проект/.test(t)) return svg('<rect x="3" y="7" width="18" height="12" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 12h18M10 12v2h4v-2"/>');
