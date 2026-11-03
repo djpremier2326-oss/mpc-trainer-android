@@ -37,6 +37,8 @@ jobs:
         run: python3 scripts/apply-wishes-video-limit.py
       - name: Rename wishes to favorites
         run: python3 scripts/apply-favorites-renaming.py
+      - name: Normalize reminder bell colors
+        run: python3 scripts/apply-reminder-bell-fix.py
       - name: Test reminder timing
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build APK
