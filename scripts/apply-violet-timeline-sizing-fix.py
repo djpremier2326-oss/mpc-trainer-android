@@ -4,20 +4,43 @@ path = Path('app/src/main/assets/index.html')
 text = path.read_text(encoding='utf-8')
 original = text
 
-# Keep the timeline compact, but not cramped. Empty and occupied hours use the
-# same height so every event stays locked to the same time grid.
+# Normal hours stay compact (42px). If an hour contains a task lasting up to
+# 30 minutes, only that hour expands to 84px so each half-hour gets a full
+# 42px visual slot. This keeps ordinary one-hour tasks exactly as before.
 old = "const VIOLET_EMPTY_HOUR=24;\nconst VIOLET_BUSY_HOUR=84;"
-new = "const VIOLET_EMPTY_HOUR=42;\nconst VIOLET_BUSY_HOUR=42;"
+new = "const VIOLET_EMPTY_HOUR=42;\nconst VIOLET_BUSY_HOUR=84;"
 if old not in text:
     raise SystemExit('Violet sizing fix failed: hour constants not found')
 text = text.replace(old, new, 1)
 
-# Never enlarge a short event beyond its actual time range.
-old_pos = "positions[r.i]={top:y(s),height:Math.max(30,y(e)-y(s))}"
-new_pos = "positions[r.i]={top:y(s),height:Math.max(1,y(e)-y(s))}"
-if old_pos not in text:
-    raise SystemExit('Violet sizing fix failed: event position formula not found')
-text = text.replace(old_pos, new_pos, 1)
+old_layout = '''function violetBuildLayout(rows){
+ const busy=Array(24).fill(false);
+ rows.forEach(r=>{const s=violetClockMinutes(r.time),e=Math.max(s+1,violetClockMinutes(violetTaskEnd(r)));for(let h=0;h<24;h++){if(s<(h+1)*60&&e>h*60)busy[h]=true}});
+ const heights=busy.map(v=>v?VIOLET_BUSY_HOUR:VIOLET_EMPTY_HOUR),tops=[0];
+ for(let h=0;h<24;h++)tops[h+1]=tops[h]+heights[h];
+ const y=minute=>{const m=Math.max(0,Math.min(1440,minute)),h=Math.min(23,Math.floor(m/60));if(m>=1440)return tops[24];return tops[h]+((m-h*60)/60)*heights[h]};
+ const positions={};
+ rows.forEach(r=>{const s=violetClockMinutes(r.time),e=Math.max(s+15,violetClockMinutes(violetTaskEnd(r)));positions[r.i]={top:y(s),height:Math.max(30,y(e)-y(s))}});
+ return {busy,heights,tops,y,positions,total:tops[24]};
+}'''
+new_layout = '''function violetBuildLayout(rows){
+ const expanded=Array(24).fill(false);
+ rows.forEach(r=>{
+  const s=violetClockMinutes(r.time),e=Math.max(s+1,violetClockMinutes(violetTaskEnd(r))),duration=e-s;
+  if(duration<=30){
+   for(let h=0;h<24;h++)if(s<(h+1)*60&&e>h*60)expanded[h]=true;
+  }
+ });
+ const heights=expanded.map(v=>v?VIOLET_BUSY_HOUR:VIOLET_EMPTY_HOUR),tops=[0];
+ for(let h=0;h<24;h++)tops[h+1]=tops[h]+heights[h];
+ const y=minute=>{const m=Math.max(0,Math.min(1440,minute)),h=Math.min(23,Math.floor(m/60));if(m>=1440)return tops[24];return tops[h]+((m-h*60)/60)*heights[h]};
+ const positions={};
+ rows.forEach(r=>{const s=violetClockMinutes(r.time),e=Math.max(s+15,violetClockMinutes(violetTaskEnd(r)));positions[r.i]={top:y(s),height:Math.max(1,y(e)-y(s))}});
+ return {busy:expanded,heights,tops,y,positions,total:tops[24]};
+}'''
+if old_layout not in text:
+    raise SystemExit('Violet sizing fix failed: layout function not found')
+text = text.replace(old_layout, new_layout, 1)
 
 # Mark very short events so the title remains readable inside the exact slot.
 old_fn = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
@@ -85,7 +108,7 @@ body[data-design=ice][data-variant=violet] .violet-event-card.is-short .violet-e
   display:none!important;
 }
 body[data-design=ice][data-variant=violet] .violet-event-card.is-short strong{
-  line-height:19px!important;
+  line-height:38px!important;
   white-space:nowrap!important;
   text-overflow:ellipsis!important;
   width:100%!important;
@@ -110,4 +133,4 @@ else:
 if text == original:
     raise SystemExit('Violet sizing fix made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet timeline rows set to 42px; event blocks get a 1px gap and Delete uses trash icon')
+print('Violet timeline: normal hours 42px; hours containing <=30-minute tasks expand to 84px')
