@@ -208,4 +208,20 @@ body[data-design=ice][data-variant=violet] #violet-editor-done{
   font-weight:700;
 }
 body.violet-editor-open #app-footer{opacity:.28;pointer-events:none}
+
+/* In Violet the floating + above the footer adds tasks; the footer button itself is the tools menu. */
+body[data-design=ice][data-variant=violet] .tabs>.ice-compose svg{display:none!important}
+body[data-design=ice][data-variant=violet] .tabs>.ice-compose::before{
+  content:""!important;
+  display:block!important;
+  width:29px!important;
+  height:21px!important;
+  background:
+    linear-gradient(#000,#000) top center/29px 3px no-repeat,
+    linear-gradient(#000,#000) center/29px 3px no-repeat,
+    linear-gradient(#000,#000) bottom center/29px 3px no-repeat!important;
+  border-radius:0!important;
+}
+body[data-design=ice][data-variant=violet] .tabs>.ice-compose::after{content:none!important;display:none!important}
+
 @media(prefers-reduced-motion:reduce){body[data-design=ice][data-variant=violet] .violet-event-card{transition:none}}
