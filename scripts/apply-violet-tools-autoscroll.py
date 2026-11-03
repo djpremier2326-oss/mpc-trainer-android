@@ -5,7 +5,7 @@ text = path.read_text(encoding='utf-8')
 original = text
 
 old = '</nav><div class="ice-paper violet-event-paper">'
-new = '''</nav><div class="ice-day-tools violet-day-tools"><button data-day-color-open="${selected}"><i style="background:${iceColor(dayColor(selected))[1]}"></i>Цвет дня</button><button id="copy-open" aria-label="Скопировать день" title="Скопировать день">${uiIcon('copy')}</button><button id="clear-day-open" aria-label="Очистить день" title="Очистить день"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7"/></svg></button></div><div class="ice-paper violet-event-paper">'''
+new = '''</nav><div class="ice-day-tools violet-day-tools"><button data-day-color-open="${selected}"><i style="background:${dayColor(selected)==='none'?'transparent':iceColor(dayColor(selected))[1]};border:${dayColor(selected)==='none'?'2px solid #fff':'0'}"></i>Цвет дня</button><button id="copy-open" aria-label="Скопировать день" title="Скопировать день">${uiIcon('copy')}</button><button id="clear-day-open" aria-label="Очистить день" title="Очистить день"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 10v7m4-7v7"/></svg></button></div><div class="ice-paper violet-event-paper">'''
 if old not in text:
     raise SystemExit('Violet tools/autoscroll patch failed: paper marker not found')
 text = text.replace(old, new, 1)
@@ -45,6 +45,12 @@ body[data-design=ice][data-variant=violet] .violet-day-tools button:first-child{
   gap:7px!important;
   font-size:15px!important;
   font-weight:700!important;
+}
+body[data-design=ice][data-variant=violet] .violet-day-tools button:first-child i{
+  width:13px!important;
+  height:13px!important;
+  border-radius:50%!important;
+  box-sizing:border-box!important;
 }
 body[data-design=ice][data-variant=violet] .violet-day-tools button:not(:first-child){
   width:36px!important;
