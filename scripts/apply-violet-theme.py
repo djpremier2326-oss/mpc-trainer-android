@@ -19,6 +19,7 @@ replace_once(
 for violet_link in (
     '<link rel="stylesheet" href="violet/theme.css">',
     '<link rel="stylesheet" href="violet/fixes2.css">',
+    '<link rel="stylesheet" href="violet/timeline.css">',
 ):
     if violet_link not in text:
         if '</head>' not in text:
