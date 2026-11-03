@@ -7,5 +7,12 @@ new = "function violetTimelineAxis(layout){return Array.from({length:24},(_,h)=>
 if old not in text:
     raise SystemExit('Violet axis fix failed: timeline functions not found')
 text = text.replace(old, new, 1)
+style = '''<style id="violet-axis-label-fix">
+body[data-design=ice][data-variant=violet] .violet-event-axis time{transform:none!important;line-height:16px!important}
+body[data-design=ice][data-variant=violet] .violet-event-axis time:first-child,
+body[data-design=ice][data-variant=violet] .violet-event-axis time:last-child{transform:none!important}
+</style>'''
+if style not in text:
+    text = text.replace('</head>', style + '</head>', 1)
 path.write_text(text, encoding='utf-8')
 print('Violet hour labels aligned inside their rows')
