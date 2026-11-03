@@ -4,28 +4,48 @@ path = Path('app/src/main/assets/index.html')
 text = path.read_text(encoding='utf-8')
 original = text
 
-# Keep every hour compact. Tasks still span their real time range,
-# but a 2.5 hour task no longer takes half the phone screen.
+# Use a readable fixed hour height for the whole timeline. Empty and occupied
+# hours stay aligned to the same grid, so events land exactly on hour lines.
 old = "const VIOLET_EMPTY_HOUR=24;\nconst VIOLET_BUSY_HOUR=84;"
-new = "const VIOLET_EMPTY_HOUR=28;\nconst VIOLET_BUSY_HOUR=28;"
+new = "const VIOLET_EMPTY_HOUR=48;\nconst VIOLET_BUSY_HOUR=48;"
 if old not in text:
     raise SystemExit('Violet sizing fix failed: hour constants not found')
 text = text.replace(old, new, 1)
 
-# Short events need enough room for readable text without making the whole hour tall.
+# Never enlarge a short event beyond its actual time range. Enlarging 30-minute
+# events was the reason blocks overlapped / looked cut between grid lines.
 old_pos = "positions[r.i]={top:y(s),height:Math.max(30,y(e)-y(s))}"
-new_pos = "positions[r.i]={top:y(s),height:Math.max(28,y(e)-y(s))}"
+new_pos = "positions[r.i]={top:y(s),height:Math.max(1,y(e)-y(s))}"
 if old_pos not in text:
     raise SystemExit('Violet sizing fix failed: event position formula not found')
 text = text.replace(old_pos, new_pos, 1)
 
+# Mark very short events so their range label can be hidden and the task title
+# still fits inside the exact calendar slot.
+old_fn = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
+new_fn = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],duration=Math.max(1,violetClockMinutes(violetTaskEnd(r))-violetClockMinutes(r.time)),short=duration<45,black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
+if old_fn not in text:
+    raise SystemExit('Violet sizing fix failed: event markup function not found')
+text = text.replace(old_fn, new_fn, 1)
+
+old_class = "class=\"violet-event-card ${black?'is-black':''}\""
+new_class = "class=\"violet-event-card ${black?'is-black':''}${short?' is-short':''}\""
+if old_class not in text:
+    raise SystemExit('Violet sizing fix failed: event card class not found')
+text = text.replace(old_class, new_class, 1)
+
 style = '''<style id="violet-timeline-sizing-fix">
+body[data-design=ice][data-variant=violet] .violet-event-wrap{
+  min-height:0!important;
+  overflow:hidden!important;
+}
 body[data-design=ice][data-variant=violet] .violet-event-card{
   display:flex!important;
   flex-direction:column!important;
   align-items:flex-start!important;
   justify-content:flex-start!important;
   box-sizing:border-box!important;
+  inset:0!important;
   padding:4px 10px!important;
   overflow:hidden!important;
   text-align:left!important;
@@ -50,6 +70,18 @@ body[data-design=ice][data-variant=violet] .violet-event-card strong{
   font-size:13px!important;
   transform:none!important;
 }
+body[data-design=ice][data-variant=violet] .violet-event-card.is-short{
+  padding:1px 10px!important;
+}
+body[data-design=ice][data-variant=violet] .violet-event-card.is-short .violet-event-range{
+  display:none!important;
+}
+body[data-design=ice][data-variant=violet] .violet-event-card.is-short strong{
+  line-height:22px!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+  width:100%!important;
+}
 body[data-design=ice][data-variant=violet] .violet-reminder-mark{
   top:4px!important;
   right:8px!important;
@@ -70,4 +102,4 @@ else:
 if text == original:
     raise SystemExit('Violet sizing fix made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet timeline compacted; event content pinned to top')
+print('Violet timeline rows restored; event blocks aligned exactly to the time grid')
