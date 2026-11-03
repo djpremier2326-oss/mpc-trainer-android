@@ -42,9 +42,10 @@ if old_layout not in text:
     raise SystemExit('Violet sizing fix failed: layout function not found')
 text = text.replace(old_layout, new_layout, 1)
 
-# Mark very short events so the title remains readable inside the exact slot.
+# Only events shorter than 30 minutes use the compact title-only style.
+# 30-minute tasks have a full 42px slot, so their time range stays visible.
 old_fn = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
-new_fn = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],duration=Math.max(1,violetClockMinutes(violetTaskEnd(r))-violetClockMinutes(r.time)),short=duration<45,black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
+new_fn = "function violetEventMarkup(r,layout){const m=layout.positions[r.i],duration=Math.max(1,violetClockMinutes(violetTaskEnd(r))-violetClockMinutes(r.time)),short=duration<30,black=r.color==='black',rem=linkedReminder(selected,r.i),bell=rem?.enabled?'●':'';return `"
 if old_fn not in text:
     raise SystemExit('Violet sizing fix failed: event markup function not found')
 text = text.replace(old_fn, new_fn, 1)
@@ -133,4 +134,4 @@ else:
 if text == original:
     raise SystemExit('Violet sizing fix made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet timeline: normal hours 42px; hours containing <=30-minute tasks expand to 84px')
+print('Violet timeline: normal hours 42px; <=30-minute hours expand; 30-minute tasks keep time labels')
