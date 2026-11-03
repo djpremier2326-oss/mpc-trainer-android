@@ -1,4 +1,4 @@
-/* Violet planner: calendar-style timeline with swipe actions and separate top editor. */
+/* Violet planner: compact calendar-style timeline like the reference. */
 body[data-design=ice][data-variant=violet] .violet-event-paper{
   background:#121214!important;
   color:#fff!important;
@@ -9,10 +9,9 @@ body[data-design=ice][data-variant=violet] .violet-event-paper{
   overscroll-behavior:contain;
 }
 body[data-design=ice][data-variant=violet] .violet-event-timeline{
-  --vhour:88px;
   position:relative;
-  height:calc(var(--vhour) * 24);
-  min-height:calc(var(--vhour) * 24);
+  height:var(--vt-total);
+  min-height:var(--vt-total);
   background:#171719;
 }
 body[data-design=ice][data-variant=violet] .violet-event-axis{
@@ -27,22 +26,31 @@ body[data-design=ice][data-variant=violet] .violet-event-axis{
 body[data-design=ice][data-variant=violet] .violet-event-axis time{
   position:absolute;
   left:10px;
-  top:calc(var(--vh) * var(--vhour) - 9px);
+  transform:translateY(-9px);
   font-size:12px;
   line-height:18px;
   color:#a8a8af;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
 }
-body[data-design=ice][data-variant=violet] .violet-event-axis time:first-child{top:2px}
-body[data-design=ice][data-variant=violet] .violet-event-axis time:last-child{top:auto;bottom:0}
+body[data-design=ice][data-variant=violet] .violet-event-axis time:first-child{transform:none}
+body[data-design=ice][data-variant=violet] .violet-event-axis time:last-child{transform:translateY(-18px)}
 body[data-design=ice][data-variant=violet] .violet-event-track{
   position:absolute;
   left:70px;
   right:0;
   top:0;
   bottom:0;
-  background:repeating-linear-gradient(to bottom,transparent 0,transparent calc(var(--vhour) - 1px),#343439 calc(var(--vhour) - 1px),#343439 var(--vhour));
+  background:#171719;
+  overflow:hidden;
+}
+body[data-design=ice][data-variant=violet] .violet-hour-line{
+  position:absolute;
+  left:0;
+  right:0;
+  height:1px;
+  background:#343439;
+  pointer-events:none;
 }
 body[data-design=ice][data-variant=violet] .violet-event-wrap{
   position:absolute;
@@ -50,20 +58,20 @@ body[data-design=ice][data-variant=violet] .violet-event-wrap{
   right:7px;
   top:var(--vt-top);
   height:var(--vt-height);
-  min-height:38px;
+  min-height:30px;
   overflow:hidden;
-  border-radius:10px;
+  border-radius:8px;
 }
 body[data-design=ice][data-variant=violet] .violet-event-actions{
   position:absolute;
   right:0;
-  top:2px;
-  bottom:2px;
+  top:1px;
+  bottom:1px;
   width:168px;
   display:grid;
   grid-template-columns:56px 56px 56px;
   background:#0b0b0c;
-  border-radius:10px;
+  border-radius:8px;
   overflow:hidden;
 }
 body[data-design=ice][data-variant=violet] .violet-event-actions button{
@@ -71,31 +79,31 @@ body[data-design=ice][data-variant=violet] .violet-event-actions button{
   border-left:1px solid #2e2e33;
   background:#0b0b0c;
   color:#fff;
-  padding:5px 2px;
+  padding:3px 2px;
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:4px;
+  gap:2px;
   min-width:0;
 }
 body[data-design=ice][data-variant=violet] .violet-event-actions button:first-child{border-left:0}
-body[data-design=ice][data-variant=violet] .violet-event-actions svg{width:20px;height:20px}
-body[data-design=ice][data-variant=violet] .violet-event-actions small{font-size:9px;color:#d7d3df}
-body[data-design=ice][data-variant=violet] .violet-action-dot{width:20px;height:20px;border-radius:50%;border:1.5px solid #fff}
+body[data-design=ice][data-variant=violet] .violet-event-actions svg{width:18px;height:18px}
+body[data-design=ice][data-variant=violet] .violet-event-actions small{font-size:8px;color:#d7d3df}
+body[data-design=ice][data-variant=violet] .violet-action-dot{width:18px;height:18px;border-radius:50%;border:1.5px solid #fff}
 body[data-design=ice][data-variant=violet] .violet-delete-task{color:#ff6868!important}
 body[data-design=ice][data-variant=violet] .violet-event-card{
   position:absolute;
-  inset:2px 0;
+  inset:1px 0;
   z-index:2;
   width:100%;
   border:0;
-  border-radius:10px;
-  padding:9px 12px;
+  border-radius:8px;
+  padding:5px 10px;
   text-align:left;
   background:var(--ice-card,#57575d);
   color:var(--ice-ink,#fff);
-  box-shadow:0 2px 7px rgba(0,0,0,.32);
+  box-shadow:0 1px 4px rgba(0,0,0,.28);
   transition:transform .18s ease;
   touch-action:pan-y;
   overflow:hidden;
@@ -103,22 +111,25 @@ body[data-design=ice][data-variant=violet] .violet-event-card{
 body[data-design=ice][data-variant=violet] .violet-event-wrap.revealed .violet-event-card{transform:translateX(-168px)}
 body[data-design=ice][data-variant=violet] .violet-event-card .violet-event-range{
   display:block;
-  font-size:11px;
+  font-size:10px;
   font-weight:500;
+  line-height:1.05;
   opacity:.78;
-  margin-bottom:4px;
+  margin-bottom:2px;
 }
 body[data-design=ice][data-variant=violet] .violet-event-card strong{
   display:block;
-  font-size:15px;
-  line-height:1.25;
+  font-size:13px;
+  line-height:1.1;
   font-weight:700;
   white-space:normal;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
 body[data-design=ice][data-variant=violet] .violet-reminder-mark{
   position:absolute;
-  right:10px;
-  top:10px;
+  right:8px;
+  top:8px;
   width:7px;
   height:7px;
   border-radius:50%;
