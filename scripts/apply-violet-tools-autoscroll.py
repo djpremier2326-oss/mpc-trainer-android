@@ -18,10 +18,26 @@ text = text.replace(old_scroll, new_scroll, 1)
 
 style = '''<style id="violet-day-tools-fix">
 body[data-design=ice][data-variant=violet] .violet-day-tools{
-  margin:0 20px 8px!important;
+  margin:0!important;
+  padding:10px 20px 12px!important;
   display:grid!important;
   grid-template-columns:minmax(0,1fr) 64px 64px!important;
   gap:8px!important;
+  background:#000!important;
+}
+body[data-design=ice][data-variant=violet] .violet-day-tools button{
+  min-height:48px!important;
+  background:#000!important;
+  color:#b98ad9!important;
+  border:2px solid #b98ad9!important;
+  box-shadow:none!important;
+}
+body[data-design=ice][data-variant=violet] .violet-day-tools button svg{
+  color:#b98ad9!important;
+  stroke:currentColor!important;
+}
+body[data-design=ice][data-variant=violet] .violet-day-tools button:first-child{
+  justify-content:flex-start!important;
 }
 </style>'''
 if '</head>' not in text:
@@ -31,4 +47,4 @@ text = text.replace('</head>', style + '</head>', 1)
 if text == original:
     raise SystemExit('Violet tools/autoscroll patch made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet day tools restored and timeline now opens at current hour')
+print('Violet day tools restored, restyled, and timeline now opens at current hour')
