@@ -36,6 +36,8 @@ style = '''<style id="violet-timeline-sizing-fix">
 body[data-design=ice][data-variant=violet] .violet-event-wrap{
   min-height:0!important;
   overflow:hidden!important;
+  top:calc(var(--vt-top) + 1px)!important;
+  height:calc(var(--vt-height) - 2px)!important;
 }
 body[data-design=ice][data-variant=violet] .violet-event-card{
   display:flex!important;
@@ -100,4 +102,4 @@ else:
 if text == original:
     raise SystemExit('Violet sizing fix made no changes')
 path.write_text(text, encoding='utf-8')
-print('Violet timeline rows set to 42px; legacy and new events align to one grid')
+print('Violet timeline rows set to 42px; event blocks get a 1px gap above and below')
