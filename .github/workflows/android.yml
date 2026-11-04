@@ -6,6 +6,7 @@ on:
       - main
       - browser-integration
       - phone-ui-v2
+      - mpc-live3-audit
   workflow_dispatch:
 
 jobs:
@@ -25,66 +26,8 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
-      - name: Integrate streaming Browser preview
-        run: python3 scripts/integrate_browser_preview.py
-      - name: Integrate trainer UI state
-        run: python3 scripts/integrate_ui_state.py
-      - name: Integrate compact Learn surface
-        run: python3 scripts/integrate_learn_surface.py
-      - name: Integrate Learn control highlighting
-        run: python3 scripts/integrate_learn_highlight.py
-      - name: Integrate pad gain compensation
-        run: python3 scripts/integrate_pad_gain.py
-      - name: Integrate foundation challenge reset
-        run: python3 scripts/integrate_challenge_reset.py
-      - name: Integrate pad and master volume
-        run: python3 scripts/integrate_volume_controls.py
-      - name: Fix live recording monitoring
-        run: python3 scripts/integrate_record_monitoring.py
-      - name: Integrate Sample Edit waveform
-        run: python3 scripts/integrate_waveform_editor.py
-      - name: Integrate contextual workspace display
-        run: python3 scripts/integrate_workspace_display.py
-      - name: Put Sample Edit waveform on main display
-        run: python3 scripts/integrate_main_waveform.py
-      - name: Apply core audit fixes
-        run: python3 scripts/integrate_audit_fixes.py
-      - name: Apply phone UI audit fixes
-        run: python3 scripts/integrate_phone_ui_audit.py
-      - name: Bridge manual playback for pitch
-        run: python3 scripts/bridge_pitch_anchor.py
-      - name: Bridge monitored recording for pitch
-        run: python3 scripts/bridge_record_anchor.py
-      - name: Bridge Step Sequencer for pitch
-        run: python3 scripts/bridge_step_anchor.py
-      - name: Add pitch and post-record quantize
-        run: python3 scripts/integrate_pitch_quantize.py
-      - name: Add TC triplets and Shift Timing
-        run: python3 scripts/integrate_tc_triplets_shift.py
-      - name: Repair generated Kotlin strings
-        run: python3 scripts/repair_pitch_generated_strings.py
-      - name: Repair pitch compile API
-        run: python3 scripts/repair_pitch_compile_api.py
-      - name: Restore live recording monitoring
-        run: python3 scripts/restore_record_monitoring_after_pitch.py
-      - name: Harden rapid pad playback
-        run: python3 scripts/integrate_pad_stability.py
-      - name: Add pitch and TC regression tests
-        run: python3 scripts/integrate_pitch_tc_tests.py
-      - name: Integrate pitch and TC Learn lessons
-        run: python3 scripts/integrate_learn_pitch_tc.py
-      - name: Apply verified playback and lesson fixes
-        run: python3 scripts/integrate_verified_fixes.py
-      - name: Integrate explanatory MPC course and behavior fixes
-        run: python3 scripts/integrate_teaching.py
-      - name: Use unified PCM audio and requested button layout
-        run: python3 scripts/integrate_unified_audio.py
-      - name: Preserve recorded sound parameters and visible unity levels
-        run: python3 scripts/integrate_playback_consistency.py
-      - name: Integrate low latency pad output
-        run: python3 scripts/integrate_low_latency.py
       - name: Test trainer core
-        run: gradle :app:testDebugUnitTest --stacktrace
+        run: gradle :app:testDebugUnitTest :app:lintDebug --stacktrace
       - name: Build debug APK
         run: gradle :app:assembleDebug --stacktrace
       - name: Upload APK

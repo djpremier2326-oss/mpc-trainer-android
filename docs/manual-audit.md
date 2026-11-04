@@ -1,36 +1,51 @@
-# MPC Live III phone trainer: behavior and teaching audit
+# Аудит MPC Trainer 231
 
-Reference: Akai MPC Live III User Guide, manual version 3.6:
+## Источник и статус руководства
+
+В исходной ветке указан официальный **Akai MPC Live III User Guide 3.6**:
 https://cdn.inmusicbrands.com/akai/MPC%20Live%20III%20-%20User%20Guide%20-%203.6.pdf
-Printed pages 72–77 (TC, performance features), 364–369 (hardware controls), and the Browser, Sample Edit and Step Sequencer chapters.
 
-The trainer is an educational subset. This is a code/automated behavior audit, not a claim of acoustic or physical-device validation.
+В этой сессии 2026-11-04 официальный сайт Akai и PDF возвращают HTTP 403 от сетевой политики среды. Поэтому новая постраничная сверка руководства **не выполнена**. Разрешения `cdn.inmusicbrands.com`, `www.akaipro.com`, `akaipro.com` сохранены в черновике настроек среды; для их применения нужен Save/Publish. Альтернатива — загрузить PDF в задачу. Ссылки и утверждения предыдущего аудита не считаются доказательством новой проверки документа.
 
-| Implemented area | Audit result / phone adaptation | Verification |
+## Проверенные базовые сценарии
+
+| Управление | Поведение и исправления | Проверка |
 | --- | --- | --- |
-| MAIN and project structure | Course explains sample, pad, track, sequence and project before actions. Four tracks share one pad pool; MPC 3 track types are not simulated. | Android lesson-dialog test; course content checks |
-| BROWSE / PREVIEW | System file picker, streaming WAV/MP3 audition, explicit load to chosen pad. | Code review; audio files require device playback checks |
-| Pads / Banks | A–D only; lessons explicitly distinguish full hardware A–H. No claim of phone pressure sensitivity. | State/persistence review; practice-kit integration test |
-| REC | Arms recording; PLAY begins, with optional count-in. Track events are replaced only at actual recording start. | Android behavior test |
-| PLAY / STOP | STOP retains position; PLAY resumes. Long-press PLAY supplies PLAY START as an explicit phone adaptation. | Android behavior test |
-| OVERDUB | Can be enabled/disabled while playing; keeps existing events. REC automatically enters Overdub after the first loop. | Android behavior test; code review |
-| Completed recording tasks | Only actual recorded hits set pass flags. STOP and Overdub without hits do not pass the lesson. | Android behavior test; LearnEngine tests |
-| Timing Correct | Straight/triplet grid, Swing 50–75, tick shift, global on/off and DO IT for current-track event starts. Not Length/Legato/strength/window. | Existing pitch/TC regressions and code review |
-| Tempo | Changing BPM preserves musical position. Count-in can be cancelled by STOP. | Playback math tests; Android cancellation/resume test |
-| Note Repeat | Repeats held pad by selected TC interval; first tap alone no longer completes practice. Uses Android handler timing, not sample-accurate hardware scheduling. | Interval regressions and code review; latency needs device |
-| Full Level | Velocity 127; ordinary phone taps already use a fixed level, so toggle may sound identical. Course explicitly explains why. | Gain tests; code review |
-| 16 Levels | Velocity and Tune audition; original-pad reference in Tune. Tune recording is not implemented and is explicitly labelled in lessons. | Existing mode regressions; gain tests |
-| Step Seq | Two bars, 16 fixed sixteenth-note steps per bar, selected pad and track. Does not pretend to implement all MPC step resolutions or note editing. | Code and lesson review |
-| Mixer | Pad volume and master; velocity stored independently and played consistently. Volume-button changes report to training. | Gain tests; control wiring review |
-| Pitch | Repitch ±12 semitones; changes duration with pitch. Persisted and resettable. | Existing pitch regressions |
-| Sample Edit | PCM waveform, Start/End selection and even slices; validates remaining pad capacity and uses a unique output directory per chop. No transient slicing/warping. | WavSlicer and waveform tests; sample-kit chop test |
-| Track Mute | Mutes sequenced events without deleting them; live pad audition remains possible. | Android behavior test |
-| Save | One current project, assignments/events/levels/TC/pitch settings; not an audio export. | Persistence review and existing reset tests |
-| Learning | 18 original Russian explanations with purpose, audible example, listening guidance, practice and a comprehension check. Free kit uses only empty pad slots. | Android lesson/quiz/kit tests and all-example WAV checks |
+| Пэды | Аппаратный порядок 1–4 снизу / 13–16 сверху; касание запускает звук сразу | Android layout/touch tests; PCM tests |
+| Browser | Копирование/декодирование в фоне; назначение только после успешного декодирования; ошибка сохраняет прежний звук; цель не меняется при переключении банка | Failed/successful import regression |
+| REC / PLAY | REC готовит запись, PLAY запускает; до конца Count In текущая партия не стирается | Count-in cancellation, record/undo tests |
+| STOP / продолжение | Позиция видна и сохраняется; при продолжении не проигрываются пачкой прошлые ноты | Resume/rerun regression |
+| PLAY START | Явный пункт MENU и удержание PLAY; с начала Sequence | Resume/PLAY START test |
+| Overdub | Новые события добавляются; REC переходит в Overdub после первого оборота | Existing recording behavior tests |
+| Note Repeat | Повторяются удерживаемые пэды; отпускание одного не выключает остальные; деление берётся из TC, включая быстрые триоли | Multi-touch/repeat regression; interval checks |
+| Tempo | Изменение не переводит музыкальный таймер назад; смена во время отсчёта отменяет старый отсчёт с сохранением готовности REC | Tempo rounding and count-in tests |
+| TC / Swing | Прямая/триольная сетка, Swing 50–75, Shift Timing; DO IT меняет только выбранный трек | Quantize/undo/track-isolation tests |
+| Full Level | Velocity 127 для обычного режима; экран телефона не заменяет аппаратную чувствительность к силе | Velocity/control tests; lesson explanation |
+| 16 Levels | Один исходный звук; Velocity и Tune, Original Pad; Tune offset сохраняется в записанных нотах | Recorded-audio and parameter persistence tests |
+| Step Seq | Два такта по 16 шагов, выбранный звук и трек; добавление/удаление сохраняется | Step sequencer behavior tests |
+| Track Mute | Заглушает секвенсированные ноты, оставляя живое прослушивание; ноты не удаляются | Muted clock/live-hit regression |
+| Sample Edit | Подготовка волны и нарезка вне UI; Start/End, Preview; подтверждение перед заменой; исходный WAV не удаляется | Actual CHOP-dialog/file tests; slicing/waveform tests |
+| Volume / Pitch | Один PCM-аудиопуть для пэдов и предпрослушивания; записанные Velocity/Tune, текущие PAD/MASTER/Pitch используются согласованно | PCM mixer, voice, recorded-audio tests |
+| UNDO / REDO | Проход записи, шаги и квантование; запрещены во время транспорта | History and REC replacement tests |
+| SAVE / NEW PROJECT | Назначения, ноты, параметры, выбранный пэд/банк и позиция; очистка не отменяется автосохранением при закрытии | Relaunch/reset lifecycle tests |
+| Телефонный экран | Пэды занимают оставшуюся высоту; транспорт и MENU остаются внутри небольшого экрана | Real Application layout test 360×640 dp |
+| Курс | Объяснения, проверка понимания, реальные звуковые примеры и действия; пустой STOP не засчитывает запись | Existing LearnEngine/course tests |
 
-## Remaining scope and verification limits
+## Существенные изменения реализации
 
-- No physical phone/emulator audio latency or touch ergonomics validation is claimed by the JVM Android tests.
-- Browser and pads now use the same stereo float PCM mixer and output session. PCM WAV depth and stereo are preserved; compressed sources are decoded through the same import path. There is an explicit 64 MiB per-sample and 128 MiB loaded-sample budget; failures are reported. Android output latency and perceived loudness still require device verification.
-- Tune note recording, undo/redo and full MPC 3 track/arrangement behavior are not yet implemented.
-- UI geometry is not certified by these behavior tests. Teaching text is scrollable in its own dialog, preserving the existing pad surface.
+Сборка использует конечный Kotlin-код напрямую. Старые текстовые генераторы в CI выключены, чтобы изменения транспорта и звука не переписывались другим генератором после тестирования. В Android Lint устранены ошибки исходного сгенерированного кода; проверки не подавлялись.
+
+Дисплей обновляется не чаще 20 раз/с, при этом обработчик транспорта продолжает проверять события каждые 4 мс. Индикаторы и ручка громкости не перерисовывают неизменившееся состояние. Волна читается в фоне. Это устраняет известную лишнюю работу UI, но не является измерением задержки конкретного телефона.
+
+## Что ещё требует реального устройства
+
+- Акустическая задержка и джиттер на динамике, проводном выходе и Bluetooth.
+- Файловые провайдеры телефона, реальные MP3/нестандартные WAV и большой набор сэмплов.
+- Жесты нескольких пальцев, системная клавиатура/панели и жизненный цикл производителя телефона.
+- Окончательная сверка всех формулировок и сочетаний режимов с доступным официальным руководством.
+
+Наличие проходящих JVM/Android shadow-тестов не означает, что звук был прослушан или измерен на физической MPC либо телефоне.
+
+## Результат сборки 231
+
+Выполнено 65 тестов: 65 passed, 0 failed, 0 skipped. Android Lint: 0 ошибок. Debug APK собран, подпись проверена и совпадает с опубликованной учебной сборкой 228. Нативные снимки Android 9/API 28 и Android 15/API 35 находятся в `app/build/reports/phone-ui/`. Сборка и shadow-рендер не означают проверку акустики на устройстве.
