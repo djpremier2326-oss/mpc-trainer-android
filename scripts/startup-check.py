@@ -15,7 +15,7 @@ import websocket
 
 OUT = pathlib.Path('startup-evidence')
 OUT.mkdir(exist_ok=True)
-PACKAGE = 'com.bytbeat.dayplan'
+PACKAGE = 'com.bytbeat.dayplan.calendar'
 COMPONENT = PACKAGE + '/.PlannerActivity'
 
 def adb(*args, binary=False):
