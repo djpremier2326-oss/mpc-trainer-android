@@ -1,7 +1,7 @@
-name: Build Planner APK
+name: Build Calendar-first APK
 on:
   push:
-    branches: [daily-planner-android]
+    branches: [calendar-first-planner]
   workflow_dispatch:
     inputs:
       startup_baseline_run:
