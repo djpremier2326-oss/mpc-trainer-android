@@ -1,0 +1,241 @@
+/* Calendar-first v0.2: the month fills the screen, one visible headline per day. */
+body[data-view="calendar"] .app-heading,
+body[data-view="calendar"] .toolbar{display:none!important}
+body[data-view="calendar"] #view{
+  display:block!important;
+  flex:1!important;
+  min-height:0!important;
+  width:100%!important;
+  max-width:none!important;
+  padding:0 2px 12px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior-y:contain;
+}
+body[data-view="calendar"] .calendar-jump{
+  position:sticky!important;
+  top:0!important;
+  z-index:8!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:5px!important;
+  margin:0!important;
+  min-height:45px!important;
+  padding:5px 7px!important;
+  background:var(--app-bg,#03192e)!important;
+}
+body[data-view="calendar"] .calendar-hint,
+body[data-view="calendar"] .cf-shift-legend{display:none!important}
+body[data-view="calendar"] .calendar-jump .cf-v2-topbtn{
+  min-width:0!important;
+  min-height:34px!important;
+  padding:7px 9px!important;
+  border:1px solid var(--border,#456583)!important;
+  border-radius:9px!important;
+  background:var(--card,#092d49)!important;
+  color:var(--text,#f7faff)!important;
+  white-space:nowrap!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  line-height:18px!important;
+}
+body[data-view="calendar"] .calendar-jump .cf-v2-shiftbtn{flex:1!important}
+body[data-view="calendar"] .calendar-jump .cf-v2-gear{width:37px!important;font-size:22px!important;padding:4px!important}
+body[data-view="calendar"] #calendar-stream{padding:0!important;margin:0!important}
+body[data-view="calendar"] .calendar-month,
+body[data-design="ice"][data-view="calendar"] .calendar-month,
+body[data-design="impulse"][data-view="calendar"] .calendar-month{
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 14px!important;
+  padding:5px 2px 9px!important;
+  background:transparent!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  overflow:visible!important;
+}
+body[data-view="calendar"] .calendar-month h2{
+  margin:3px 3px 8px!important;
+  padding:0 3px!important;
+  font-size:19px!important;
+  font-weight:850!important;
+  line-height:24px!important;
+  color:var(--text,#fff)!important;
+  text-transform:capitalize!important;
+  letter-spacing:-.4px!important;
+}
+body[data-view="calendar"] .calendar-month .cal-grid,
+body[data-design="ice"][data-view="calendar"] .calendar-month .cal-grid,
+body[data-design="impulse"][data-view="calendar"] .calendar-month .cal-grid{
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  gap:3px!important;
+  align-items:stretch!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+}
+body[data-view="calendar"] .calendar-month .weekday{
+  min-width:0!important;
+  padding:3px 0 5px!important;
+  margin:0!important;
+  font-size:11px!important;
+  text-align:center!important;
+  font-weight:800!important;
+  color:var(--muted,#a9c6d7)!important;
+}
+body[data-view="calendar"] .calendar-month .weekday.cf-weekend{opacity:.65}
+body[data-view="calendar"] .calendar-month .cf-v2-cell{
+  width:100%!important;
+  min-width:0!important;
+  height:97px!important;
+  min-height:97px!important;
+  max-height:97px!important;
+  padding:6px 3px 4px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:stretch!important;
+  justify-content:flex-start!important;
+  gap:3px!important;
+  border:1px solid var(--border,#b7cadc)!important;
+  border-radius:8px!important;
+  background:var(--control,#fff)!important;
+  color:var(--text,#1a3452)!important;
+  box-shadow:none!important;
+  position:relative!important;
+  overflow:hidden!important;
+  text-align:left!important;
+  font-family:inherit!important;
+  isolation:isolate!important;
+}
+body[data-design="ice"][data-view="calendar"] .calendar-month .cf-v2-cell[data-cf-filled="none"]{
+  background:#f7fbff!important;color:#113451!important;border-color:#9fb8d3!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell[data-cf-filled]:not([data-cf-filled="none"]){
+  background:var(--day-tint)!important;color:var(--day-ink)!important;
+  border-color:var(--day-edge)!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell.outside{opacity:.42!important}
+body[data-view="calendar"] .calendar-month .cf-v2-cell.chosen{
+  outline:2px solid var(--accent,#00d0fa)!important;
+  outline-offset:-3px!important;
+  box-shadow:inset 0 0 0 2px #081b3740!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell.today{
+  border:2px solid var(--accent,#00d0fa)!important;
+  box-shadow:0 0 0 1px var(--accent,#00d0fa)!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell .cf-v2-number{
+  font-size:16px!important;
+  line-height:18px!important;
+  font-weight:900!important;
+  min-height:18px!important;
+  width:auto!important;
+  height:auto!important;
+  display:block!important;
+  align-self:flex-start!important;
+  flex:none!important;
+  color:inherit!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell .cf-shift-tag{
+  display:block!important;
+  max-width:100%!important;
+  font-size:9px!important;
+  line-height:11px!important;
+  font-weight:800!important;
+  color:inherit!important;
+  opacity:.86!important;
+  overflow:hidden!important;
+  white-space:nowrap!important;
+  text-overflow:ellipsis!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell .cf-day-title{
+  display:-webkit-box!important;
+  -webkit-line-clamp:3!important;
+  -webkit-box-orient:vertical!important;
+  max-width:100%!important;
+  margin-top:1px!important;
+  font-size:10px!important;
+  line-height:12px!important;
+  font-weight:750!important;
+  color:inherit!important;
+  text-align:left!important;
+  overflow:hidden!important;
+  overflow-wrap:anywhere!important;
+  word-break:normal!important;
+  hyphens:auto!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell .cf-badges{
+  display:block!important;
+  width:100%!important;
+  flex:none!important;
+  margin-top:auto!important;
+  font-size:13px!important;
+  line-height:15px!important;
+  letter-spacing:-2px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+}
+body[data-view="calendar"] .calendar-month .cf-v2-cell .dots,
+body[data-view="calendar"] .calendar-month .cf-v2-cell .cal-count{display:none!important}
+/* Remove the misplaced photo from this calendar-focused edition's detailed day. */
+body[data-design="ice"][data-view="day"] .ice-hero{
+  min-height:52px!important;height:52px!important;
+  padding:9px 15px!important;
+  display:flex!important;align-items:center!important;
+  background:#062541!important;
+}
+body[data-design="ice"][data-view="day"] .ice-hero:before,
+body[data-design="ice"][data-view="day"] .ice-hero:after,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-tupac-photo,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-tribute-glow,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-photo-filter{display:none!important}
+body[data-design="ice"][data-view="day"] .ice-hero .ice-date-line{
+  position:relative!important;
+  z-index:2!important;
+  width:100%!important;
+  margin:0!important;
+  padding:0!important;
+  color:#f5fbff!important;
+  font-size:16px!important;
+  line-height:24px!important;
+}
+#calendar-preview{width:min(500px,calc(100% - 18px))!important;max-height:91dvh!important;overflow-y:auto!important;padding:15px!important}
+#calendar-preview .dialog-head{position:sticky;top:-15px;z-index:3;background:var(--card);padding:6px 0}
+#calendar-preview .dialog-head h2{font-size:18px;line-height:1.25}
+.cf-v2-field{display:flex;flex-direction:column;gap:5px;margin:10px 0;font-size:13px;font-weight:800;color:var(--text)}
+.cf-v2-field input,.cf-v2-field textarea{
+  width:100%;min-width:0;padding:11px 12px;
+  border-radius:10px;border:1px solid var(--border);
+  background:var(--control);color:var(--text);
+  font:inherit;font-size:15px;font-weight:500;
+}
+.cf-v2-field textarea{resize:vertical;min-height:83px;line-height:1.5}
+.cf-v2-shiftline{font-size:12px;font-weight:750;color:var(--muted);margin:0 0 4px}
+.cf-v2-tag-title{font-size:12px;font-weight:800;color:var(--muted);margin:12px 0 6px}
+.cf-v2-tags{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+.cf-v2-tag{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  min-height:49px;padding:5px 2px;border:1px solid var(--border);border-radius:9px;
+  background:var(--control);color:var(--text)}
+.cf-v2-tag span{font-size:20px;line-height:23px}
+.cf-v2-tag small{font-size:10px;font-weight:650;line-height:12px}
+.cf-v2-tag[aria-pressed="true"]{outline:2px solid var(--accent);background:color-mix(in srgb,var(--accent) 20%,var(--card))}
+#calendar-preview .cf-v2-save{display:block;width:100%;min-height:43px;margin:12px 0 7px;font-weight:850}
+#calendar-preview .cf-v2-list-title{font-size:13px;margin:14px 0 7px}
+#calendar-preview .cf-preview-actions{gap:6px;margin-top:11px}
+#calendar-preview .cf-preview-actions .cf-open-full{grid-column:span 2;min-height:43px}
+#cf-v2-month-dialog{max-width:400px;width:calc(100% - 24px);padding:18px;border-radius:14px;background:var(--card);color:var(--text)}
+#cf-v2-month-dialog .cf-v2-save{width:100%;margin-top:12px}
+#cf-shift-dialog{max-height:90dvh;overflow-y:auto}
+#cf-shift-dialog .cf-v2-colors{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:8px 0 16px}
+#cf-shift-dialog .cf-v2-colors label{display:flex;flex-direction:column;align-items:center;gap:5px;min-width:0;font-size:11px;font-weight:700}
+#cf-shift-dialog .cf-v2-colors input{width:100%;height:36px;min-height:36px;padding:2px;border-radius:7px}
+#cf-shift-dialog .cf-v2-color-head{font-size:13px;font-weight:850;margin:12px 0 0}
+#cf-v2-cycle-label small{display:block;font-size:10px;line-height:1.5;margin-top:5px;color:var(--muted)}
+@media(max-width:360px){
+  body[data-view="calendar"] .calendar-month .cal-grid{gap:2px!important}
+  body[data-view="calendar"] .calendar-month .cf-v2-cell{height:94px!important;min-height:94px!important;max-height:94px!important;padding:5px 2px 3px!important}
+  body[data-view="calendar"] .calendar-month .cf-v2-cell .cf-day-title{font-size:9px!important;line-height:11px!important}
+  body[data-view="calendar"] .calendar-jump .cf-v2-topbtn{font-size:11px!important}
+}
