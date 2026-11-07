@@ -12,7 +12,7 @@ try:
  # Let post-boot package optimization settle before exercising Activity focus.
  time.sleep(12)
  adb('install','-r','candidate/raspisanie.apk');adb('logcat','-c')
- adb('shell','am','start','-W','-n','com.bytbeat.dayplan/.PlannerActivity')
+ adb('shell','am','start','-W','-n','com.bytbeat.dayplan.calendar/com.bytbeat.dayplan.PlannerActivity')
  subprocess.run(['adb','exec-out','screencap','-p'],stdout=(out/'cold-launch.png').open('wb'),check=True,timeout=20)
  deadline=time.monotonic()+40
  while 'web frame:' not in logs():
@@ -20,7 +20,7 @@ try:
   time.sleep(.25)
  time.sleep(.25)
  subprocess.run(['adb','exec-out','screencap','-p'],stdout=(out/'first-page.png').open('wb'),check=True,timeout=20)
- host=adb('shell','pidof','com.bytbeat.dayplan').strip()
+ host=adb('shell','pidof','com.bytbeat.dayplan.calendar').strip()
  text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
  assert matches,'Could not identify this app renderer'
  adb('shell','kill','-9',matches[-1])
@@ -30,8 +30,8 @@ try:
   if 'Renderer exited;' in text and text.count('web frame:')>=2:break
   assert time.monotonic()<deadline,'Renderer was not restored'
   time.sleep(.25)
- assert adb('shell','pidof','com.bytbeat.dayplan').strip()==host,'Host app process exited'
- assert 'com.bytbeat.dayplan/.PlannerActivity' in adb('shell','dumpsys','activity','activities'),'Activity missing'
+ assert adb('shell','pidof','com.bytbeat.dayplan.calendar').strip()==host,'Host app process exited'
+ assert 'com.bytbeat.dayplan.calendar/com.bytbeat.dayplan.PlannerActivity' in adb('shell','dumpsys','activity','activities'),'Activity missing'
  # Repeat background renderer loss: every return must recover automatically,
  # and no new renderer/page may be initialized while the Activity is hidden.
  for cycle in range(3):
@@ -49,15 +49,15 @@ try:
   # Do not wait for that notification before bringing the app back.
   time.sleep(.75)
   assert logs().count('web frame:')==before,'Page recreated while hidden'
-  adb('shell','am','start','-W','-n','com.bytbeat.dayplan/.PlannerActivity')
+  adb('shell','am','start','-W','-n','com.bytbeat.dayplan.calendar/com.bytbeat.dayplan.PlannerActivity')
   deadline=time.monotonic()+60
   while logs().count('web frame:')<=before or logs().count('Renderer exited;')<=exits:
    assert time.monotonic()<deadline,'Background return stuck instead of automatic recovery'
    time.sleep(.25)
-  assert adb('shell','pidof','com.bytbeat.dayplan').strip()==host,'Host exited on background recovery'
+  assert adb('shell','pidof','com.bytbeat.dayplan.calendar').strip()==host,'Host exited on background recovery'
  # Exercise actual touch scrolling after recovery.
  for i in range(6):adb('shell','input','swipe','500','1450','500','650','300')
- assert adb('shell','pidof','com.bytbeat.dayplan').strip()==host,'Host exited during scrolling'
+ assert adb('shell','pidof','com.bytbeat.dayplan.calendar').strip()==host,'Host exited during scrolling'
  assert re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan/',adb('shell','dumpsys','activity','activities')),'App left foreground during scrolling'
  (out/'result.txt').write_text('PASS: foreground renderer recovery and three background kill/return cycles recover automatically; no hidden recreation or retry button; six scroll gestures keep host foreground')
 finally:
