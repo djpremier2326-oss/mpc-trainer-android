@@ -361,3 +361,24 @@ body[data-design="ice"][data-view="day"] .ice-home>.ice-week{
   border-top:0!important;
   border-bottom:1px solid #456583!important;
 }
+
+
+/* v0.5 — dark day header: pure black top and a white date. */
+body[data-design="ice"][data-view="day"] .ice-home,
+body[data-design="ice"][data-view="day"] .violet-event-home{
+  background:#000!important;
+}
+body[data-design="ice"][data-view="day"] .ice-home>.ice-hero,
+body[data-design="ice"][data-view="day"] .violet-event-home>.ice-hero{
+  background:#000!important;
+  box-shadow:none!important;
+}
+body[data-design="ice"][data-view="day"] .ice-home>.ice-hero .ice-date-line,
+body[data-design="ice"][data-view="day"] .violet-event-home>.ice-hero .ice-date-line{
+  color:#fff!important;
+}
+body[data-design="ice"][data-view="day"] .ice-home>.ice-week,
+body[data-design="ice"][data-view="day"] .violet-event-home>.ice-week{
+  background:#000!important;
+  border-bottom:1px solid #2d2d2d!important;
+}
