@@ -122,6 +122,7 @@ function cfV2OpenPreview(date){
   if(!dialog.open)dialog.show();
 }
 openCalendarPreview=cfV2OpenPreview;
+cfOpenPreview=cfV2OpenPreview;
 function cfV2SaveDay(date){
   if(!validDate(date))return;
   const title=$('cf-v2-headline').value.trim().slice(0,75),detail=$('cf-v2-details').value.trim().slice(0,10000);
