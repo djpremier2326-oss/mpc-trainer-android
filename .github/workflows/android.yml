@@ -65,6 +65,8 @@ jobs:
         run: python3 scripts/apply-reminder-bell-fix.py
       - name: Disable automatic day switching
         run: python3 scripts/remove-auto-day-switch.py
+      - name: Attach calendar-first interface
+        run: python3 scripts/apply-calendar-first.py
       - name: Test reminder timing
         run: gradle :app:testDebugUnitTest --stacktrace
       - name: Build APK
