@@ -4,14 +4,14 @@ android {
     namespace 'com.bytbeat.dayplan'
     compileSdk 36
     defaultConfig {
-        applicationId friendPlanner ? 'com.bytbeat.dayplan.friend' : 'com.bytbeat.dayplan'
+        applicationId friendPlanner ? 'com.bytbeat.dayplan.calendar.friend' : 'com.bytbeat.dayplan.calendar'
         buildConfigField 'boolean', 'FRIEND_SHIFT', friendPlanner ? 'true' : 'false'
-        resValue 'string', 'app_name', 'Чёрные дела'
+        resValue 'string', 'app_name', 'Календарь дел'
         manifestPlaceholders = [launcherIcon: '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 115
-        versionName '2.3.93'
+        versionCode 1
+        versionName '0.1.0'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
