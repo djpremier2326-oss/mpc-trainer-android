@@ -239,3 +239,125 @@ body[data-design="ice"][data-view="day"] .ice-hero .ice-date-line{
   body[data-view="calendar"] .calendar-month .cf-v2-cell .cf-day-title{font-size:9px!important;line-height:11px!important}
   body[data-view="calendar"] .calendar-jump .cf-v2-topbtn{font-size:11px!important}
 }
+
+
+/* v0.3 — Android in-app dialog: the old bottom:95px position pushed its top under the status bar. */
+#calendar-preview{
+  position:fixed!important;
+  top:max(12px,env(safe-area-inset-top,0px))!important;
+  bottom:auto!important;
+  left:9px!important;
+  right:9px!important;
+  inset-block-end:auto!important;
+  margin:0 auto!important;
+  width:calc(100% - 18px)!important;
+  max-width:500px!important;
+  height:auto!important;
+  max-height:calc(100dvh - 112px)!important;
+  box-sizing:border-box!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  scroll-padding-top:60px!important;
+  z-index:120!important;
+  padding:14px!important;
+}
+#calendar-preview .dialog-head{
+  position:sticky!important;
+  top:-14px!important;
+  z-index:5!important;
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:12px!important;
+  padding:13px 1px 11px!important;
+  margin:-14px -1px 10px!important;
+  background:var(--card,var(--surface,#fff))!important;
+  border-bottom:1px solid var(--border,#ddd)!important;
+}
+#calendar-preview .dialog-head h2{
+  min-width:0!important;
+  flex:1!important;
+  margin:0!important;
+  padding:2px 0 0!important;
+  line-height:1.35!important;
+  overflow-wrap:anywhere!important;
+}
+#calendar-preview .dialog-head button{
+  position:relative!important;
+  flex:0 0 38px!important;
+  width:38px!important;
+  height:38px!important;
+  min-width:38px!important;
+  margin:0!important;
+  border-radius:9px!important;
+}
+/* v0.3 — detailed Day: only a date label above the weekday strip, no shifted banner/artwork. */
+body[data-design="ice"][data-view="day"] .violet-event-home,
+body[data-design="ice"][data-view="day"] .ice-home{
+  padding-top:0!important;
+  margin-top:0!important;
+  border-top:0!important;
+}
+body[data-design="ice"][data-view="day"] .violet-event-home>.ice-hero,
+body[data-design="ice"][data-view="day"] .ice-home>.ice-hero{
+  position:relative!important;
+  display:flex!important;
+  flex:0 0 43px!important;
+  height:43px!important;
+  min-height:43px!important;
+  max-height:43px!important;
+  margin:0!important;
+  padding:0 12px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:#031a32!important;
+  box-shadow:none!important;
+  overflow:hidden!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+body[data-design="ice"][data-view="day"] .ice-hero:before,
+body[data-design="ice"][data-view="day"] .ice-hero:after,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-photo-filter,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-tupac-photo,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-tribute-glow,
+body[data-design="ice"][data-view="day"] .ice-hero .ice-tribute-quote,
+body[data-design="ice"][data-view="day"] .ice-hero img{
+  display:none!important;
+}
+body[data-design="ice"][data-view="day"] .violet-event-home>.ice-hero .ice-date-line,
+body[data-design="ice"][data-view="day"] .ice-home>.ice-hero .ice-date-line{
+  position:static!important;
+  inset:auto!important;
+  top:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  left:auto!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:1!important;
+  width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  font-size:15px!important;
+  font-weight:800!important;
+  line-height:22px!important;
+  text-align:center!important;
+  color:#edf7ff!important;
+  transform:none!important;
+}
+body[data-design="ice"][data-view="day"] .ice-home>.ice-week{
+  flex:0 0 59px!important;
+  height:59px!important;
+  min-height:59px!important;
+  max-height:59px!important;
+  margin:0!important;
+  padding:3px 7px 4px!important;
+  border-radius:0!important;
+  border-top:0!important;
+  border-bottom:1px solid #456583!important;
+}
