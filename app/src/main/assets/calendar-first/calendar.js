@@ -133,7 +133,7 @@ async function cfAddPhoto(e){
     if($('calendar-preview')?.open)cfOpenPreview(date);
     toast('Фото добавлено',800);
   }catch(err){
-    state.calendarPhotos[date]=(state.calendarPhotos[date]||[]).filter(x=>x.id!==id);
+    state.calendarPhotos=state.calendarPhotos||{};state.calendarPhotos[date]=(state.calendarPhotos[date]||[]).filter(x=>x.id!==id);
     try{await wishPhoto('delete',cfPhotoKey(id))}catch(_){}
     toast('Не удалось сохранить фото');
   }
@@ -157,7 +157,7 @@ document.addEventListener('click',e=>{
   if(d.cfOpen){navigate(d.cfOpen,'day');return}
   if(d.cfColor){$('calendar-preview')?.close();openDayColors(d.cfColor);return}
   if(d.cfPhoto){cfPhotoDate=d.cfPhoto;$('cf-photo-input').click();return}
-  if(d.cfEvent){$('calendar-preview')?.close();selected=d.cfEvent;openReminderDialog?.();return}
+  if(d.cfEvent){$('calendar-preview')?.close();selected=d.cfEvent;openReminder();return}
   if(d.cfWorkout){$('calendar-preview')?.close();navigate(d.cfWorkout,'workout');return}
   if(d.cfSavings){$('calendar-preview')?.close();navigate(d.cfSavings,'savings');return}
   if(d.cfRemovePhoto){cfRemovePhoto(d.cfDate,d.cfRemovePhoto);return}
