@@ -57,7 +57,7 @@ function cfV2MonthMarkup(month){
         '" data-date="'+d+'" data-day-color="'+(color?'cf-v2':'none')+'" data-cf-filled="'+(color?color.kind:'none')+
         '" style="'+esc(vars)+'" aria-label="'+esc(info)+'" aria-pressed="'+String(d===selected)+'">'+
         '<span class="cf-v2-number">'+Number(d.slice(-2))+'</span>'+
-        (shift?'<small class="cf-shift-tag">'+esc(shift.short)+'</small>':'')+
+        (shift&&!label?'<small class="cf-shift-tag">'+esc(shift.short)+'</small>':'')+
         (label?'<small class="cf-day-title">'+esc(label)+'</small>':'')+
         (icons.length?'<span class="cf-badges" aria-hidden="true">'+icons.slice(0,3).join('')+'</span>':'')+
         '</button>';
@@ -87,13 +87,17 @@ function cfV2RefreshCalendar(){
   });
   view.scrollTop=pos;
 }
-tapCalendarDate=function(date){
+tapCalendarDate=function(date,time){
   if(!validDate(date))return;
-  calendarTap=null;selected=date;$('date').value=date;
+  const second=calendarTap&&calendarTap.date===date&&Number.isFinite(time)&&
+    time-calendarTap.time>=0&&time-calendarTap.time<=480;
+  calendarTap=second?null:{date,time};
+  selected=date;$('date').value=date;
   document.querySelectorAll('.cal-cell').forEach(el=>{
-    const yes=el.dataset.date===date;el.classList.toggle('chosen',yes);el.setAttribute('aria-pressed',String(yes));
+    const yes=el.dataset.date===date;el.classList.toggle('chosen',yes);
+    el.setAttribute('aria-pressed',String(yes));
   });
-  openCalendarPreview(date);
+  if(second)openCalendarPreview(date);
 };
 function cfV2OpenPreview(date){
   cfReleaseUrls();cfPhotoToken++;
@@ -227,6 +231,40 @@ syncDesignNavigation=function(){
   }
 };
 cfV2SetupSettings();
+/* Clear work shifts without clearing any manual day colors. */
+function cfV5ShiftClear(){
+  const old=state.shiftPlan;
+  state.shiftPlan=null;
+  if(!persist()){state.shiftPlan=old;return}
+  $('cf-shift-dialog').close();render();toast('График смен убран',1100);
+}
+(function cfV5ConfigureShiftRemoval(){
+  const form=$('cf-shift-form');if(!form)return;
+  const actions=form.querySelector('.dialog-actions');
+  if(actions&&!$('cf-v5-clear-shifts')){
+    const clear=document.createElement('button');
+    clear.type='button';clear.id='cf-v5-clear-shifts';clear.className='btn';
+    clear.textContent='Убрать график';
+    actions.insertBefore(clear,actions.firstChild);
+  }
+  const start=form.elements.start,pattern=form.elements.pattern,field=start.closest('.field');
+  const sync=()=>{
+    const none=pattern.value==='none';
+    start.required=!none;
+    if(field){field.style.opacity=none?'0.55':'1';field.style.pointerEvents=none?'none':'auto'}
+  };
+  pattern.addEventListener('change',sync);
+  const originalOpen=cfOpenShifts;
+  cfOpenShifts=function(){originalOpen();sync()};
+  const originalSubmit=form.onsubmit;
+  form.onsubmit=function(e){
+    if(pattern.value==='none'){e.preventDefault();cfV5ShiftClear();return}
+    return originalSubmit(e);
+  };
+  document.addEventListener('click',e=>{
+    if(e.target.closest('#cf-v5-clear-shifts'))cfV5ShiftClear();
+  });
+})();
 const cfV2Menu=Array.isArray(state.prefs.mainMenu)?state.prefs.mainMenu.filter(x=>x!=='calendar'):[];
 if(state.prefs.mainMenu?.[0]!=='calendar'){
   state.prefs.mainMenu=['calendar',...cfV2Menu].slice(0,3);
