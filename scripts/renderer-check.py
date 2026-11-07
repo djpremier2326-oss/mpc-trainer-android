@@ -21,7 +21,7 @@ try:
  time.sleep(.25)
  subprocess.run(['adb','exec-out','screencap','-p'],stdout=(out/'first-page.png').open('wb'),check=True,timeout=20)
  host=adb('shell','pidof','com.bytbeat.dayplan.calendar').strip()
- text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
+ text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan\.calendar/',text)
  assert matches,'Could not identify this app renderer'
  adb('shell','kill','-9',matches[-1])
  deadline=time.monotonic()+40
@@ -38,10 +38,10 @@ try:
   before=logs().count('web frame:')
   adb('shell','input','keyevent','KEYCODE_HOME')
   deadline=time.monotonic()+15
-  while re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan/',adb('shell','dumpsys','activity','activities')):
+  while re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan\.calendar/',adb('shell','dumpsys','activity','activities')):
    assert time.monotonic()<deadline,'Activity did not enter background'
    time.sleep(.25)
-  text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan/',text)
+  text=logs();matches=re.findall(r'Start proc (\d+):[^\n]*sandboxed_process[^\n]*for[^\n]*\{com\.bytbeat\.dayplan\.calendar/',text)
   assert matches,'Could not identify renderer before background exit'
   exits=text.count('Renderer exited;')
   adb('shell','kill','-9',matches[-1])
@@ -58,7 +58,7 @@ try:
  # Exercise actual touch scrolling after recovery.
  for i in range(6):adb('shell','input','swipe','500','1450','500','650','300')
  assert adb('shell','pidof','com.bytbeat.dayplan.calendar').strip()==host,'Host exited during scrolling'
- assert re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan/',adb('shell','dumpsys','activity','activities')),'App left foreground during scrolling'
+ assert re.search(r'(?:topResumedActivity|mResumedActivity)[^\n]*com\.bytbeat\.dayplan\.calendar/',adb('shell','dumpsys','activity','activities')),'App left foreground during scrolling'
  (out/'result.txt').write_text('PASS: foreground renderer recovery and three background kill/return cycles recover automatically; no hidden recreation or retry button; six scroll gestures keep host foreground')
 finally:
  try:(out/'logcat.txt').write_text(logs())
