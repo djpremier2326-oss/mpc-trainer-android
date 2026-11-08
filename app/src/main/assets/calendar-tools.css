@@ -95,3 +95,8 @@ body[data-design=ice][data-view=wishes] .wish-image{background:transparent!impor
 button,button *{user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none;-webkit-user-drag:none}
 body .tabs button,body .tabs button *{transition:none!important;animation:none!important}
 body .tabs>.tab:active{background:transparent!important}
+
+/* Calendar actions use the same compact button size as Notes, aligned right. */
+body[data-design=ice].calendar-view #calendar-top-tools{justify-content:flex-end;gap:8px;padding:4px 12px;height:50px;min-height:50px}
+body[data-design=ice] #calendar-top-tools button{flex:none;min-width:0;width:auto;height:42px;min-height:42px;padding:7px 10px;gap:6px;font-size:12px;font-weight:600}
+body[data-design=ice] #calendar-top-tools button svg{width:17px;height:17px}

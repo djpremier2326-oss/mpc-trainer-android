@@ -58,5 +58,4 @@ document.addEventListener('pointerup',e=>{
   lastTimelineTap=null;if(!document.body.classList.contains('violet-editor-open'))$('violet-add-task')?.click();
  }else lastTimelineTap={t:now,x:e.clientX,y:e.clientY,timeline:down.timeline};
 },{passive:true});
-syncCalendarChrome();
 })();

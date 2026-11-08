@@ -308,11 +308,26 @@ test('first configured menu button is the startup section, even when Today is el
    await page.locator('#main-menu-save').tap();
    await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
    assert.equal(await page.evaluate(()=>tab),first);
+   if(first==='calendar'){assert.equal(await page.locator('#calendar-top-tools').isVisible(),true);assert.equal(await page.locator('.calendar-jump').isVisible(),false);assert.equal(await page.locator('.calendar-hint').count(),0)}
    assert.deepEqual(await page.evaluate(()=>state.prefs.mainMenu),menu);
    const firstButton=await page.locator('.tabs button').first().evaluate(el=>({active:el.classList.contains('active'),current:el.getAttribute('aria-current')}));
    assert.equal(firstButton.active,true);assert.equal(firstButton.current,'page');
    await page.evaluate(()=>{window.onPlannerResume?.();window.onPlannerResume?.()});assert.equal(await page.evaluate(()=>tab),first);
   }
   assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('calendar startup has only compact right-aligned actions and restores shift colors immediately',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['calendar','notes','day'];state.prefs.calendarSchedule={mode:'2/2',start:'2026-11-08',pattern:['work','work','off','off'],colors:{work:'#12ab34',day:'#63d8ef',night:'#b38be8',off:'#f3edf9'}};persist()});
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+  assert.equal(await page.evaluate(()=>tab),'calendar');assert.equal(await page.locator('.calendar-jump').isVisible(),false);assert.equal(await page.locator('#calendar-top-tools').count(),1);assert.equal(await page.locator('#calendar-today').count(),1);
+  assert.ok(await page.locator('.calendar-shift-label').count()>0);
+  const actions=await page.locator('#calendar-top-tools').evaluate(el=>{const b=el.getBoundingClientRect(),buttons=[...el.querySelectorAll('button')];return {width:b.width,left:buttons[0].getBoundingClientRect().left-b.left,right:b.right-buttons[1].getBoundingClientRect().right,buttons:buttons.map(x=>({width:x.getBoundingClientRect().width,height:x.getBoundingClientRect().height,font:getComputedStyle(x).fontSize,bg:getComputedStyle(x).backgroundColor}))}});
+  assert.ok(actions.left>actions.width*.4,JSON.stringify(actions));assert.ok(actions.right<=14);assert.ok(actions.buttons.every(b=>b.width<120&&b.height===42&&b.font==='12px'&&b.bg==='rgb(0, 0, 0)'));
+  await page.locator('#calendar-schedule-open').tap();assert.equal(await page.locator('#calendar-schedule-dialog').isVisible(),true);await page.locator('#calendar-schedule-close').tap();await page.locator('#calendar-today').tap();
+  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-start-115.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
