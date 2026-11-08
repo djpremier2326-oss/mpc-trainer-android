@@ -12,7 +12,7 @@ def replace_once(old, new, label):
 
 replace_once(
     "const MAIN_SECTIONS={day:'День',week:'Неделя',calendar:'Календарь',notes:'Заметки',savings:'Накопления',events:'Напоминания'};",
-    "const MAIN_SECTIONS={day:'Сегодня',week:'Неделя',calendar:'Календарь',notes:'Заметки',savings:'Накопления',events:'Напоминания',wishes:'Желания',workout:'Тренировка'};",
+    "const MAIN_SECTIONS={day:'Сегодня',week:'Неделя',calendar:'Календарь',notes:'Заметки',savings:'Накопления',events:'Напоминания',wishes:'Избранное',workout:'Тренировка'};",
     'main section labels'
 )
 
