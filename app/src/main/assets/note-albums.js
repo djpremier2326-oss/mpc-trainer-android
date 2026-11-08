@@ -13,7 +13,7 @@ async function covers(){
   grid.querySelectorAll('.notes-album').forEach(card=>{
    const items=groups.get(card.dataset.albumId)||[],count=card.querySelector('.notes-album-count');count.textContent=String(items.length);
    const item=[...items].sort((a,b)=>(b.created||0)-(a.created||0)).find(r=>r.blob&&(r.type?.startsWith('image/')||r.type?.startsWith('video/')));
-   if(!item)return;const url=URL.createObjectURL(item.blob);coverURLs.push(url);const cover=card.querySelector('.notes-album-cover'),video=item.type.startsWith('video/'),media=document.createElement(video?'video':'img');
+   if(!item)return;const url=URL.createObjectURL(item.blob);coverURLs.push(url);const cover=card.querySelector('.notes-album-cover'),video=item.type.startsWith('video/'),media=document.createElement(video?'video':'img');cover.querySelector('svg')?.remove();
    if(video){media.muted=true;media.playsInline=true;media.preload='metadata';media.addEventListener('loadedmetadata',()=>{if(Number.isFinite(media.duration)&&media.duration>0)media.currentTime=Math.min(.1,media.duration/2)});const play=document.createElement('span');play.className='notes-album-video';play.textContent='▶';cover.append(play)}else{media.alt='';media.loading='lazy';media.decoding='async'}
    media.addEventListener('error',()=>{media.remove()},{once:true});media.src=url;cover.prepend(media);
   });

@@ -560,7 +560,7 @@ test('Photos albums show three square covers per row, fitting names and correct 
   await page.evaluate(()=>{state.mediaFolders.push({id:'album-empty',name:'Пустая'},{id:'album-long',name:'Длинное название папки с фотографиями'});persist();renderPhotos()});await page.waitForFunction(()=>document.querySelector('[data-album-id="album-empty"] .notes-album-count')?.textContent==='0');
   const layout=await page.locator('.notes-album').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),cover=el.querySelector('.notes-album-cover').getBoundingClientRect();return {top:b.top,left:b.left,width:b.width,coverWidth:cover.width,coverHeight:cover.height}}));
   assert.ok(Math.abs(layout[0].width-initial)<1);assert.equal(layout[0].top,layout[2].top);assert.ok(layout[3].top>layout[0].top);assert.ok(layout.every(b=>Math.abs(b.coverWidth-b.coverHeight)<1));
-  assert.equal(await page.locator('.notes-album-cover img').count(),2);
+  assert.equal(await page.locator('.notes-album-cover img').count(),2);assert.equal(await page.locator('[data-album-id=album-calendar] .notes-album-cover svg').count(),0);assert.equal(await page.locator('[data-album-id=album-empty] .notes-album-cover svg').count(),1);
   await page.screenshot({path:'/workspace/.planner-startup-review/note-albums-128.png'});
   await page.locator('[data-media-folder-open=album-calendar]').tap();await page.waitForFunction(()=>document.querySelectorAll('.notes-media-item').length===1);assert.equal(await page.locator('.notes-media-toolbar strong').innerText(),'Календарь');
   await page.locator('[data-media-back]').tap();await page.locator('[data-media-folder-menu=album-empty]').tap();assert.equal(await page.locator('#notes-media-sheet').isVisible(),true);assert.deepEqual(errors,[]);
