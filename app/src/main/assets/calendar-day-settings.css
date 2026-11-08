@@ -19,3 +19,10 @@ body[data-design=ice] .calendar-month .cal-cell{width:100%;min-width:0;margin:0;
 .calendar-day-color-choices button{display:flex;align-items:center;flex-direction:column;gap:5px;min-height:57px;padding:6px 2px;border:1px solid var(--border);border-radius:10px;background:var(--control);color:var(--text);font-size:9px}
 .calendar-day-color-choices i{display:block;width:25px;height:25px;border:1px solid #7778;border-radius:50%}
 .calendar-day-color-choices button[aria-pressed=true]{background:#000;color:#c59af2;border-color:#c59af2}
+
+.calendar-day-icons{display:grid;grid-template-columns:repeat(3,14px);justify-content:center;gap:2px;max-width:100%}
+.calendar-day-icons .calendar-day-icon{width:14px;height:14px}
+.calendar-day-icons[data-count="1"]{grid-template-columns:23px}
+.calendar-day-icons[data-count="1"] .calendar-day-icon{width:23px;height:23px}
+.calendar-day-icons[data-count="2"]{grid-template-columns:repeat(2,20px);gap:3px}
+.calendar-day-icons[data-count="2"] .calendar-day-icon{width:20px;height:20px}

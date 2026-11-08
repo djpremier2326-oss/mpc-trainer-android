@@ -371,7 +371,7 @@ test('long-press calendar labels and monochrome icons persist, edit and remove w
   assert.equal(await cell.locator('.calendar-day-text').innerText(),'Больница');assert.equal(await cell.locator('.calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)');
   assert.equal(await page.evaluate(()=>state.iceMarks.days['2026-11-11']),'black');assert.equal(await page.evaluate(()=>slots('2026-11-11').some(r=>r.text.trim())),false);
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>tab),'calendar');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Больница');
-  await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings [name=text]').fill('');await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await cell.locator('.calendar-day-text').count(),0);assert.equal(await cell.locator('.calendar-day-icon').count(),1);
+  await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings [name=text]').fill('');await page.locator('[data-calendar-icon=hospital]').tap();await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await cell.locator('.calendar-day-text').count(),0);assert.equal(await cell.locator('.calendar-day-icon').count(),1);
   await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-settings [name=text]').fill('Прогулка');await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-labels-117.png'});
   await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings-remove').tap();assert.equal(await cell.locator('.calendar-day-note').count(),0);
@@ -404,5 +404,21 @@ test('calendar day settings share day colors with schedule and keep draft change
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');
   await page.evaluate(()=>navigate('2026-11-12','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-day-color=none]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'none');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Зал');
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-colors-118.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('multiple calendar icons toggle independently, scale and survive relaunch alongside legacy icons',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['calendar','notes','day'];state.prefs.calendarDayNotes={'2026-11-12':{text:'Зал и врач',icon:'dumbbell'}};applyTheme();persist();navigate('2026-11-08','calendar')});
+  const icons=page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon');
+  assert.equal(await icons.count(),1);assert.equal(await icons.first().evaluate(el=>el.getBoundingClientRect().width),23);
+  await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('[data-calendar-icon=dumbbell]').getAttribute('aria-pressed'),'true');await page.locator('[data-calendar-icon=hospital]').tap();assert.equal(await page.locator('[data-calendar-icon=dumbbell]').getAttribute('aria-pressed'),'true');await page.locator('#calendar-day-settings [type=submit]').tap();
+  assert.equal(await icons.count(),2);assert.equal(await icons.first().evaluate(el=>el.getBoundingClientRect().width),20);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await icons.count(),2);
+  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=person]').tap();await page.locator('[data-calendar-icon=work]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),4);assert.equal(await icons.first().evaluate(el=>el.getBoundingClientRect().width),14);
+  assert.ok(await icons.evaluateAll(els=>els.every(el=>{const b=el.getBoundingClientRect(),c=el.closest('.cal-cell').getBoundingClientRect();return b.left>=c.left&&b.right<=c.right})));await page.screenshot({path:'/workspace/.planner-startup-review/calendar-multi-icons-119.png'});
+  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=hospital]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),3);
+  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=""]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),0);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-text').innerText(),'Зал и врач');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
