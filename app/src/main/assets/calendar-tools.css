@@ -1,0 +1,19 @@
+body.calendar-view .app-heading,body.calendar-view .toolbar{display:none!important}
+#calendar-top-tools{display:none}
+body.calendar-view #calendar-top-tools{display:flex;flex:none;align-items:center;justify-content:space-evenly;background:#000;color:#eee4fa;border-radius:0 0 28px 28px;margin:0 -12px 12px;padding:10px 18px 12px;box-shadow:0 5px 18px #0003;z-index:5}
+#calendar-top-tools button{display:flex;align-items:center;justify-content:center;gap:10px;min-height:48px;min-width:125px;border:0;background:transparent;color:inherit;font:inherit;font-weight:600;border-radius:14px}
+#calendar-top-tools button:active{background:#ffffff22}
+#calendar-top-tools svg{width:25px;height:25px;color:var(--accent)}
+.calendar-shift-label{display:block;font-size:10px;line-height:1.25;position:relative;margin-top:3px;font-weight:600}
+.has-work-shift{box-shadow:inset 0 -4px var(--shift-color)!important}
+#calendar-schedule-dialog{width:min(420px,calc(100% - 24px));max-height:85dvh;overflow:auto}
+#calendar-schedule-form{display:grid;gap:14px}
+#calendar-schedule-form .field{display:flex;flex-direction:column;gap:6px}
+#calendar-schedule-form select,#calendar-schedule-form input{min-height:44px;width:100%;box-sizing:border-box;font:inherit}
+#calendar-custom-cycle,.calendar-shift-colors{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#calendar-custom-cycle[hidden],[data-shift-color][hidden]{display:none!important}
+#calendar-schedule-form input[type=color]{padding:4px;border-radius:12px}
+#calendar-schedule-form .calendar-save{background:#000;color:white;min-height:48px}
+#calendar-schedule-error{color:#b00020}
+body[data-design=ice].calendar-view #calendar-top-tools{margin:0 0 12px;width:100%}
+body.calendar-view .calendar-jump[hidden]{display:none!important}

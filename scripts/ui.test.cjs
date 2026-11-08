@@ -79,3 +79,30 @@ test('latest media folder menus and full-screen photo viewer survive relaunch',a
   assert.deepEqual(stored,{name:'original.png',size:bytes.length,type:'image/png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+test('calendar top panel, shift cycles, colors, persistence and removal',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();state.iceMarks=state.iceMarks||{};state.iceMarks.days={'2026-11-09':'purple'};persist();navigate('2026-11-08','calendar')});
+  assert.equal(await page.locator('.calendar-jump').isVisible(),false);
+  assert.equal(await page.locator('.app-heading').isVisible(),false);
+  await page.locator('#calendar-schedule-open').tap();
+  await page.locator('[name=start]').fill('2026-11-08');
+  await page.locator('[name=workColor]').fill('#12ab34');
+  await page.locator('#calendar-schedule-form [type=submit]').tap();
+  const label=d=>page.locator(`#cal-2026-11 .cal-cell[data-date="${d}"] .calendar-shift-label`).innerText();
+  assert.equal(await label('2026-11-08'),'Смена');assert.equal(await label('2026-11-09'),'Смена');assert.equal(await page.evaluate(()=>dayColor('2026-11-09')),'purple');assert.notEqual(await page.locator('#cal-2026-11 [data-date="2026-11-09"]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(18, 171, 52)');assert.equal(await label('2026-11-10'),'Вых.');assert.equal(await label('2026-11-07'),'Вых.');
+  assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-08"]').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(18, 171, 52)');
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.evaluate(()=>navigate('2026-11-08','calendar'));assert.equal(await label('2026-11-08'),'Смена');
+  for(const mode of ['3/3','daynight','custom']){
+   await page.locator('#calendar-schedule-open').tap();await page.locator('[name=pattern]').selectOption(mode);
+   if(mode==='custom'){await page.locator('[name=work]').fill('4');await page.locator('[name=off]').fill('1')}
+   await page.locator('#calendar-schedule-form [type=submit]').tap();
+   assert.equal(await label('2026-11-09'),mode==='daynight'?'Ночь':'Смена');
+   assert.equal(await label('2026-11-11'),mode==='custom'?'Смена':'Вых.');
+  }
+  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-2.3.105.png'});
+  await page.locator('#calendar-schedule-open').tap();await page.locator('#calendar-schedule-remove').tap();assert.equal(await page.locator('.calendar-shift-label').count(),0);assert.equal(await page.evaluate(()=>state.iceMarks.days['2026-11-09']),'purple');
+  await page.evaluate(()=>navigate('2027-04-05','calendar'));await page.locator('#calendar-today').tap();assert.equal(await page.evaluate(()=>selected),await page.evaluate(()=>iso()));
+  await page.evaluate(()=>navigate(selected,'day'));assert.equal(await page.locator('#calendar-top-tools').isVisible(),false);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
