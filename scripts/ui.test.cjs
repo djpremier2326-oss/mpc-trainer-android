@@ -541,3 +541,39 @@ test('week entries follow actual start times and show saved half-hour intervals 
   await page.screenshot({path:'/workspace/.planner-startup-review/week-chronological-127.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('Notes albums show three square covers per row, fitting names and correct file counts',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(async()=>{
+   state.prefs.variant='violet';applyTheme();state.mediaFolders=[{id:'album-calendar',name:'Календарь'},{id:'album-photo',name:'Фотографии'}];
+   const c=document.createElement('canvas');c.width=100;c.height=80;const ctx=c.getContext('2d');ctx.fillStyle='#c59af2';ctx.fillRect(0,0,100,80);const blob=await new Promise(resolve=>c.toBlob(resolve));
+   await mediaPut({id:'album-file-one',folder:'album-calendar',name:'Оригинал.png',type:'image/png',blob,created:1});
+   await mediaPut({id:'album-file-two',folder:'album-photo',name:'Фото.png',type:'image/png',blob,created:2});
+   await mediaPut({id:'album-file-three',folder:'album-photo',name:'Фото 2.png',type:'image/png',blob,created:3});
+   navigate(selected,'notes');
+  });
+  await page.waitForFunction(()=>document.querySelector('[data-album-id="album-calendar"] .notes-album-count')?.textContent==='1');
+  const initial=await page.locator('.notes-album').first().evaluate(el=>el.getBoundingClientRect().width);assert.equal(await page.locator('.notes-album').count(),2);
+  assert.equal(await page.locator('[data-album-id=album-photo] .notes-album-count').innerText(),'2');
+  assert.equal(await page.locator('[data-album-id=album-calendar] .notes-album-name').evaluate(el=>el.scrollWidth<=el.clientWidth),true);
+  await page.evaluate(()=>{state.mediaFolders.push({id:'album-empty',name:'Пустая'},{id:'album-long',name:'Длинное название папки с фотографиями'});persist();renderNotes()});await page.waitForFunction(()=>document.querySelector('[data-album-id="album-empty"] .notes-album-count')?.textContent==='0');
+  const layout=await page.locator('.notes-album').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),cover=el.querySelector('.notes-album-cover').getBoundingClientRect();return {top:b.top,left:b.left,width:b.width,coverWidth:cover.width,coverHeight:cover.height}}));
+  assert.ok(Math.abs(layout[0].width-initial)<1);assert.equal(layout[0].top,layout[2].top);assert.ok(layout[3].top>layout[0].top);assert.ok(layout.every(b=>Math.abs(b.coverWidth-b.coverHeight)<1));
+  assert.equal(await page.locator('.notes-album-cover img').count(),2);
+  await page.screenshot({path:'/workspace/.planner-startup-review/note-albums-128.png'});
+  await page.locator('[data-media-folder-open=album-calendar]').tap();await page.waitForFunction(()=>document.querySelectorAll('.notes-media-item').length===1);assert.equal(await page.locator('.notes-media-toolbar strong').innerText(),'Календарь');
+  await page.locator('[data-media-back]').tap();await page.locator('[data-media-folder-menu=album-empty]').tap();assert.equal(await page.locator('#notes-media-sheet').isVisible(),true);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('album cover can display a frame from an original video file',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(async()=>{
+   const c=document.createElement('canvas');c.width=80;c.height=60;const x=c.getContext('2d');x.fillStyle='orange';x.fillRect(0,0,80,60);const stream=c.captureStream(10),chunks=[],recorder=new MediaRecorder(stream,{mimeType:'video/webm'});
+   const done=new Promise(resolve=>{recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=resolve});recorder.start();await new Promise(resolve=>setTimeout(resolve,200));recorder.stop();await done;stream.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:'video/webm'});
+   state.mediaFolders=[{id:'video-album',name:'Видео'}];await mediaPut({id:'video-cover',folder:'video-album',name:'Original.webm',type:'video/webm',blob,created:1});navigate(selected,'notes');
+  });
+  await page.waitForFunction(()=>document.querySelector('.notes-album-cover video')?.readyState>=2);assert.equal(await page.locator('.notes-album-count').innerText(),'1');assert.equal(await page.locator('.notes-album-video').isVisible(),true);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
