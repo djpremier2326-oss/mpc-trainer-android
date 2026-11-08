@@ -30,7 +30,7 @@ body[data-design=ice][data-view=workout] .workout-rest-circle.running{background
 .workout-rest-actions .btn{font-size:12px;padding:6px 10px}
 
 /* Running time uses the same seconds as the configured rest duration. */
-body[data-design=ice][data-view=workout] .workout-rest-circle.running small{display:none}
+body[data-design=ice][data-view=workout] .workout-rest-circle.running small{display:block}
 body[data-design=ice][data-view=workout] .workout-rest-circle.running strong{font-size:80px!important;letter-spacing:-2px}
 body[data-design=ice][data-view=workout] .workout-rest-circle.running strong[data-digits="3"]{font-size:64px!important}
 body[data-design=ice][data-view=workout] .workout-rest-circle.running strong[data-digits="4"]{font-size:46px!important}
