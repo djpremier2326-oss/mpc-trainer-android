@@ -332,6 +332,9 @@ public class PlannerActivity extends Activity {
             choice.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,multiple);
             if(withVideo)choice.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*"});
         }
+        // OEM gallery activities may silently ignore EXTRA_ALLOW_MULTIPLE.
+        // Do not route a multi-file request through such an activity or a chooser.
+        if(multiple)return new Intent[]{documents};
         Intent chooser=Intent.createChooser(documents,withVideo?"Выберите фотографии и видео":"Выберите фотографии");
         chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,new Intent[]{gallery,content});
         return new Intent[]{chooser,documents,content,gallery};
