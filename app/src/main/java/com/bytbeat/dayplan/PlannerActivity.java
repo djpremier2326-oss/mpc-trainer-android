@@ -321,23 +321,22 @@ public class PlannerActivity extends Activity {
         @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
     }
     static Intent[] photoPickers(boolean withVideo,boolean multiple){
-        String type=withVideo?"*/*":"image/*";
-        // Documents exposes all storage providers and supports multi-selection on Android 8+.
-        // Also offer the phone's ordinary gallery instead of the restricted system Photo Picker.
-        Intent documents=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(type);
-        Intent content=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType(type);
-        Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,type);
-        for(Intent choice:new Intent[]{documents,content,gallery}){
-            choice.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            choice.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,multiple);
-            if(withVideo)choice.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*"});
-        }
-        // OEM gallery activities may silently ignore EXTRA_ALLOW_MULTIPLE.
-        // Do not route a multi-file request through such an activity or a chooser.
-        if(multiple)return new Intent[]{documents};
-        Intent chooser=Intent.createChooser(documents,withVideo?"Выберите фотографии и видео":"Выберите фотографии");
-        chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,new Intent[]{gallery,content});
-        return new Intent[]{chooser,documents,content,gallery};
+        // ACTION_PICK enters a one-photo mode in several OEM galleries even with
+        // EXTRA_ALLOW_MULTIPLE. GET_CONTENT requests the gallery's import selector.
+        Intent gallery=new Intent(Intent.ACTION_GET_CONTENT).setType("image/*")
+            .addCategory(Intent.CATEGORY_OPENABLE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            .putExtra(Intent.EXTRA_ALLOW_MULTIPLE,multiple)
+            .putExtra("pick-multiple",multiple)
+            .putExtra("pick-upper-bound",multiple?1000:1)
+            .putExtra("pick-lower-bound",1);
+        if(withVideo)gallery.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*"});
+        // Prefer installed phone galleries, retaining their own album browser.
+        // Each unavailable package is skipped by onShowFileChooser.
+        String[] packages={"com.miui.gallery","com.sec.android.gallery3d","com.oplus.gallery","com.coloros.gallery3d","com.vivo.gallery","com.huawei.photos"};
+        Intent[] choices=new Intent[packages.length+1];
+        for(int i=0;i<packages.length;i++)choices[i]=new Intent(gallery).setPackage(packages[i]);
+        choices[packages.length]=gallery;
+        return choices;
     }
     static Uri[] photoUris(int result,Intent data){
         if(result!=RESULT_OK||data==null)return null;
