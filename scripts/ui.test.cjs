@@ -163,3 +163,25 @@ test('scrolling content extends behind rounded bottom navigation in every theme'
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('workout uses the same compact header as calendar and notes; history and exercises work',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const variant of Object.keys(palettes)){
+   const heights=[];
+   for(const section of ['calendar','notes','workout']){
+    await page.evaluate(({variant,section})=>{state.prefs.variant=variant;applyTheme();navigate(selected,section)},{variant,section});
+    heights.push(await page.locator(section==='calendar'?'#calendar-top-tools':section==='notes'?'.notes-tools':'.workout-heading').evaluate(el=>el.getBoundingClientRect().height));
+   }
+   assert.deepEqual(heights,[50,50,50]);
+   assert.equal(await page.locator('.app-heading').isVisible(),false);
+   assert.equal(await page.locator('.workout-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(0, 0, 0)');
+   assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
+   assert.equal(await page.locator('.workout-heading h1').evaluate(el=>getComputedStyle(el).fontSize),'18px');
+  }
+  await page.locator('[data-workout-history]').tap();assert.equal(await page.locator('.workout-heading h1').innerText(),'История');await page.locator('[data-workout-back]').tap();
+  await page.screenshot({path:'/workspace/.planner-startup-review/workout-compact.png'});
+  await page.locator('[data-workout-open]').first().tap();assert.equal(await page.locator('.workout-detail').isVisible(),true);
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

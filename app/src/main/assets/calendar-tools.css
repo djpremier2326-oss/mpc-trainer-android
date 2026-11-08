@@ -27,3 +27,16 @@ body.notes-view .notes-tools #notes-search::placeholder{color:#c6bfcd}
 body.notes-view .notes-tools .btn,body.notes-view .notes-media-toolbar .btn{flex:none;min-height:42px;padding:7px 6px;border:0;background:transparent!important;color:#eee4fa!important;box-shadow:none!important;font-size:12px;white-space:nowrap}
 body.notes-view .notes-tools .btn:active,body.notes-view .notes-media-toolbar .btn:active{background:#ffffff22!important}
 body.notes-view .notes-media-toolbar strong{color:#eee4fa;min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* A shared compact height for the calendar, Notes and workout panels. */
+:root{--section-toolbar-height:50px}
+body.calendar-view #calendar-top-tools{height:var(--section-toolbar-height);min-height:var(--section-toolbar-height)}
+body.notes-view .notes-tools,body.notes-view .notes-media-toolbar{height:var(--section-toolbar-height);min-height:var(--section-toolbar-height);padding-top:4px;padding-bottom:4px}
+body[data-view=workout] .app-heading{display:none!important}
+body[data-design=ice][data-view=workout] #view{padding-top:0!important}
+body[data-view=workout] .workout-page{padding-top:0!important;padding-left:0!important;padding-right:0!important}
+body[data-view=workout] .workout-heading{position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:space-between;height:var(--section-toolbar-height);min-height:var(--section-toolbar-height);padding:4px 14px;margin:0 -12px 10px;width:calc(100% + 24px);border-radius:0 0 20px 20px;background:#000!important;color:#eee4fa!important;box-shadow:0 4px 12px #0002}
+body[data-view=workout] .workout-heading h1{font-size:18px!important;line-height:1.2!important;margin:0!important;color:#eee4fa!important}
+body[data-view=workout] .workout-heading small{display:none!important}
+body[data-view=workout] .workout-heading .btn,body[data-view=workout] .workout-heading .workout-back{display:flex;align-items:center;min-height:42px;margin:0;padding:6px 10px;background:transparent!important;color:#eee4fa!important;border:0;box-shadow:none!important;font-size:13px}
+body[data-view=workout] .workout-intro{font-size:12px!important;line-height:1.4!important;margin:8px 0 12px!important}
