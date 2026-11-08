@@ -1,0 +1,59 @@
+/* Palette corrections for the four other themes. Violet is the unchanged reference. */
+body[data-design=ice][data-variant=ice]{--theme-button:#edf6ff;--theme-button-ink:#06213b;--theme-button-edge:#83aac7;--theme-selected:#07334b;--theme-selected-ink:#78dcff;--theme-marker:#51cfff;--theme-muted:#a9c9df;--theme-card-muted:#405b70;--theme-date:#d5e9f9;--theme-date-selected:#00c9ed;--theme-date-on:#00283b;--theme-danger:#ffb4ab}
+body[data-design=ice][data-variant=graphite]{--theme-button:#f3f3f3;--theme-button-ink:#151515;--theme-button-edge:#686868;--theme-selected:#303030;--theme-selected-ink:#fff;--theme-marker:#f3f3f3;--theme-muted:#252525;--theme-card-muted:#414141;--theme-date:#111;--theme-date-selected:#303030;--theme-date-on:#fff;--theme-danger:#8b1b23}
+body[data-design=ice][data-variant=blueberry]{--theme-button:#e2e7ee;--theme-button-ink:#292936;--theme-button-edge:#596374;--theme-selected:#424049;--theme-selected-ink:#f9f7fb;--theme-marker:#e2e7ee;--theme-muted:#35343f;--theme-card-muted:#35343f;--theme-date:#292936;--theme-date-selected:#424049;--theme-date-on:#fff;--theme-danger:#821c2a}
+body[data-design=ice][data-variant=rhythm]{--theme-button:#fff;--theme-button-ink:#141411;--theme-button-edge:#777970;--theme-selected:#252523;--theme-selected-ink:#dfff00;--theme-marker:#dfff00;--theme-muted:#4e4e47;--theme-card-muted:#4e4e47;--theme-date:#141411;--theme-date-selected:#dfff00;--theme-date-on:#141411;--theme-danger:#9b1524}
+
+/* Reuse Violet's control geometry, with surfaces and text from the selected palette. */
+body[data-design=ice]:not([data-variant=violet]) :is(#calendar-top-tools button,.notes-tools .btn,.notes-media-toolbar .btn,.note-full-actions .btn,.workout-heading button,.wishes-heading-actions .btn,.events-tools .btn,#savings-configure,.toolbar .nav .btn){background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important;box-shadow:0 2px 6px #0002!important}
+body[data-design=ice]:not([data-variant=violet])[data-view=week] #date{background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important;color-scheme:light}
+body[data-design=ice]:not([data-variant=violet]) :is(.btn,.workout-stage .btn,.workout-card-top .btn){background:var(--theme-button)!important;background-image:none!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important}
+body[data-design=ice]:not([data-variant=violet]) .btn.primary{background:var(--theme-selected)!important;color:var(--theme-selected-ink)!important;border-color:var(--theme-selected)!important}
+body[data-design=ice]:not([data-variant=violet]) .btn.danger{color:var(--theme-danger)!important}
+body[data-design=ice]:not([data-variant=violet]) :is(.notes-tools #notes-search,#calendar-icon-search){background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important}
+body[data-design=ice]:not([data-variant=violet]) :is(.notes-tools #notes-search,#calendar-icon-search)::placeholder{color:var(--theme-card-muted)!important;opacity:1}
+
+/* Chips, selected icons and photo actions must not retain lavender colors. */
+body[data-design=ice]:not([data-variant=violet]) :is(.calendar-icon-choices button,.calendar-day-color-choices button,#calendar-icon-categories button){background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important}
+body[data-design=ice]:not([data-variant=violet]) :is(.calendar-icon-choices button,.calendar-day-color-choices button,#calendar-icon-categories button)[aria-pressed=true],
+body[data-design=ice]:not([data-variant=violet]) .calendar-photo-actions .btn{background:var(--theme-selected)!important;color:var(--theme-selected-ink)!important;border-color:var(--theme-selected-ink)!important;outline-color:var(--theme-selected-ink)!important}
+body[data-design=ice]:not([data-variant=violet]) .calendar-gallery-controls button{color:var(--theme-marker)!important}
+body[data-design=ice]:not([data-variant=violet])[data-input-mode=keyboard] button:focus-visible{outline-color:var(--theme-selected-ink)!important}
+
+/* Readable navigation in both the light and dark bottom panels. */
+body[data-design=ice]:not([data-variant=violet]) .tabs>.ice-compose{border-color:var(--theme-marker)!important;box-shadow:0 0 14px color-mix(in srgb,var(--theme-marker) 25%,transparent)!important}
+body[data-design=ice]:not([data-variant=violet]) .tabs>.ice-compose::before{background:linear-gradient(var(--theme-marker),var(--theme-marker)) top center/29px 3px no-repeat,linear-gradient(var(--theme-marker),var(--theme-marker)) center/29px 3px no-repeat,linear-gradient(var(--theme-marker),var(--theme-marker)) bottom center/29px 3px no-repeat!important}
+body[data-design=ice]:not([data-variant=violet]) .ice-week.home-date-strip>button{color:var(--theme-date)!important}
+body[data-design=ice]:not([data-variant=violet]) .ice-week.home-date-strip>button[aria-current=date]{background:var(--theme-date-selected)!important;color:var(--theme-date-on)!important}
+body[data-design=ice]:not([data-variant=violet]) .ice-week.home-date-strip>button>i{background:currentColor!important}
+
+body[data-design=ice]:not([data-variant=violet]) #ice-menu-dialog{background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important}
+body[data-design=ice]:not([data-variant=violet]) #ice-menu-dialog :is(#ice-tools-list>button,#ice-tools-list strong,#ice-tools-list svg,#ice-tools-list b,.dialog-note){color:var(--theme-button-ink)!important}
+body[data-design=ice]:not([data-variant=violet]) .more-menu-drag-ghost{background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important}
+body[data-design=ice]:not([data-variant=violet]) .more-menu-drag-ghost svg{color:var(--theme-button-ink)!important}
+
+/* The exercise card has a light surface even in the dark blue theme. */
+body[data-design=ice]:not([data-variant=violet]) .workout-page :is(.workout-intro,.workout-permission){color:var(--theme-muted)!important}
+body[data-design=ice]:not([data-variant=violet]) :is(.workout-detail,.workout-card,.workout-record) :is(small,.workout-help,.workout-stage small,.workout-set span){color:var(--workout-ink)!important}
+body[data-design=ice]:not([data-variant=violet]) .workout-set[aria-pressed=true] :is(small,span){color:var(--workout-on)!important}
+body[data-design=ice]:not([data-variant=violet]) #settings :is(.settings-buttons button,.settings-buttons button small){color:var(--theme-button-ink)!important}
+body[data-design=ice]:not([data-variant=violet]) #settings #clear-day{color:var(--theme-danger)!important}
+
+/* The shared task editor originally carried Violet's literal colors. */
+body[data-design=ice]:not([data-variant=violet]) #violet-task-editor{background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important}
+body[data-design=ice]:not([data-variant=violet]) #violet-task-editor :is(textarea,input){background:var(--theme-button)!important;color:var(--theme-button-ink)!important;border-color:var(--theme-button-edge)!important;outline-color:var(--theme-selected)!important;color-scheme:light}
+body[data-design=ice]:not([data-variant=violet]) #violet-task-editor :is(.violet-editor-text span,.violet-editor-times span){color:var(--theme-card-muted)!important}
+body[data-design=ice]:not([data-variant=violet]) #violet-task-editor textarea::placeholder{color:var(--theme-card-muted)!important;opacity:1}
+body[data-design=ice]:not([data-variant=violet]) :is(#violet-editor-done,#violet-editor-close){background:var(--theme-selected)!important;color:var(--theme-selected-ink)!important;border-color:var(--theme-selected)!important}
+body[data-design=ice]:not([data-variant=violet]) #violet-editor-error{color:var(--theme-danger)!important}
+body[data-design=ice]:not([data-variant=violet]) #clear-day{color:var(--theme-danger)!important}
+body[data-design=ice][data-variant=ice]{--theme-danger:#9b2028}
+body[data-design=ice][data-variant=blueberry] .violet-delete-task{color:#ffb4bd!important}
+body[data-design=ice]:not([data-variant=violet])[data-input-mode=keyboard] button:focus-visible{outline-color:var(--theme-button-edge)!important}
+
+/* Small supporting text must remain readable, too. User-painted days keep their contrast colors. */
+body[data-design=ice]:not([data-variant=violet]) .overview[data-day-color=none] :is(.overview-head small,.empty,.preview-line span){color:var(--theme-card-muted)!important}
+body[data-design=ice]:not([data-variant=violet]) #notes-list .note-card :is(p,small){color:var(--theme-card-muted)!important}
+body[data-design=ice]:not([data-variant=violet]) :is(.empty-events,.saving-caption,.saving-legend,.saving-details,.notes-album-count){color:var(--theme-muted)!important}
+body[data-design=ice]:not([data-variant=violet]) dialog :is(input,textarea)::placeholder{color:var(--theme-muted);opacity:1}
+body[data-design=ice]:not([data-variant=violet]) .calendar-month .weekday{color:var(--theme-card-muted)!important}

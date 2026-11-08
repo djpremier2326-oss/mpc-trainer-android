@@ -707,3 +707,36 @@ test('exercise rest counts down in a stationary round button and signals once on
   await page.locator('[data-workout-stop-timer]').tap();assert.equal(await page.evaluate(()=>state.workout.timer),null);assert.ok((await button.innerText()).includes('Начать отдых'));assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+async function assertReadableControl(locator){
+ const result=await locator.evaluate(el=>{const s=getComputedStyle(el),rgb=v=>v.match(/[\d.]+/g).slice(0,3).map(Number),l=v=>rgb(v).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4}).reduce((a,n,i)=>a+n*[.2126,.7152,.0722][i],0),a=l(s.color),b=l(s.backgroundColor);return {contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),ink:s.color,bg:s.backgroundColor}});
+ assert.ok(result.contrast>=4.5,JSON.stringify(result));return result;
+}
+test('other themes use readable palette-matched controls and preserve calendar and exercise actions',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const variant of ['ice','graphite','blueberry','rhythm']){
+   await page.evaluate(()=>{state.prefs.calendarDayNotes={}});
+   for(const [section,selector] of [['calendar','#calendar-top-tools button'],['week','.toolbar .nav .btn'],['notes','.notes-tools .btn'],['workout','.workout-heading button'],['events','.events-tools .btn'],['savings','#savings-configure'],['wishes','.wishes-heading-actions .btn']]){
+    await page.evaluate(({variant,section})=>{state.prefs.variant=variant;workoutActive=null;applyTheme();navigate('2026-11-09',section)},{variant,section});
+    for(const button of await page.locator(selector).all()){const colors=await assertReadableControl(button);assert.notEqual(colors.bg,'rgb(251, 248, 255)');assert.equal(await button.evaluate(el=>el.getBoundingClientRect().height),36)}
+   }
+   await page.evaluate(()=>navigate('2026-11-09','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=dumbbell]').tap();await assertReadableControl(page.locator('[data-calendar-icon=dumbbell]'));await assertReadableControl(page.locator('[data-icon-category=common]'));await assertReadableControl(page.locator('#calendar-photo-add'));
+   await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').count(),1);
+   await page.evaluate(()=>navigate(selected,'day'));await page.locator('#violet-add-task').tap();await assertReadableControl(page.locator('#violet-editor-done'));assert.equal(await page.locator('#violet-task-editor').evaluate(el=>getComputedStyle(el).backgroundColor),await page.locator('#violet-editor-text').evaluate(el=>getComputedStyle(el).backgroundColor));await page.locator('#violet-editor-close').tap();
+   await page.evaluate(()=>navigate(selected,'workout'));await page.locator('[data-workout-open=pull]').tap();await assertReadableControl(page.locator('[data-workout-edit=pull]'));await page.locator('[data-workout-rest=pull]').tap();await assertReadableControl(page.locator('.workout-rest-circle'));await page.locator('[data-workout-stop-timer]').tap();
+  }
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('palette correction stylesheet leaves Violet computed styles unchanged',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme()});
+  for(const section of ['day','calendar','week','notes','workout','events','savings','wishes']){
+   await page.evaluate(section=>navigate('2026-11-09',section),section);
+   const styles=()=>page.evaluate(()=>[...document.querySelectorAll('button,input,select,.cal-cell,.tabs,.workout-card')].map(el=>{const s=getComputedStyle(el);return [s.color,s.backgroundColor,s.borderColor,s.boxShadow,s.fontSize,s.height,s.width]}));
+   const before=await styles();await page.evaluate(()=>document.querySelector('link[href="theme-consistency.css"]').disabled=true);assert.deepEqual(await styles(),before,section);await page.evaluate(()=>document.querySelector('link[href="theme-consistency.css"]').disabled=false);
+  }assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
