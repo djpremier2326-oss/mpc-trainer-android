@@ -190,20 +190,8 @@ public class PlannerActivity extends Activity {
                 photoCallback=callback;
                 boolean withVideo=false;
                 for(String type:params.getAcceptTypes())if(type!=null&&type.contains("video"))withVideo=true;
-                String mediaType=withVideo?"*/*":"image/*";
-                Intent picker=new Intent(android.provider.MediaStore.ACTION_PICK_IMAGES);
-                if(!withVideo)picker.setType("image/*");
-                if(Build.VERSION.SDK_INT>=35)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_LAUNCH_TAB,android.provider.MediaStore.PICK_IMAGES_TAB_ALBUMS);
-                Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(withVideo?android.provider.MediaStore.Files.getContentUri("external"):android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,mediaType);
-                Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mediaType);
-                if(withVideo){String[] types={"image/*","video/*"};gallery.putExtra(Intent.EXTRA_MIME_TYPES,types);fallback.putExtra(Intent.EXTRA_MIME_TYPES,types);}
                 boolean multiple=params.getMode()==WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
-                if(multiple){
-                    gallery.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
-                    fallback.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
-                    if(Build.VERSION.SDK_INT>=33)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_MAX,Math.min(50,android.provider.MediaStore.getPickImagesMaxLimit()));
-                }
-                for(Intent pick:multiple?new Intent[]{picker,fallback,gallery}:new Intent[]{gallery,picker,fallback}){
+                for(Intent pick:photoPickers(withVideo,multiple)){
                     try{startActivityForResult(pick,103);return true;}
                     catch(android.content.ActivityNotFoundException unavailable){}
                     catch(SecurityException unavailable){}
@@ -331,6 +319,22 @@ public class PlannerActivity extends Activity {
         }
         @JavascriptInterface public void openLink(String url){openExternalLink(url);}
         @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
+    }
+    static Intent[] photoPickers(boolean withVideo,boolean multiple){
+        String type=withVideo?"*/*":"image/*";
+        // Documents exposes all storage providers and supports multi-selection on Android 8+.
+        // Also offer the phone's ordinary gallery instead of the restricted system Photo Picker.
+        Intent documents=new Intent(Intent.ACTION_OPEN_DOCUMENT).addCategory(Intent.CATEGORY_OPENABLE).setType(type);
+        Intent content=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType(type);
+        Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,type);
+        for(Intent choice:new Intent[]{documents,content,gallery}){
+            choice.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            choice.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,multiple);
+            if(withVideo)choice.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*"});
+        }
+        Intent chooser=Intent.createChooser(documents,withVideo?"Выберите фотографии и видео":"Выберите фотографии");
+        chooser.putExtra(Intent.EXTRA_INITIAL_INTENTS,new Intent[]{gallery,content});
+        return new Intent[]{chooser,documents,content,gallery};
     }
     static Uri[] photoUris(int result,Intent data){
         if(result!=RESULT_OK||data==null)return null;
