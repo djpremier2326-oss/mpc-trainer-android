@@ -657,3 +657,32 @@ test('calendar icon groups align at the bottom regardless of text, task count an
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-bottom-icons-133.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('header artwork swipes independently from dates, cycles to swoosh and persists after relaunch',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  const samples=['leaves','car','earth','sound','city','basketball','silk','wave'].map((id,i)=>({id,title:id,src:'data:image/svg+xml,'+encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="300" height="100"><rect width="300" height="100" fill="hsl(${i*40},50%,50%)"/></svg>`)}));
+  await page.route('**/header-artworks.js',route=>route.fulfill({contentType:'text/javascript',body:'window.plannerHeaderImages='+JSON.stringify(samples)}));
+  await page.evaluate(()=>{state.prefs.variant='violet';persist()});await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+  const hit=page.locator('.header-artwork-swipe');
+  async function swipe(left=true,vertical=false){const b=await hit.boundingBox(),x=left?b.x+b.width*.8:b.x+b.width*.2,y=b.y+b.height*.5,end=left?b.x+b.width*.2:b.x+b.width*.8,cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});for(let i=1;i<=8;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:vertical?x:x+(end-x)*i/8,y:vertical?y+45*i/8:y}]});await page.waitForTimeout(20)}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach()}
+  const date=await page.evaluate(()=>selected);await swipe();assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'leaves');assert.equal(await page.locator('.header-artwork-image').isVisible(),true);assert.equal(await page.evaluate(()=>selected),date);
+  await swipe();assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'car');await swipe(false);assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'leaves');await swipe(true,true);assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'leaves');
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'leaves');assert.equal(await page.locator('.ice-tribute').getAttribute('data-header-artwork'),'image');
+  await swipeDateStrip(page);assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'leaves');await swipe(false);assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'swoosh');assert.equal(await page.locator('.header-artwork-image').isVisible(),false);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+
+test('all ten original header pictures decode and remain selected after relaunch',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['day','calendar','notes'];applyTheme();persist();navigate(selected,'day')});
+  const count=await page.evaluate(async()=>{for(const picture of window.plannerHeaderImages){const image=new Image();image.src=picture.src;await image.decode();if(!image.naturalWidth||!image.naturalHeight)throw new Error(picture.src)}return window.plannerHeaderImages.length});assert.equal(count,10);
+  const hit=page.locator('.header-artwork-swipe');await hit.focus();
+  for(let i=1;i<=10;i++){await hit.press('ArrowRight');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'header-'+String(i).padStart(2,'0'));await page.locator('.header-artwork-image').evaluate(image=>image.decode())}
+  await page.screenshot({path:'/workspace/.planner-startup-review/header-original-134.png'});
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'header-10');await page.locator('.header-artwork-image').evaluate(image=>image.decode());
+  await page.locator('.header-artwork-swipe').press('ArrowRight');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'swoosh');assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

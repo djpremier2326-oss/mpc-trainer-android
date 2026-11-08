@@ -1,0 +1,6 @@
+.header-artwork-image{position:absolute;inset:0 0 24px;display:block;width:100%;height:calc(100% - 24px);object-fit:contain;object-position:center;z-index:1;pointer-events:none;user-select:none;-webkit-user-select:none}
+.header-artwork-image[hidden]{display:none!important}
+.header-artwork-swipe{position:absolute;inset:0 0 28px;z-index:3;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
+body[data-input-mode=pointer] .header-artwork-swipe:focus{outline:none}
+body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute[data-header-artwork=image]::before,
+body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute[data-header-artwork=image]::after{display:none!important}
