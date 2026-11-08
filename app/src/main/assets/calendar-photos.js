@@ -25,7 +25,7 @@ document.body.prepend(gallery);
 let galleryItems=[],galleryURLs=[],returnScroll=[];
 const track=$('calendar-gallery-track');
 function galleryIndex(){return Math.max(0,Math.min(galleryItems.length-1,Math.round(track.scrollLeft/(track.clientWidth||1))))}
-function galleryCaption(){const i=galleryIndex();$('calendar-gallery-count').textContent=(i+1)+' / '+galleryItems.length;$('calendar-gallery-name').textContent=galleryItems[i]?.name||'';$('calendar-gallery-prev').disabled=i===0;$('calendar-gallery-next').disabled=i>=galleryItems.length-1}
+function galleryCaption(){const i=galleryIndex();$('calendar-gallery-count').textContent=(i+1)+' / '+galleryItems.length;$('calendar-gallery-name').textContent='';$('calendar-gallery-prev').disabled=i===0;$('calendar-gallery-next').disabled=i>=galleryItems.length-1}
 function galleryDispose(){galleryURLs.forEach(url=>URL.revokeObjectURL(url));galleryURLs=[];galleryItems=[];track.innerHTML=''}
 function openGallery(date,id){const items=forDate(date);if(!items.length){toast('На этот день фотографий нет');return}if(gallery.open)gallery.close();galleryDispose();galleryItems=items;returnScroll=[$('view'),...document.querySelectorAll('dialog[open]')].map(el=>({el,top:el.scrollTop,left:el.scrollLeft}));
  $('calendar-gallery-date').textContent=fmt(date,{day:'numeric',month:'long',year:'numeric'});
@@ -44,5 +44,6 @@ function captions(){const byId=new Map(records.filter(r=>validDate(r.calendarDat
 new MutationObserver(captions).observe($('view'),{childList:true,subtree:true});
 const originalPut=mediaPut;mediaPut=async function(record){await originalPut(record);records=records.filter(r=>r.id!==record.id);records.push(record);paint();if(dayDialog.open)thumbnails()};
 const originalRemove=mediaRemove;mediaRemove=async function(id){await originalRemove(id);records=records.filter(r=>r.id!==id);paint();if(dayDialog.open)thumbnails()};
+document.addEventListener('planner-media-changed',refresh);
 refresh();
 })();

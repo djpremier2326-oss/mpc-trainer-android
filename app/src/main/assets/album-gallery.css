@@ -1,0 +1,13 @@
+#album-gallery-track{display:flex;align-items:stretch;justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;touch-action:pan-x;overscroll-behavior:contain}
+#album-gallery-track::-webkit-scrollbar{display:none}
+.album-gallery-page{display:flex;align-items:center;justify-content:center;flex:0 0 100%;min-width:0;width:100%;height:100%;scroll-snap-align:start;scroll-snap-stop:always}
+#album-gallery-track .album-gallery-page :is(img,video){display:block;max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;user-select:none;-webkit-user-select:none}
+#album-selection-bar{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:12px;color:var(--text)}
+#album-selection-bar[hidden]{display:none}
+#album-selection-bar strong{flex:1;font-size:12px}
+#album-selection-bar .btn{font-size:12px;padding:7px 9px}
+.album-selecting [data-media-preview]{position:relative;outline:2px solid var(--border);outline-offset:-2px}
+.album-selecting [data-media-preview]::after{content:'';position:absolute;top:9px;right:9px;width:24px;height:24px;border:2px solid #fff;border-radius:50%;background:#0006;box-shadow:0 1px 5px #0008}
+.album-selecting [data-media-preview].album-selected{outline:3px solid var(--accent);outline-offset:-3px}
+.album-selecting [data-media-preview].album-selected::after{content:'✓';display:grid;place-items:center;background:var(--accent);color:var(--on-accent);font-weight:800;font-size:17px}
+#calendar-gallery-name{display:none}

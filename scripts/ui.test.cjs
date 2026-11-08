@@ -740,3 +740,22 @@ test('palette correction stylesheet leaves Violet computed styles unchanged',asy
   }assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('all Notes albums swipe photos without filenames and support long-hold batch deletion',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(async()=>{state.prefs.variant='violet';state.mediaFolders=[{id:'photos-a',name:'Фото'},{id:'photos-b',name:'Календарь'}];applyTheme();
+   for(let i=0;i<5;i++){const c=document.createElement('canvas');c.width=80;c.height=120;c.getContext('2d').fillRect(0,0,80,120);const blob=await new Promise(resolve=>c.toBlob(resolve));await mediaPut({id:'album-'+i,folder:i===4?'photos-b':'photos-a',name:'secret-file-'+i+'.png',type:'image/png',blob,created:i,calendarDate:i<3?'2026-11-12':null})}persist();mediaFolderActive='photos-a';navigate('2026-11-12','notes')});
+  await page.locator('[data-media-preview]').first().waitFor();await page.locator('[data-media-preview="album-3"]').tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 4');assert.equal((await page.locator('.media-viewer-head').innerText()).includes('secret-file'),false);
+  const track=page.locator('#album-gallery-track'),box=await track.boundingBox(),cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.width*.85,y:box.y+box.height*.5}]});for(let i=1;i<=10;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.width*(.85-.7*i/10),y:box.y+box.height*.5}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();await page.waitForFunction(()=>document.querySelector('#album-gallery-count').textContent==='2 / 4');
+  await page.locator('[data-media-viewer-close]').tap();assert.equal(await page.evaluate(()=>mediaFolderActive),'photos-a');assert.equal(await page.locator('[data-media-preview]').count(),4);
+  const thumb=page.locator('[data-media-preview="album-3"]'),b=await thumb.boundingBox(),touch=await context.newCDPSession(page);await touch.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2}]});await page.waitForTimeout(600);await touch.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await touch.detach();
+  assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 1');assert.equal(await page.locator('#notes-media-viewer').count(),0);await page.locator('[data-media-preview="album-2"]').tap();assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 2');
+  await page.locator('[data-album-select-all]').tap();assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 4');await page.locator('[data-album-select-all]').tap();assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 0');await page.locator('[data-media-preview="album-3"]').tap();await page.locator('[data-media-preview="album-2"]').tap();
+  page.once('dialog',dialog=>dialog.dismiss());await page.locator('[data-album-delete]').tap();assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-a')).length),4);assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 2');
+  await page.screenshot({path:'/workspace/.planner-startup-review/album-selection-144.png'});page.once('dialog',dialog=>dialog.accept());await page.locator('[data-album-delete]').tap();await page.waitForFunction(async()=>(await mediaQuery('photos-a')).length===2);await page.waitForFunction(()=>document.querySelectorAll('[data-media-preview]').length===2);assert.equal(await page.locator('#album-selection-bar').isVisible(),false);assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-b')).length),1);
+  await page.evaluate(()=>navigate('2026-11-12','calendar'));await page.waitForFunction(()=>document.querySelector('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small')?.textContent==='2');
+  await page.evaluate(()=>{mediaFolderActive='photos-b';navigate(selected,'notes')});await page.locator('[data-media-preview="album-4"]').tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 1');await page.locator('[data-media-viewer-close]').tap();
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-a')).length),2);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
