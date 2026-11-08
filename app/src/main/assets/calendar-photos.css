@@ -1,0 +1,13 @@
+.calendar-photo-badge{display:flex;align-items:center;justify-content:center;gap:3px;color:inherit;min-height:16px}
+.calendar-photo-badge svg{width:15px;height:15px;flex:none}
+.calendar-photo-badge small{font-size:10px;line-height:1}
+.calendar-photo-actions{display:flex;gap:8px;flex-wrap:wrap}
+.calendar-photo-actions .btn{min-height:42px;background:#000!important;color:#c59af2!important}
+#calendar-photo-thumbnails{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.calendar-photo-thumb{min-width:0;display:flex;flex-direction:column;gap:5px}
+.calendar-photo-thumb button{border:1px solid var(--border);border-radius:10px;background:var(--control);color:var(--text);padding:6px;min-width:0}
+.calendar-photo-thumb img{display:block;width:100%;height:100px;object-fit:contain}
+.calendar-photo-thumb small{display:block;overflow-wrap:anywhere;font-size:10px}
+.calendar-photo-thumb [data-calendar-photo-detach]{font-size:11px;min-height:36px}
+.calendar-photo-date{display:block;font-weight:600;color:var(--text);margin-bottom:4px}
+#calendar-photo-status{font-size:12px;overflow-wrap:anywhere}

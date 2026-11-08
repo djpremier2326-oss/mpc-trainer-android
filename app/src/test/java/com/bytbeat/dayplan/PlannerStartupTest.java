@@ -137,4 +137,14 @@ public class PlannerStartupTest {
             assertEquals(0xffe9ddf7,a.getWindow().getStatusBarColor());
         }finally{c.pause().stop().destroy();}
     }
+    @Test public void photoPickerSupportsMultipleUrisAndCancellation(){
+        android.net.Uri a=android.net.Uri.parse("content://photos/one"),b=android.net.Uri.parse("content://photos/two");
+        android.content.Intent data=new android.content.Intent().setData(a);
+        android.content.ClipData clips=android.content.ClipData.newRawUri("photos",a);clips.addItem(new android.content.ClipData.Item(b));data.setClipData(clips);
+        assertArrayEquals(new android.net.Uri[]{a,b},PlannerActivity.photoUris(android.app.Activity.RESULT_OK,data));
+        assertArrayEquals(new android.net.Uri[]{a},PlannerActivity.photoUris(android.app.Activity.RESULT_OK,new android.content.Intent().setData(a)));
+        assertNull(PlannerActivity.photoUris(android.app.Activity.RESULT_CANCELED,data));
+        assertNull(PlannerActivity.photoUris(android.app.Activity.RESULT_OK,new android.content.Intent()));
+        assertNull(PlannerActivity.photoUris(android.app.Activity.RESULT_OK,null));
+    }
 }

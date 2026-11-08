@@ -197,7 +197,13 @@ public class PlannerActivity extends Activity {
                 Intent gallery=new Intent(Intent.ACTION_PICK).setDataAndType(withVideo?android.provider.MediaStore.Files.getContentUri("external"):android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI,mediaType);
                 Intent fallback=new Intent(Intent.ACTION_GET_CONTENT).addCategory(Intent.CATEGORY_OPENABLE).setType(mediaType);
                 if(withVideo){String[] types={"image/*","video/*"};gallery.putExtra(Intent.EXTRA_MIME_TYPES,types);fallback.putExtra(Intent.EXTRA_MIME_TYPES,types);}
-                for(Intent pick:new Intent[]{gallery,picker,fallback}){
+                boolean multiple=params.getMode()==WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
+                if(multiple){
+                    gallery.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+                    fallback.putExtra(Intent.EXTRA_ALLOW_MULTIPLE,true);
+                    if(Build.VERSION.SDK_INT>=33)picker.putExtra(android.provider.MediaStore.EXTRA_PICK_IMAGES_MAX,Math.min(50,android.provider.MediaStore.getPickImagesMaxLimit()));
+                }
+                for(Intent pick:multiple?new Intent[]{picker,fallback,gallery}:new Intent[]{gallery,picker,fallback}){
                     try{startActivityForResult(pick,103);return true;}
                     catch(android.content.ActivityNotFoundException unavailable){}
                     catch(SecurityException unavailable){}
@@ -326,9 +332,17 @@ public class PlannerActivity extends Activity {
         @JavascriptInterface public void openLink(String url){openExternalLink(url);}
         @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
     }
+    static Uri[] photoUris(int result,Intent data){
+        if(result!=RESULT_OK||data==null)return null;
+        java.util.LinkedHashSet<Uri> uris=new java.util.LinkedHashSet<>();
+        android.content.ClipData clips=data.getClipData();
+        if(clips!=null)for(int i=0;i<clips.getItemCount();i++){Uri uri=clips.getItemAt(i).getUri();if(uri!=null)uris.add(uri);}
+        if(data.getData()!=null)uris.add(data.getData());
+        return uris.isEmpty()?null:uris.toArray(new Uri[0]);
+    }
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
-        if(request==103){android.webkit.ValueCallback<Uri[]> callback=photoCallback;photoCallback=null;if(callback!=null)callback.onReceiveValue(result==RESULT_OK&&data!=null&&data.getData()!=null?new Uri[]{data.getData()}:null);return;}
+        if(request==103){android.webkit.ValueCallback<Uri[]> callback=photoCallback;photoCallback=null;if(callback!=null)callback.onReceiveValue(photoUris(result,data));return;}
         if(result!=RESULT_OK||data==null||data.getData()==null){if(request==SAVE)pendingBackup=null;return;}
         Uri uri=data.getData();
         if(request==SAVE){String json=pendingBackup;pendingBackup=null;if(json==null){message("Повтори сохранение копии");return;}new Thread(()->{try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")){if(out==null)throw new Exception();out.write(json.getBytes(StandardCharsets.UTF_8));runOnUiThread(()->message("Копия сохранена"));}catch(Exception e){runOnUiThread(()->message("Не удалось сохранить копию"));}}).start();}
