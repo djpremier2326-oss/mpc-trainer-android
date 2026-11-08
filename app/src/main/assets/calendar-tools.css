@@ -17,3 +17,13 @@ body.calendar-view #calendar-top-tools{display:flex;flex:none;align-items:center
 #calendar-schedule-error{color:#b00020}
 body[data-design=ice].calendar-view #calendar-top-tools{margin:0 0 7px;width:100%}
 body.calendar-view .calendar-jump[hidden]{display:none!important}
+
+/* Notes controls stay inside the scrolling view so existing search handlers work. */
+body.notes-view .app-heading{display:none!important}
+body[data-design=ice].notes-view #view{padding-top:0!important}
+body.notes-view .notes-tools,body.notes-view .notes-media-toolbar{position:sticky;top:0;z-index:6;display:flex;flex-wrap:nowrap;align-items:center;gap:6px;min-height:50px;padding:5px 12px;margin:0 -12px 12px;width:calc(100% + 24px);border-radius:0 0 20px 20px;background:#000!important;color:#eee4fa;box-shadow:0 4px 12px #0002}
+body.notes-view .notes-tools #notes-search{flex:1;min-width:0;width:0;min-height:40px;border:1px solid #ffffff35;border-radius:12px;background:#ffffff15!important;color:#fff!important;padding:8px;font-size:12px;box-shadow:none!important}
+body.notes-view .notes-tools #notes-search::placeholder{color:#c6bfcd}
+body.notes-view .notes-tools .btn,body.notes-view .notes-media-toolbar .btn{flex:none;min-height:42px;padding:7px 6px;border:0;background:transparent!important;color:#eee4fa!important;box-shadow:none!important;font-size:12px;white-space:nowrap}
+body.notes-view .notes-tools .btn:active,body.notes-view .notes-media-toolbar .btn:active{background:#ffffff22!important}
+body.notes-view .notes-media-toolbar strong{color:#eee4fa;min-width:0;overflow:hidden;text-overflow:ellipsis}

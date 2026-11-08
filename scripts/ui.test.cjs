@@ -114,8 +114,26 @@ test('compact calendar header matches system bar across all themes and resets on
    await page.evaluate(v=>{state.prefs.variant=v;applyTheme();navigate(selected,'calendar')},variant);
    const chrome=await page.evaluate(()=>({height:document.getElementById('calendar-top-tools').getBoundingClientRect().height,top:getComputedStyle(document.getElementById('calendar-top-tools')).background,bottom:getComputedStyle(document.querySelector('.tabs')).background,status:statusColors.at(-1)}));
    assert.ok(chrome.height<=52,JSON.stringify(chrome));assert.equal(chrome.top,chrome.bottom);assert.match(chrome.status.color,/^#[0-9a-f]{6}$/);if(variant==='violet')assert.equal(chrome.status.color,'#000000');
-   await page.evaluate(()=>navigate(selected,'notes'));assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'');
+   await page.evaluate(()=>navigate(selected,'events'));assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'');
   }
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('home and notes have black system chrome; notes controls retain search and actions',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'notes')});
+  assert.equal(await page.locator('.app-heading').isVisible(),false);
+  assert.equal(await page.locator('.notes-tools').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(0, 0, 0)');
+  assert.ok(await page.locator('.notes-tools').evaluate(el=>el.getBoundingClientRect().height)<=60);
+  assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
+  await page.locator('#note-add').tap();await page.locator('#note-title').fill('Проверка поиска');await page.locator('#note-rich').fill('Запись на чёрной панели');await page.locator('#note-save').tap();await page.locator('#notes-back').tap();
+  await page.locator('#notes-search').fill('Нет такой записи');assert.equal(await page.locator('[data-note-open]').count(),0);
+  await page.locator('#notes-search').fill('Проверка поиска');assert.equal(await page.locator('[data-note-open]').count(),1);
+  await page.locator('#notes-search').fill('');assert.equal(await page.locator('[data-media-new-folder]').isVisible(),true);
+  await page.screenshot({path:'/workspace/.planner-startup-review/notes-black-panel.png'});
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
