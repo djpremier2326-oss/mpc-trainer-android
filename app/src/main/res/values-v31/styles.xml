@@ -1,24 +1,8 @@
 <resources>
-    <style name="AppTheme" parent="@style/PlannerBaseTheme">
+    <style name="PlannerLaunchTheme" parent="@style/PlannerBaseTheme">
+        <item name="android:windowDisablePreview">false</item>
         <item name="android:windowSplashScreenAnimatedIcon">@android:color/transparent</item>
         <item name="android:windowSplashScreenAnimationDuration">0</item>
-        <item name="android:windowSplashScreenBackground">#03192e</item>
-    </style>
-    <style name="PlannerIceLaunchTheme" parent="@style/AppTheme"/>
-    <style name="PlannerGraphiteLaunchTheme" parent="@style/AppTheme">
-        <item name="android:windowBackground">#8d8d8d</item>
-        <item name="android:windowSplashScreenBackground">#8d8d8d</item>
-        <item name="android:statusBarColor">#8d8d8d</item>
-        <item name="android:navigationBarColor">#8d8d8d</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-    </style>
-    <style name="PlannerBlueberryLaunchTheme" parent="@style/AppTheme">
-        <item name="android:windowBackground">#a5afbb</item>
-        <item name="android:statusBarColor">#a5afbb</item>
-        <item name="android:navigationBarColor">#a5afbb</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-        <item name="android:windowSplashScreenBackground">#a5afbb</item>
+        <item name="android:windowSplashScreenBackground">@color/planner_startup_background</item>
     </style>
 </resources>

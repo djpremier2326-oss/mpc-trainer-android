@@ -1,0 +1,81 @@
+const {test,before,after}=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
+const {chromium}=require('playwright');
+const root=path.resolve('app/build/generated/plannerAssets');
+let browser,server,origin;
+before(async()=>{
+ server=http.createServer((req,res)=>{
+  const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));
+  if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
+  try{res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file))}catch{res.writeHead(404).end()}
+ });
+ await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin=`http://127.0.0.1:${server.address().port}`;
+ browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined,headless:true,args:['--no-sandbox']});
+});
+after(async()=>{await browser?.close();await new Promise(resolve=>server?.close(resolve))});
+async function open(){
+ const context=await browser.newContext({viewport:{width:393,height:851},isMobile:true,hasTouch:true,timezoneId:'Europe/Moscow'});
+ const page=await context.newPage();page.setDefaultTimeout(8000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
+ await page.addInitScript(()=>{
+  window.nativeColors=[];
+  window.AndroidFiles={friendSchedule:()=>false,themeColors:(bg,dark)=>nativeColors.push({bg,dark}),startupMetrics:()=>{},hideKeyboard:()=>{},syncReminders:()=>true,notificationStatus:()=>'{"supported":true,"notifications":true,"exact":true}'};
+ });
+ await page.goto(origin+'/index.html');await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+ await page.evaluate(()=>window.onAndroidReady?.());assert.deepEqual(errors,[]);
+ return {page,context,errors};
+}
+const palettes={ice:'#03192e',graphite:'#8d8d8d',blueberry:'#a5afbb',rhythm:'#f7f6f1',violet:'#171126'};
+for(const [variant,bg] of Object.entries(palettes)){
+ test(`saved ${variant} theme boots directly into its own ready page`,async()=>{
+  const {page,context,errors}=await open();
+  try{
+   await page.evaluate(variant=>{state.prefs.variant=variant;applyTheme();persist();render()},variant);
+   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+   const boot=await page.evaluate(()=>({startup:window.__plannerStartupVariant,variant:document.body.dataset.variant,view:document.body.dataset.view,colors:nativeColors,overlays:document.querySelectorAll('#notes-media-viewer,#notes-media-sheet').length,visible:getComputedStyle(document.querySelector('main')).visibility}));
+   assert.equal(boot.startup,variant);assert.equal(boot.variant,variant);assert.equal(boot.view,'day');assert.equal(boot.visible,'visible');assert.equal(boot.overlays,0);
+   assert.ok(boot.colors.length>0);assert.ok(boot.colors.every(c=>c.bg===bg),JSON.stringify(boot.colors));
+   assert.deepEqual(errors,[]);
+  }finally{await context.close()}
+ });
+}
+test('text notes and selected appearance survive relaunch',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'notes')});
+  await page.locator('#note-add').tap();await page.locator('#note-title').fill('Не потерять');await page.locator('#note-rich').fill('Проверка сохранённой заметки');await page.locator('#note-save').tap();
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+  const saved=await page.evaluate(()=>({variant:state.prefs.variant,title:state.notes[0].title,text:state.notes[0].text}));
+  assert.deepEqual(saved,{variant:'violet',title:'Не потерять',text:'Проверка сохранённой заметки'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('resuming the page keeps its current editor and does not show media overlays',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>navigate(selected,'notes'));await page.locator('#note-add').tap();await page.locator('#note-rich').fill('Открытая запись');
+  await page.evaluate(()=>{window.savedEditor=document.getElementById('note-rich');window.onPlannerResume();window.onPlannerResume()});
+  await page.waitForTimeout(100);
+  assert.equal(await page.evaluate(()=>document.getElementById('note-rich')===window.savedEditor),true);
+  assert.equal(await page.locator('#note-rich').innerText(),'Открытая запись');assert.equal(await page.locator('#notes-media-viewer').count(),0);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('latest media folder menus and full-screen photo viewer survive relaunch',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>navigate(selected,'notes'));
+  await page.locator('[data-media-new-folder]').tap();await page.locator('#media-folder-name').fill('Мои фото');await page.locator('[data-media-action="create-save"]').tap();
+  await page.locator('[data-media-folder-menu]').tap();await page.locator('[data-media-action="folder-rename"]').tap();await page.locator('#media-folder-name').fill('Сохранённые фото');await page.locator('[data-media-action="folder-rename-save"]').tap();
+  await page.locator('[data-media-folder-open]').tap();
+  const original=await page.evaluate(()=>{const canvas=document.createElement('canvas');canvas.width=20;canvas.height=10;return canvas.toDataURL('image/png').split(',')[1]});
+  const bytes=Buffer.from(original,'base64');
+  await page.locator('#notes-media-picker').setInputFiles({name:'original.png',mimeType:'image/png',buffer:bytes});
+  await page.locator('[data-media-preview]').waitFor({state:'visible'});await page.locator('[data-media-preview]').tap();
+  await page.waitForFunction(()=>document.querySelector('.media-viewer-stage img')?.naturalWidth===20);
+  await page.locator('[data-media-viewer-close]').tap();
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.evaluate(()=>navigate(selected,'notes'));
+  assert.match(await page.locator('[data-media-folder-open]').innerText(),/Сохранённые фото/);await page.locator('[data-media-folder-open]').tap();
+  await page.locator('[data-media-preview]').waitFor({state:'visible'});await page.locator('[data-media-preview]').tap();await page.waitForFunction(()=>document.querySelector('.media-viewer-stage img')?.naturalWidth===20);
+  const stored=await page.evaluate(async()=>{const item=(await mediaQuery(mediaFolderActive))[0];return {name:item.name,size:item.blob.size,type:item.type}});
+  assert.deepEqual(stored,{name:'original.png',size:bytes.length,type:'image/png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

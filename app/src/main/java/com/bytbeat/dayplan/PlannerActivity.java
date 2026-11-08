@@ -45,30 +45,51 @@ public class PlannerActivity extends Activity {
     private String pendingOpenDate;
     private boolean pendingWorkout;
     private String pendingReminderId;
+    private static final int STARTUP_BACKGROUND=0xff121214;
     private static final int SAVE=101, OPEN=102, MAX_BYTES=50_000_000;
     @Override public void onCreate(Bundle saved) {
         launchStarted=android.os.SystemClock.elapsedRealtime();
         android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
-        boolean dark=appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT);
-        setTheme(launchTheme(appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e),dark));
+        setTheme(R.style.PlannerLaunchTheme);
         super.onCreate(saved);
-        // Keep the platform launch transition; no app-owned splash or extra animation.
+        // Keep the OS launch surface neutral until the first complete planner frame.
+        // Never persist a light/different appearance as the next system splash.
+        if(Build.VERSION.SDK_INT>=31){
+            getSplashScreen().setSplashScreenTheme(R.style.PlannerLaunchTheme);
+            getSplashScreen().setOnExitAnimationListener(splash->{
+                if(pageReady)applyWindowTheme();
+                if(!android.animation.ValueAnimator.areAnimatorsEnabled()||!activityResumed){splash.remove();return;}
+                splash.animate().alpha(0f).setDuration(180)
+                    .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                    .withEndAction(splash::remove).start();
+            });
+        }
         pendingWorkout=getIntent().getBooleanExtra("openWorkout",false);
         pendingOpenDate=getIntent().getStringExtra("openDate");pendingReminderId=getIntent().getStringExtra("openReminderId");
-        int background=appearance.getInt("background",BuildConfig.FRIEND_SHIFT?0xff8d8d8d:0xff03192e);
+        int background=appearance.getInt("background",STARTUP_BACKGROUND);
         applyNativeTheme(background,appearance.getBoolean("dark",!BuildConfig.FRIEND_SHIFT));
         root=new android.widget.FrameLayout(this);
-        root.setBackgroundColor(background);
+        root.setBackgroundColor(STARTUP_BACKGROUND);
         setContentView(root);
         // Let Android reveal the real first page rather than an empty WebView frame.
         // This listener removes itself permanently: resumes never wait or animate again.
         root.getViewTreeObserver().addOnPreDrawListener(new android.view.ViewTreeObserver.OnPreDrawListener(){
             @Override public boolean onPreDraw(){
-                if(!pageReady&&recoveryButton==null)return false;
+                if(!pageReady&&recoveryButton==null&&android.os.SystemClock.elapsedRealtime()-launchStarted<10000)return false;
                 root.getViewTreeObserver().removeOnPreDrawListener(this);
+                if(Build.VERSION.SDK_INT<31&&pageReady&&android.animation.ValueAnimator.areAnimatorsEnabled()){
+                    root.setAlpha(0f);
+                    root.animate().alpha(1f).setDuration(180)
+                        .setInterpolator(new android.view.animation.DecelerateInterpolator())
+                        .withEndAction(()->applyWindowTheme()).start();
+                }else if(pageReady)applyWindowTheme();
                 return true;
             }
         });
+        root.postDelayed(()->{if(!pageReady&&!isFinishing()&&!isDestroyed())showStartupError();},10000);
+        startWebEngine();
+    }
+    protected void startWebEngine(){
         // Do not touch android.webkit before the asynchronous startup callback.
         java.util.concurrent.ExecutorService startupExecutor=java.util.concurrent.Executors.newSingleThreadExecutor();
         androidx.webkit.WebViewCompat.startUpWebView(getApplicationContext(),
@@ -85,6 +106,15 @@ public class PlannerActivity extends Activity {
                     initializeWeb(nativeThemeColor);
                 }
             });
+    }
+    private void showStartupError(){
+        if(recoveryButton!=null||isFinishing()||isDestroyed())return;
+        android.widget.Button retry=new android.widget.Button(this);
+        retry.setText("Не удалось открыть ежедневник. Повторить");
+        recoveryButton=retry;
+        root.addView(retry,new android.widget.FrameLayout.LayoutParams(-2,-2,android.view.Gravity.CENTER));
+        retry.setOnClickListener(v->{root.removeView(retry);recoveryButton=null;launchStarted=android.os.SystemClock.elapsedRealtime();if(web!=null)web.reload();else recoverRenderer();root.postDelayed(()->{if(!pageReady&&!isFinishing()&&!isDestroyed())showStartupError();},10000);});
+        root.invalidate();
     }
     private void recoverRenderer(){
         if(isFinishing()||isDestroyed()||web!=null)return;
@@ -141,7 +171,11 @@ public class PlannerActivity extends Activity {
                     // page commit can precede the planner's bottom-of-document render.
                     // Wait for its pixels, not a timer or an empty document commit.
                     view.postVisualStateCallback(0,new WebView.VisualStateCallback(){
-                        @Override public void onComplete(long id){if(view==web)finishStartup();}
+                        @Override public void onComplete(long id){if(view!=web||isFinishing()||isDestroyed())return;
+                            view.evaluateJavascript("document.documentElement.dataset.appReady==='true'",ready->{
+                                if(view!=web||isFinishing()||isDestroyed())return;
+                                if("true".equals(ready))finishStartup();else showStartupError();
+                            });}
                     });
                 });
             }
@@ -177,23 +211,26 @@ public class PlannerActivity extends Activity {
         if(activityResumed)web.onResume();else web.onPause();
         web.loadUrl("file:///android_asset/index.html");
     }
-    private int launchTheme(int color,boolean dark){return color==0xffa5afbb?R.style.PlannerBlueberryLaunchTheme:dark?R.style.PlannerIceLaunchTheme:R.style.PlannerGraphiteLaunchTheme;}
     private void applyNativeTheme(int color,boolean dark){
         if(nativeThemeInitialized&&nativeThemeColor==color&&nativeDark==dark)return;
         nativeThemeInitialized=true;nativeThemeColor=color;nativeDark=dark;
-        // Persist the selected launch theme in Android itself, before the next process starts.
-        if(Build.VERSION.SDK_INT>=31)getSplashScreen().setSplashScreenTheme(
-            launchTheme(color,dark));
-        int chrome=color;
-        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(chrome));
-        getWindow().setStatusBarColor(chrome);getWindow().setNavigationBarColor(chrome);
-        getWindow().getDecorView().setSystemUiVisibility(dark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
-        if(root!=null)root.setBackgroundColor(color);
+        // During startup, only update the offscreen planner surface. Changing the
+        // window/system bars now exposes a bright frame beneath the launch splash.
+        if(pageReady&&root!=null)root.setBackgroundColor(color);
         if(web!=null)web.setBackgroundColor(color);
+        if(pageReady)applyWindowTheme();
+    }
+    private void applyWindowTheme(){
+        if(isFinishing()||isDestroyed())return;
+        if(root!=null)root.setBackgroundColor(nativeThemeColor);
+        getWindow().setBackgroundDrawable(new android.graphics.drawable.ColorDrawable(nativeThemeColor));
+        getWindow().setStatusBarColor(nativeThemeColor);getWindow().setNavigationBarColor(nativeThemeColor);
+        getWindow().getDecorView().setSystemUiVisibility(nativeDark?0:View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR|View.SYSTEM_UI_FLAG_LIGHT_NAVIGATION_BAR);
     }
     private void finishStartup(){
         if(web==null||startupRequested||isFinishing()||isDestroyed())return;
         startupRequested=true;pageReady=true;
+        if(recoveryButton!=null){root.removeView(recoveryButton);recoveryButton=null;}
         rendererRecovery.onReady(android.os.SystemClock.elapsedRealtime());
         android.util.Log.i("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
         web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);

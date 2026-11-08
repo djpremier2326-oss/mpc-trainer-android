@@ -1,7 +1,7 @@
 name: Build Planner APK
 on:
   push:
-    branches: [daily-planner-android]
+    branches: [daily-planner-android, planner-startup-repair]
   workflow_dispatch:
     inputs:
       startup_baseline_run:
@@ -12,6 +12,17 @@ permissions:
   contents: read
   actions: read
 jobs:
+  ui-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm test
   build:
     runs-on: ubuntu-latest
     steps:
@@ -25,50 +36,8 @@ jobs:
           gradle-version: '8.11.1'
       - name: Restore stable debug signing
         run: base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
-      - name: Register Rhythm theme
-        run: python3 scripts/apply-rhythm-theme.py
-      - name: Enable customizable main menu
-        run: python3 scripts/apply-custom-main-menu.py
-      - name: Update theme preview cards
-        run: python3 scripts/apply-theme-preview-fixes.py
-      - name: Register Violet Neon theme
-        run: python3 scripts/apply-violet-theme.py
-      - name: Enable Violet ranged timeline
-        run: python3 scripts/apply-violet-timeline-v3.py
-      - name: Fix Violet swipe gesture
-        run: python3 scripts/apply-violet-swipe-gesture-fix.py
-      - name: Standard mobile task swipe
-        run: python3 scripts/apply-violet-standard-swipe.py
-      - name: Default Violet new-task time to zero
-        run: python3 scripts/apply-violet-zero-default-time.py
-      - name: Restore Violet day tools and current-hour autoscroll
-        run: python3 scripts/apply-violet-tools-autoscroll.py
-      - name: Align Violet hour labels inside rows
-        run: python3 scripts/apply-violet-axis-fix.py
-      - name: Compact Violet timeline blocks
-        run: python3 scripts/apply-violet-timeline-sizing-fix.py
-      - name: Add Violet automatic task icons
-        run: python3 scripts/apply-violet-task-icons.py
-      - name: Enable editable saved task and day colors
-        run: python3 scripts/apply-custom-colors.py
-      - name: Fix walk and exercise task icon
-        run: python3 scripts/apply-violet-walk-icon.py
-      - name: Unify day screen across themes
-        run: python3 scripts/apply-unified-day-all-themes.py
-      - name: Add independent Notes media folders
-        run: python3 scripts/apply-notes-media-folders.py
-      - name: Add full-screen Notes media viewer and polished menus
-        run: python3 scripts/apply-notes-media-polish.py
-      - name: Increase wishes video limit
-        run: python3 scripts/apply-wishes-video-limit.py
-      - name: Rename wishes to favorites
-        run: python3 scripts/apply-favorites-renaming.py
-      - name: Normalize reminder bell colors
-        run: python3 scripts/apply-reminder-bell-fix.py
-      - name: Disable automatic day switching
-        run: python3 scripts/remove-auto-day-switch.py
       - name: Test reminder timing
-        run: gradle :app:testDebugUnitTest --stacktrace
+        run: gradle :app:testDebugUnitTest :app:lintDebug --stacktrace
       - name: Build APK
         run: gradle :app:assembleRelease --stacktrace
       - name: Name APK

@@ -10,8 +10,8 @@ android {
         manifestPlaceholders = [launcherIcon: '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 10001
-        versionName '2.3.103'
+        versionCode 10002
+        versionName '2.3.104'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
@@ -30,11 +30,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+    testOptions { unitTests.includeAndroidResources = true }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
 }
 
 dependencies {
     implementation 'androidx.webkit:webkit:1.16.0'
     testImplementation 'junit:junit:4.13.2'
+    testImplementation 'org.robolectric:robolectric:4.16.1'
 }
 
+
+// The same assets are used by local builds, tests and CI, including Notes media patches.
+def plannerAssets=layout.buildDirectory.dir('generated/plannerAssets')
+android.sourceSets.main.assets.setSrcDirs([plannerAssets])
+def preparePlannerAssets=tasks.register('preparePlannerAssets',Exec){
+    inputs.dir('src/main/assets')
+    inputs.files(rootProject.fileTree('scripts'){include '*.py'})
+    outputs.dir(plannerAssets)
+    workingDir rootProject.projectDir
+    commandLine 'python3',rootProject.file('scripts/prepare-assets.py'),plannerAssets.get().asFile
+}
+tasks.named('preBuild').configure{dependsOn preparePlannerAssets}

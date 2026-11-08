@@ -2,27 +2,18 @@
     <style name="PlannerBaseTheme" parent="android:style/Theme.Material.Light.NoActionBar">
         <item name="android:fontFamily">sans</item>
         <item name="android:colorAccent">#52699b</item>
-        <item name="android:statusBarColor">#03192e</item>
-        <item name="android:navigationBarColor">#03192e</item>
+        <item name="android:statusBarColor">@color/planner_startup_background</item>
+        <item name="android:navigationBarColor">@color/planner_startup_background</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:windowLightNavigationBar">false</item>
         <item name="android:windowActionModeOverlay">true</item>
-        <item name="android:windowBackground">#03192e</item>
+        <item name="android:windowBackground">@color/planner_startup_background</item>
     </style>
-    <style name="AppTheme" parent="@style/PlannerBaseTheme"/>
-    <style name="PlannerIceLaunchTheme" parent="@style/AppTheme"/>
-    <style name="PlannerGraphiteLaunchTheme" parent="@style/AppTheme">
-        <item name="android:windowBackground">#8d8d8d</item>
-        <item name="android:statusBarColor">#8d8d8d</item>
-        <item name="android:navigationBarColor">#8d8d8d</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
+    <style name="PlannerLaunchTheme" parent="@style/PlannerBaseTheme">
+        <item name="android:windowDisablePreview">false</item>
     </style>
-    <style name="PlannerBlueberryLaunchTheme" parent="@style/AppTheme">
-        <item name="android:windowBackground">#a5afbb</item>
-        <item name="android:statusBarColor">#a5afbb</item>
-        <item name="android:navigationBarColor">#a5afbb</item>
-        <item name="android:windowLightStatusBar">true</item>
-        <item name="android:windowLightNavigationBar">true</item>
-    </style>
+    <style name="AppTheme" parent="@style/PlannerLaunchTheme"/>
+    <!-- Keep legacy names neutral for launchers that cached an older splash theme. -->
+    <style name="PlannerIceLaunchTheme" parent="@style/PlannerLaunchTheme"/>
+    <style name="PlannerGraphiteLaunchTheme" parent="@style/PlannerLaunchTheme"/>
+    <style name="PlannerBlueberryLaunchTheme" parent="@style/PlannerLaunchTheme"/>
 </resources>
