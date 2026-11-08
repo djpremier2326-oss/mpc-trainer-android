@@ -281,3 +281,6 @@ body[data-design=ice][data-variant=violet] #calculator-dialog .calc-key[data-cal
   border:2px solid #000000!important;
   outline:none!important;
 }
+
+/* Both pin and unpin swipe actions use Violet's lavender accent. */
+body[data-design=ice][data-variant=violet] .note-swipe-actions [data-note-pin]{background:#c59af2;color:#171322;border-color:#a56bd8}
