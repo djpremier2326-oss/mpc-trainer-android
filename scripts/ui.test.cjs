@@ -331,3 +331,27 @@ test('calendar startup has only compact right-aligned actions and restores shift
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-start-115.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('mixed favorite photo and video previews have the same gap without stretching images',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(async()=>{
+   state.prefs.variant='violet';applyTheme();state.wishes=[];
+   const sizes=[[600,150],[100,600],[300,300],[500,200]];
+   for(let i=0;i<sizes.length;i++){
+    const c=document.createElement('canvas');[c.width,c.height]=sizes[i];c.getContext('2d').fillRect(0,0,c.width,c.height);const image=c.toDataURL(),id='spacing-'+i;
+    await wishPhoto('put',id,image);state.wishes.push({id,title:'Файл '+i,why:'',done:false,...(i===2?{kind:'video',poster:image,duration:1}:{})});
+   }
+   persist();navigate(selected,'wishes');
+  });
+  await page.waitForFunction(()=>[...document.querySelectorAll('.wish-image img')].length===4&&[...document.querySelectorAll('.wish-image img')].every(i=>i.naturalWidth>0));
+  for(const width of [393,720]){
+   await page.setViewportSize({width,height:851});
+   const boxes=await page.locator('.wish-card').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),img=el.querySelector('img'),i=img.getBoundingClientRect();return {top:b.top,bottom:b.bottom,height:b.height,imageHeight:i.height,ratio:i.width/i.height,naturalRatio:img.naturalWidth/img.naturalHeight}}));
+   for(let i=1;i<boxes.length;i++)assert.ok(Math.abs(boxes[i].top-boxes[i-1].bottom-12)<.6,JSON.stringify(boxes));
+   assert.ok(boxes.every(b=>Math.abs(b.height-b.imageHeight)<.6&&Math.abs(b.ratio-b.naturalRatio)<.02),JSON.stringify(boxes));
+  }
+  assert.equal(await page.locator('.wish-play').count(),1);
+  await page.setViewportSize({width:393,height:851});await page.screenshot({path:'/workspace/.planner-startup-review/favorites-spacing-116.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
