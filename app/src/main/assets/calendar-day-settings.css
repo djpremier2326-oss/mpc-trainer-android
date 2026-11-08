@@ -1,0 +1,16 @@
+body[data-design=ice].calendar-view #view{padding-left:4px!important;padding-right:4px!important}
+body[data-design=ice] .calendar-month{padding:10px 6px!important}
+body[data-design=ice] .calendar-month .cal-grid{gap:3px!important;grid-template-columns:repeat(7,minmax(0,1fr))}
+body[data-design=ice] .calendar-month .cal-cell{width:100%;min-width:0;margin:0;padding:7px 1px;border-radius:10px;min-height:80px;gap:3px;touch-action:pan-y}
+.calendar-day-note{display:flex;flex-direction:column;align-items:center;gap:3px;width:100%;min-width:0}
+.calendar-day-icon{display:block;width:23px;height:23px;flex:none;line-height:0}
+.calendar-day-icon svg{display:block;width:100%;height:100%}
+.calendar-day-text{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden;overflow-wrap:anywhere;white-space:normal;font-size:10px;line-height:1.2;font-weight:600;width:100%}
+#calendar-day-settings{width:min(440px,calc(100% - 24px));max-height:85dvh;overflow:auto}
+#calendar-day-settings .field{display:flex;flex-direction:column;gap:6px}
+#calendar-day-settings input{width:100%;min-height:44px;font:inherit}
+.calendar-icon-choices{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.calendar-icon-choices button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;min-height:64px;border:1px solid var(--border);border-radius:10px;background:var(--control);color:var(--text);padding:7px 2px}
+.calendar-icon-choices button[aria-pressed=true]{outline:2px solid #c59af2;outline-offset:0;background:#000;color:#c59af2}
+.calendar-icon-choices svg{width:24px;height:24px}
+.calendar-icon-choices small{font-size:9px}

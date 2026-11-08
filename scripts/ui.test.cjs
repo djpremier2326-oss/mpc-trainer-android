@@ -355,3 +355,37 @@ test('mixed favorite photo and video previews have the same gap without stretchi
   await page.setViewportSize({width:393,height:851});await page.screenshot({path:'/workspace/.planner-startup-review/favorites-spacing-116.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+async function holdCalendarDay(page,day){
+ const cell=page.locator(`#cal-${day.slice(0,7)} .cal-cell[data-date="${day}"]`);await cell.scrollIntoViewIfNeeded();const b=await cell.boundingBox(),cdp=await page.context().newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:b.x+b.width/2,y:b.y+b.height/2}]});await page.waitForTimeout(650);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
+ await page.waitForFunction(()=>document.getElementById('calendar-day-settings').open);
+}
+test('long-press calendar labels and monochrome icons persist, edit and remove without changing schedule',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['calendar','notes','day'];applyTheme();state.iceMarks=state.iceMarks||{};state.iceMarks.days={'2026-11-11':'black'};persist();navigate('2026-11-08','calendar')});
+  const cell=page.locator('#cal-2026-11 [data-date="2026-11-11"]');
+  assert.ok(await cell.evaluate(el=>el.getBoundingClientRect().width)>=48);
+  await holdCalendarDay(page,'2026-11-11');assert.equal(await page.locator('#calendar-preview').isVisible().catch(()=>false),false);
+  await page.locator('#calendar-day-settings [name=text]').fill('Больница');await page.locator('[data-calendar-icon=hospital]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();
+  assert.equal(await cell.locator('.calendar-day-text').innerText(),'Больница');assert.equal(await cell.locator('.calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)');
+  assert.equal(await page.evaluate(()=>state.iceMarks.days['2026-11-11']),'black');assert.equal(await page.evaluate(()=>slots('2026-11-11').some(r=>r.text.trim())),false);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>tab),'calendar');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Больница');
+  await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings [name=text]').fill('');await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await cell.locator('.calendar-day-text').count(),0);assert.equal(await cell.locator('.calendar-day-icon').count(),1);
+  await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-settings [name=text]').fill('Прогулка');await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
+  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-labels-117.png'});
+  await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings-remove').tap();assert.equal(await cell.locator('.calendar-day-note').count(),0);
+  await page.waitForTimeout(1500);
+  const day=page.locator('#cal-2026-11 [data-date="2026-11-12"]');await day.scrollIntoViewIfNeeded();const b=await day.boundingBox();await page.mouse.click(b.x+b.width/2,b.y+10);await page.waitForTimeout(80);await page.mouse.click(b.x+b.width/2,b.y+10);assert.equal(await page.evaluate(()=>tab),'day');assert.equal(await page.evaluate(()=>selected),'2026-11-12');
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('calendar long press cancels on drag and does not save cancelled edits',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>navigate('2026-11-08','calendar'));
+  const cell=page.locator('#cal-2026-11 [data-date="2026-11-12"]');await cell.scrollIntoViewIfNeeded();const b=await cell.boundingBox(),x=b.x+b.width/2,y=b.y+10;
+  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x,y-30,{steps:4});await page.waitForTimeout(650);await page.mouse.up();assert.equal(await page.locator('#calendar-day-settings').isVisible(),false);
+  await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-settings [name=text]').fill('Не сохранять');await page.locator('#calendar-day-settings-close').tap();assert.equal(await cell.locator('.calendar-day-note').count(),0);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
