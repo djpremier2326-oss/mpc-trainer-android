@@ -57,3 +57,20 @@ body[data-view=workout] .workout-heading .btn,
 body[data-view=workout] .workout-heading .workout-back{color:var(--section-ink,var(--text))!important}
 body.notes-view .notes-tools #notes-search{background:var(--control)!important;color:var(--section-ink,var(--text))!important;border-color:var(--border)}
 body.notes-view .notes-tools #notes-search::placeholder{color:var(--muted)}
+/* Individual header buttons, with the same dark surface as the bottom menu. */
+body[data-design=ice] #calendar-top-tools button,
+body[data-design=ice].notes-view .notes-tools .btn,
+body[data-design=ice].notes-view .notes-media-toolbar .btn,
+body[data-design=ice][data-view=workout] .workout-heading button,
+body[data-design=ice] .events-tools .btn,
+body[data-design=ice] .wish-toolbar .btn{
+ background:#000!important;color:#edb3d1!important;border:0!important;
+ border-radius:12px!important;box-shadow:none!important;padding:8px 12px;
+ min-height:42px;
+}
+body[data-design=ice] #calendar-top-tools button{min-height:42px;height:42px}
+body[data-design=ice] #calendar-top-tools button svg{color:inherit}
+body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute{height:124px!important;min-height:124px!important}
+body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute::before{top:38%!important;width:min(46vw,290px)!important;height:min(19vw,110px)!important}
+body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute .ice-date-line{bottom:12px!important}
+.violet-event-timeline{touch-action:pan-y}

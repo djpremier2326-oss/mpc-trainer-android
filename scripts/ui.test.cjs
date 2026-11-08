@@ -205,3 +205,35 @@ test('lavender status bar in all secondary sections; home and bottom navigation 
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('pink-on-black header buttons and a smaller violet hero leave more timeline visible',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'calendar')});
+  for(const section of ['calendar','notes','workout']){
+   await page.evaluate(section=>navigate(selected,section),section);
+   const buttons=page.locator(section==='calendar'?'#calendar-top-tools button':section==='notes'?'.notes-tools .btn':'.workout-heading button');
+   for(const button of await buttons.all())assert.deepEqual(await button.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,ink:getComputedStyle(el).color})),{bg:'rgb(0, 0, 0)',ink:'rgb(237, 179, 209)'});
+  }
+  await page.evaluate(()=>navigate(selected,'day'));
+  assert.equal(await page.locator('.ice-hero').evaluate(el=>el.getBoundingClientRect().height),124);
+  assert.ok(await page.locator('.violet-event-paper').evaluate(el=>el.getBoundingClientRect().height)>500);
+  await page.screenshot({path:'/workspace/.planner-startup-review/compact-home-111.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('double touch on empty timeline opens the same editor as plus; a single tap and drag do not',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate('2026-11-08','day')});
+  const paper=page.locator('.violet-event-paper'),box=await paper.boundingBox(),x=box.x+box.width*.65,y=box.y+90;
+  await page.touchscreen.tap(x,y);assert.equal(await page.locator('#violet-task-editor').isVisible(),false);await page.waitForTimeout(400);
+  await page.touchscreen.tap(x,y);await page.waitForTimeout(70);await page.touchscreen.tap(x,y);
+  assert.equal(await page.locator('#violet-task-editor').isVisible(),true);
+  const fromDouble=await page.locator('#violet-task-editor').innerText();await page.locator('#violet-editor-close').tap();await page.locator('#violet-add-task').tap();assert.equal(await page.locator('#violet-task-editor').innerText(),fromDouble);
+  await page.locator('#violet-editor-close').tap();
+  await page.evaluate(({x,y})=>{const el=document.elementFromPoint(x,y);el.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,pointerId:7,isPrimary:true,clientX:x,clientY:y}));el.dispatchEvent(new PointerEvent('pointermove',{bubbles:true,pointerId:7,isPrimary:true,clientX:x,clientY:y-60}));el.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,pointerId:7,isPrimary:true,clientX:x,clientY:y-60}))},{x,y});
+  assert.equal(await page.locator('#violet-task-editor').isVisible(),false);
+  await page.touchscreen.tap(x,y);await page.waitForTimeout(70);await page.touchscreen.tap(x,y);await page.locator('#violet-editor-text').fill('Создано двойным тапом');await page.locator('#violet-editor-start').fill('10:00');await page.locator('#violet-editor-end').fill('10:30');await page.locator('#violet-editor-done').tap();
+  assert.equal(await page.locator('.violet-event-card').filter({hasText:'Создано двойным тапом'}).count(),1);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

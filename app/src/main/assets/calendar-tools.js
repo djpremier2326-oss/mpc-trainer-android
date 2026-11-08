@@ -36,5 +36,22 @@ form.addEventListener('submit',e=>{e.preventDefault();if(!form.reportValidity())
 $('calendar-schedule-remove').addEventListener('click',()=>{const old=state.prefs.calendarSchedule;delete state.prefs.calendarSchedule;if(!persist()){state.prefs.calendarSchedule=old;$('calendar-schedule-error').hidden=false;return}dialog.close();render();toast('График убран')});
 $('calendar-schedule-close').addEventListener('click',()=>dialog.close());
 document.addEventListener('click',e=>{if(e.target.closest('#calendar-schedule-open'))open()});
+// Recognize deliberate double taps on empty timeline space, not scroll gestures.
+let timelineDown=null,lastTimelineTap=null;
+document.addEventListener('pointerdown',e=>{
+ const timeline=e.target.closest('.violet-event-timeline');
+ if(tab!=='day'||!timeline||e.target.closest('button,input,textarea,[contenteditable],.violet-event-wrap')||!e.isPrimary){timelineDown=null;lastTimelineTap=null;return;}
+ timelineDown={id:e.pointerId,x:e.clientX,y:e.clientY,t:performance.now(),timeline,date:selected};
+},{passive:true});
+document.addEventListener('pointermove',e=>{if(timelineDown&&timelineDown.id===e.pointerId&&Math.hypot(e.clientX-timelineDown.x,e.clientY-timelineDown.y)>10){timelineDown=null;lastTimelineTap=null;}},{passive:true});
+document.addEventListener('pointercancel',()=>{timelineDown=null;lastTimelineTap=null;},{passive:true});
+document.addEventListener('pointerup',e=>{
+ const down=timelineDown;timelineDown=null;
+ if(!down||down.id!==e.pointerId||!down.timeline.isConnected||down.date!==selected||tab!=='day'||performance.now()-down.t>300||Math.hypot(e.clientX-down.x,e.clientY-down.y)>10)return;
+ const now=performance.now(),last=lastTimelineTap;
+ if(last&&now-last.t<350&&last.timeline===down.timeline&&Math.hypot(e.clientX-last.x,e.clientY-last.y)<24){
+  lastTimelineTap=null;if(!document.body.classList.contains('violet-editor-open'))$('violet-add-task')?.click();
+ }else lastTimelineTap={t:now,x:e.clientX,y:e.clientY,timeline:down.timeline};
+},{passive:true});
 syncCalendarChrome();
 })();
