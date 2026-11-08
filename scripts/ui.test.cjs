@@ -297,3 +297,22 @@ test('button labels cannot be selected or copied; note editor remains selectable
   assert.notEqual(await page.locator('#note-rich').evaluate(el=>getComputedStyle(el).userSelect),'none');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('first configured menu button is the startup section, even when Today is elsewhere',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const first of ['calendar','notes','workout','savings','events','wishes','week','day']){
+   await page.evaluate(()=>document.getElementById('main-menu-open').click());
+   const menu=first==='day'?['day','calendar','notes']:[first,'day',first==='notes'?'calendar':'notes'];
+   for(const [i,name] of ['menuFirst','menuSecond','menuThird'].entries())await page.locator(`#main-menu-form [name=${name}]`).selectOption(menu[i]);
+   await page.locator('#main-menu-save').tap();
+   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+   assert.equal(await page.evaluate(()=>tab),first);
+   assert.deepEqual(await page.evaluate(()=>state.prefs.mainMenu),menu);
+   const firstButton=await page.locator('.tabs button').first().evaluate(el=>({active:el.classList.contains('active'),current:el.getAttribute('aria-current')}));
+   assert.equal(firstButton.active,true);assert.equal(firstButton.current,'page');
+   await page.evaluate(()=>{window.onPlannerResume?.();window.onPlannerResume?.()});assert.equal(await page.evaluate(()=>tab),first);
+  }
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
