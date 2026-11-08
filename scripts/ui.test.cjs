@@ -453,3 +453,33 @@ test('long-hold touch dragging reorders menu and persists without opening a sect
   await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];persist();render()});await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+async function swipeDateStrip(page,left=true){
+ const b=await page.locator('.home-date-strip').boundingBox(),x=left?b.x+b.width*.85:b.x+b.width*.15,end=left?b.x+b.width*.15:b.x+b.width*.85,y=b.y+b.height/2,cdp=await page.context().newCDPSession(page);
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+(end-x)*i/10,y}]});await page.waitForTimeout(20)}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();await page.waitForTimeout(250);
+}
+test('home dates swipe both ways and open tomorrow directly to add a task',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate('2026-11-08','day')});
+  const nav=page.locator('.home-date-strip'),start=await nav.evaluate(el=>el.scrollLeft);await swipeDateStrip(page);const forward=await nav.evaluate(el=>el.scrollLeft);assert.ok(forward>start+60);assert.equal(await page.evaluate(()=>selected),'2026-11-08');
+  const tomorrow=page.locator('.home-date-strip [data-date="2026-11-09"]');await tomorrow.tap();assert.equal(await page.evaluate(()=>selected),'2026-11-09');assert.equal(await page.evaluate(()=>tab),'day');assert.equal(await page.locator('.home-date-strip [aria-current=date]').getAttribute('data-date'),'2026-11-09');
+  await page.locator('#violet-add-task').tap();await page.locator('#violet-editor-text').fill('План на завтра');await page.locator('#violet-editor-start').fill('10:00');await page.locator('#violet-editor-end').fill('10:30');await page.locator('#violet-editor-done').tap();assert.equal(await page.locator('.violet-event-card').filter({hasText:'План на завтра'}).count(),1);
+  const before=await nav.evaluate(el=>el.scrollLeft);await swipeDateStrip(page,false);assert.ok(await nav.evaluate(el=>el.scrollLeft)<before-60);
+  await page.locator('.home-date-strip [data-date="2026-11-08"]').tap();assert.equal(await page.evaluate(()=>selected),'2026-11-08');assert.equal(await page.locator('.violet-event-card').filter({hasText:'План на завтра'}).count(),0);
+  await page.screenshot({path:'/workspace/.planner-startup-review/home-scroll-dates-122.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('date strip extends in both directions without duplicate dates or losing day selection',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const variant of Object.keys(palettes)){
+   await page.evaluate(v=>{state.prefs.variant=v;applyTheme();navigate('2026-12-31','day')},variant);
+   const nav=page.locator('.home-date-strip');assert.equal(await page.locator('.home-date-strip [aria-current=date]').getAttribute('data-date'),'2026-12-31');
+   const initial=await nav.locator('button').count();await nav.evaluate(el=>el.scrollLeft=0);await page.waitForTimeout(70);assert.ok(await nav.locator('button').count()>initial);
+   const after=await nav.locator('button').count();await nav.evaluate(el=>el.scrollLeft=el.scrollWidth);await page.waitForTimeout(70);assert.ok(await nav.locator('button').count()>after);
+   const dates=await nav.locator('button').evaluateAll(els=>els.map(el=>el.dataset.date));assert.equal(new Set(dates).size,dates.length);assert.ok(dates.includes('2027-01-01'));assert.equal(await page.evaluate(()=>selected),'2026-12-31');
+  }
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

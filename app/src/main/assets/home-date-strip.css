@@ -1,0 +1,3 @@
+body[data-design=ice] .ice-week.home-date-strip{display:flex!important;flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;gap:0!important;padding-left:0!important;padding-right:0!important;scrollbar-width:none;touch-action:pan-x;overscroll-behavior-x:contain;scroll-behavior:auto}
+body[data-design=ice] .ice-week.home-date-strip::-webkit-scrollbar{display:none}
+body[data-design=ice] .ice-week.home-date-strip>button{flex:0 0 calc(100% / 7);width:calc(100% / 7);min-width:0;max-width:none;margin:0;box-sizing:border-box}

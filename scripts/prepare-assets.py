@@ -43,8 +43,8 @@ def prepare():
         assert html.count(startup)==1, 'Planner startup insertion marker missing'
         # Install section renderers before the very first render, including when
         # Calendar is the first menu item. No legacy controls may reach appReady.
-        html=html.replace(startup,'initializeExtras();\n</script><script src="calendar-tools.js"></script><script src="calendar-day-settings.js"></script><script src="more-menu.js"></script><script>\ntab=state.prefs.mainMenu[0];')
-        html=html.replace('</head>','<link rel="stylesheet" href="calendar-tools.css"><link rel="stylesheet" href="navigation-overlay.css"><link rel="stylesheet" href="calendar-day-settings.css"><link rel="stylesheet" href="more-menu.css"></head>')
+        html=html.replace(startup,'initializeExtras();\n</script><script src="calendar-tools.js"></script><script src="calendar-day-settings.js"></script><script src="more-menu.js"></script><script src="home-date-strip.js"></script><script>\ntab=state.prefs.mainMenu[0];')
+        html=html.replace('</head>','<link rel="stylesheet" href="calendar-tools.css"><link rel="stylesheet" href="navigation-overlay.css"><link rel="stylesheet" href="calendar-day-settings.css"><link rel="stylesheet" href="more-menu.css"><link rel="stylesheet" href="home-date-strip.css"></head>')
         html=html.replace('</body>','<script src="navigation-overlay.js"></script></body>')
         page.write_text(html)
         destination.mkdir(parents=True,exist_ok=True)
