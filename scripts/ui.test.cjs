@@ -512,9 +512,10 @@ test('calendar photo button opens swipe gallery and closes back to the same prev
   await page.evaluate(async()=>{
    state.prefs.variant='violet';applyTheme();
    for(let i=0;i<3;i++){const c=document.createElement('canvas');c.width=80;c.height=120;const x=c.getContext('2d');x.fillStyle=['red','blue','green'][i];x.fillRect(0,0,80,120);const blob=await new Promise(resolve=>c.toBlob(resolve));await mediaPut({id:'gallery-'+i,folder:'calendar-fixture',name:'Фото '+i+'.png',type:'image/png',blob,created:i,calendarDate:i<2?'2026-11-12':'2026-11-13'})}
-   navigate('2026-11-08','calendar');
+   ensureHourlyDay('2026-11-12').forEach((r,i)=>{r.text='Запись '+i});navigate('2026-11-08','calendar');
   });
   await page.locator('#cal-2026-11 [data-date="2026-11-12"]').tap();assert.equal(await page.locator('#calendar-preview').isVisible(),true);
+  const actionBoxes=await page.locator('#calendar-preview .dialog-actions button').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect();return {top:b.top,bottom:b.bottom}}));assert.equal(actionBoxes.length,2);assert.ok(Math.abs(actionBoxes[0].top-actionBoxes[1].top)<1);
   const initial=await page.evaluate(()=>({tab,selected,scroll:document.getElementById('view').scrollTop,preview:document.getElementById('calendar-preview').innerHTML}));
   await page.locator('[data-calendar-photos-open="2026-11-12"]').tap();await page.locator('#calendar-photo-gallery').waitFor({state:'visible'});assert.equal(await page.locator('.calendar-gallery-page').count(),2);assert.equal(await page.locator('#calendar-gallery-count').innerText(),'1 / 2');assert.equal(await page.locator('#calendar-day-settings').isVisible(),false);
   const b=await page.locator('#calendar-gallery-track').boundingBox(),cdp=await context.newCDPSession(page),y=b.y+b.height/2;
@@ -523,5 +524,20 @@ test('calendar photo button opens swipe gallery and closes back to the same prev
   await page.locator('#calendar-gallery-close').tap();assert.equal(await page.locator('#calendar-photo-gallery').isVisible(),false);assert.equal(await page.locator('#calendar-preview').isVisible(),true);
   assert.deepEqual(await page.evaluate(()=>({tab,selected,scroll:document.getElementById('view').scrollTop,preview:document.getElementById('calendar-preview').innerHTML})),initial);
   await page.locator('[data-calendar-photos-open="2026-11-12"]').tap();assert.equal(await page.locator('#calendar-gallery-count').innerText(),'1 / 2');await page.keyboard.press('Escape');assert.equal(await page.locator('#calendar-preview').isVisible(),true);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('week entries follow actual start times and show saved half-hour intervals without reordering stored slots',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{
+   state.prefs.variant='violet';applyTheme();const rows=ensureHourlyDay('2026-11-09');
+   const tasks=[['06:00','06:40','Подъём'],['07:30','08:00','Завтрак'],['06:40','07:30','Прогулка'],['15:00','16:00','Тренировка'],['08:00','10:00','Работа'],['12:30','13:00','Обед']];
+   tasks.forEach(([time,endTime,text],i)=>Object.assign(rows[i],{time,endTime,text}));window.weekFixture=JSON.stringify(state.hourlyDays);navigate('2026-11-09','week');
+  });
+  const entries=await page.locator('.overview').first().locator('.preview-line').evaluateAll(els=>els.map(el=>({time:el.querySelector('.preview-time').textContent,title:el.querySelector('p').textContent})));
+  assert.deepEqual(entries,[{time:'06:00–06:40',title:'Подъём'},{time:'06:40–07:30',title:'Прогулка'},{time:'07:30–08:00',title:'Завтрак'},{time:'08:00–10:00',title:'Работа'},{time:'12:30–13:00',title:'Обед'},{time:'15:00–16:00',title:'Тренировка'}]);
+  assert.equal(await page.evaluate(()=>JSON.stringify(state.hourlyDays)===window.weekFixture),true);
+  await page.screenshot({path:'/workspace/.planner-startup-review/week-chronological-127.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
