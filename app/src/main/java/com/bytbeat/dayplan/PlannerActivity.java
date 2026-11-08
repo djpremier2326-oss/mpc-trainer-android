@@ -191,12 +191,8 @@ public class PlannerActivity extends Activity {
                 boolean withVideo=false;
                 for(String type:params.getAcceptTypes())if(type!=null&&type.contains("video"))withVideo=true;
                 boolean multiple=params.getMode()==WebChromeClient.FileChooserParams.MODE_OPEN_MULTIPLE;
-                for(Intent pick:photoPickers(withVideo,multiple)){
-                    try{startActivityForResult(pick,103);return true;}
-                    catch(android.content.ActivityNotFoundException unavailable){}
-                    catch(SecurityException unavailable){}
-                }
-                photoCallback=null;callback.onReceiveValue(null);message("Не удалось открыть галерею");
+                try{startActivityForResult(new Intent(PlannerActivity.this,AlbumPickerActivity.class).putExtra("video",withVideo).putExtra("multiple",multiple),103);}
+                catch(Exception error){photoCallback=null;callback.onReceiveValue(null);message("Не удалось открыть альбомы");}
                 return true;
             }
             @Override public boolean onJsConfirm(WebView v,String url,String message,JsResult result){new AlertDialog.Builder(PlannerActivity.this).setMessage(message).setPositiveButton("Да",(d,w)->result.confirm()).setNegativeButton("Отмена",(d,w)->result.cancel()).setOnCancelListener(d->result.cancel()).show();return true;}
@@ -319,24 +315,6 @@ public class PlannerActivity extends Activity {
         }
         @JavascriptInterface public void openLink(String url){openExternalLink(url);}
         @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
-    }
-    static Intent[] photoPickers(boolean withVideo,boolean multiple){
-        // ACTION_PICK enters a one-photo mode in several OEM galleries even with
-        // EXTRA_ALLOW_MULTIPLE. GET_CONTENT requests the gallery's import selector.
-        Intent gallery=new Intent(Intent.ACTION_GET_CONTENT).setType("image/*")
-            .addCategory(Intent.CATEGORY_OPENABLE).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            .putExtra(Intent.EXTRA_ALLOW_MULTIPLE,multiple)
-            .putExtra("pick-multiple",multiple)
-            .putExtra("pick-upper-bound",multiple?1000:1)
-            .putExtra("pick-lower-bound",1);
-        if(withVideo)gallery.putExtra(Intent.EXTRA_MIME_TYPES,new String[]{"image/*","video/*"});
-        // Prefer installed phone galleries, retaining their own album browser.
-        // Each unavailable package is skipped by onShowFileChooser.
-        String[] packages={"com.miui.gallery","com.sec.android.gallery3d","com.oplus.gallery","com.coloros.gallery3d","com.vivo.gallery","com.huawei.photos"};
-        Intent[] choices=new Intent[packages.length+1];
-        for(int i=0;i<packages.length;i++)choices[i]=new Intent(gallery).setPackage(packages[i]);
-        choices[packages.length]=gallery;
-        return choices;
     }
     static Uri[] photoUris(int result,Intent data){
         if(result!=RESULT_OK||data==null)return null;
