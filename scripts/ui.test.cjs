@@ -577,3 +577,16 @@ test('album cover can display a frame from an original video file',async()=>{
   await page.waitForFunction(()=>document.querySelector('.notes-album-cover video')?.readyState>=2);assert.equal(await page.locator('.notes-album-count').innerText(),'1');assert.equal(await page.locator('.notes-album-video').isVisible(),true);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('note list cards have consistent compact previews with two text lines and both dates',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{
+   const now=Date.now();state.prefs.variant='violet';applyTheme();state.notes=[{id:'short-preview',title:'Короткая',text:'Одна строка',created:now,updated:now},{id:'long-preview',title:'Длинное название заметки '.repeat(8),text:'Первая строка\nВторая строка\n'+('Всё остальное остаётся внутри заметки\n'.repeat(100)),created:now-1000,updated:now},{id:'empty-preview',title:'',text:'',created:now,updated:now}];persist();navigate(selected,'notes');
+  });
+  const cards=await page.locator('#notes-list .note-card').evaluateAll(els=>els.map(el=>({height:el.getBoundingClientRect().height,text:el.querySelector('p').getBoundingClientRect().height,dates:[...el.querySelectorAll('small')].map(x=>x.textContent),clamp:getComputedStyle(el.querySelector('p')).webkitLineClamp})));
+  assert.equal(cards.length,3);assert.ok(cards.every(c=>c.height===124&&c.text===36&&c.clamp==='2'&&c.dates.length===2));assert.ok(cards.every(c=>c.dates[0].startsWith('Создано:')&&c.dates[1].startsWith('Изменено:')));
+  await page.screenshot({path:'/workspace/.planner-startup-review/compact-note-previews-129.png'});
+  await page.locator('[data-note-open=long-preview]').tap();assert.ok((await page.locator('#note-rich').innerText()).includes('Всё остальное остаётся внутри заметки'));assert.equal(await page.evaluate(()=>state.notes.find(n=>n.id==='long-preview').text.split('\n').length),103);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

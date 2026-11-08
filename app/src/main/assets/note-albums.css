@@ -8,3 +8,9 @@ body[data-design=ice] .notes-album .notes-album-name{display:block;width:100%;mi
 .notes-album-count{display:block;margin-top:3px;font-size:11px;line-height:1.2;color:var(--muted)}
 body[data-design=ice] .notes-album>.notes-media-folder-menu{position:absolute;top:5px;right:5px;display:flex;align-items:center;justify-content:center;width:32px;height:32px;min-height:0;padding:0;border:0;border-radius:50%;background:#0009;color:#fff;font-size:22px;line-height:1;box-shadow:none}
 .notes-album-video{position:absolute;left:7px;bottom:6px;z-index:1;font-size:15px;line-height:1;color:white;text-shadow:0 1px 5px #000}
+
+/* Compact note previews: one title line, two text lines, two date lines. */
+body[data-design=ice] #notes-list .note-card{display:grid!important;grid-template-rows:20px 36px 15px 15px;gap:4px;height:124px;min-height:124px;max-height:124px;padding:12px 14px;overflow:hidden}
+body[data-design=ice] #notes-list .note-card>strong{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;line-height:20px;height:20px;margin:0}
+body[data-design=ice] #notes-list .note-card>p{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:18px;height:36px;min-height:36px;max-height:36px;margin:0}
+body[data-design=ice] #notes-list .note-card>small{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px;line-height:15px;height:15px;margin:0}
