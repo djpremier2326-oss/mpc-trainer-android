@@ -771,3 +771,16 @@ test('Photos is separate from Notes, retains old albums and can be the startup s
   await page.evaluate(()=>navigate('2026-11-09','calendar'));await holdCalendarDay(page,'2026-11-12');assert.ok((await page.locator('.calendar-photo-section').innerText()).includes('Фото → Календарь'));assert.equal((await page.locator('.calendar-photo-section').innerText()).includes('Заметки'),false);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('Photos album accepts multiple originals in a single upload and retains them after reload',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.mediaFolders=[{id:'multi-upload',name:'Несколько фото'}];persist();mediaFolderActive='multi-upload';navigate(selected,'photos')});
+  const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=12;c.height=20;return c.toDataURL().split(',')[1]}),'base64');
+  assert.equal(await page.locator('#notes-media-picker').getAttribute('multiple'),'');
+  await page.locator('#notes-media-picker').setInputFiles([1,2,3].map(i=>({name:'photo-'+i+'.png',mimeType:'image/png',buffer:png})));
+  await page.waitForFunction(()=>document.querySelectorAll('[data-media-preview]').length===3);
+  const stored=await page.evaluate(async()=>Promise.all((await mediaQuery('multi-upload')).map(async item=>({name:item.name,bytes:Array.from(new Uint8Array(await item.blob.arrayBuffer()))}))));assert.equal(stored.length,3);assert.deepEqual(stored.map(x=>x.name).sort(),['photo-1.png','photo-2.png','photo-3.png']);for(const item of stored)assert.deepEqual(Buffer.from(item.bytes),png);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(async()=>(await mediaQuery('multi-upload')).length),3);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

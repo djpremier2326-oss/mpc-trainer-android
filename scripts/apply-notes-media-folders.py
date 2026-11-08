@@ -69,7 +69,7 @@ function mediaFolderRender(){
  const f=mediaFolderList().find(x=>x.id===mediaFolderActive);
  if(!f){mediaFolderActive=null;renderNotes();return}
  mediaDispose();document.body.classList.remove('note-open');
- $('view').innerHTML='<div class="notes-media-gallery"><div class="notes-media-toolbar"><button type="button" class="btn" data-media-back>‹ Заметки</button><strong>'+esc(f.name)+'</strong><button type="button" class="btn primary" data-media-upload>＋ Фото/видео</button></div><div id="notes-media-grid" class="notes-media-grid"><p class="notes-media-empty">Открываем папку…</p></div><input type="file" id="notes-media-picker" accept="image/*,video/*" hidden></div>';
+ $('view').innerHTML='<div class="notes-media-gallery"><div class="notes-media-toolbar"><button type="button" class="btn" data-media-back>‹ Заметки</button><strong>'+esc(f.name)+'</strong><button type="button" class="btn primary" data-media-upload>＋ Фото/видео</button></div><div id="notes-media-grid" class="notes-media-grid"><p class="notes-media-empty">Открываем папку…</p></div><input type="file" id="notes-media-picker" accept="image/*,video/*" multiple hidden></div>';
  mediaQuery(f.id).then(items=>{
   if(mediaFolderActive!==f.id)return;
   const host=$('notes-media-grid');if(!host)return;
