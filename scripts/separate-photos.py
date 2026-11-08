@@ -13,6 +13,7 @@ a=s.index('// Standalone photo/video folders inside Notes');b=s.index('initializ
 media=s[a:b]
 x=media.index('const mediaBaseRenderNotes=renderNotes;');y=media.index('const mediaBaseHandleBack=',x)
 media=media[:x]+media[y:]
+media=media.replace('const other=mediaFolderList().filter', 'const other=mediaVisibleFolders().filter')
 media=media.replace("tab==='notes'","tab==='photos'").replace("tab!=='notes'","tab!=='photos'").replace('renderNotes()', 'renderPhotos()').replace('‹ Заметки','‹ Альбомы')
 s=s[:a]+media+s[b:]
 assert "if(tab==='photos'){renderPhotos();return}" in s

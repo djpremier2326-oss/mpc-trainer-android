@@ -784,3 +784,28 @@ test('Photos album accepts multiple originals in a single upload and retains the
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(async()=>(await mediaQuery('multi-upload')).length),3);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+async function drawAlbumCircle(page,clockwise=true,start=-Math.PI/2){
+ const cdp=await page.context().newCDPSession(page),points=Array.from({length:41},(_,i)=>({x:190+70*Math.cos(start+(clockwise?1:-1)*2*Math.PI*i/40),y:440+70*Math.sin(start+(clockwise?1:-1)*2*Math.PI*i/40)}));
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[points[0]]});for(const point of points.slice(1)){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[point]});await page.waitForTimeout(12)}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
+}
+test('a circle reveals and hides the hidden album, preserving originals and hiding move destinations',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'photos')});assert.equal(await page.locator('[data-album-id]').count(),0);
+  await drawAlbumCircle(page);await page.waitForFunction(()=>photosHiddenVisible);const folder=await page.evaluate(()=>mediaFolderList().find(f=>f.hidden).id);assert.equal(await page.locator('[data-album-id="'+folder+'"]').count(),1);
+  await page.locator('[data-media-folder-open="'+folder+'"]').tap();const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=12;c.height=20;return c.toDataURL().split(',')[1]}),'base64');await page.locator('#notes-media-picker').setInputFiles([{name:'one.png',mimeType:'image/png',buffer:png},{name:'two.png',mimeType:'image/png',buffer:png}]);await page.waitForFunction(()=>document.querySelectorAll('[data-media-preview]').length===2);await page.locator('[data-media-preview]').first().tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 2');await page.locator('[data-media-viewer-close]').tap();await page.locator('[data-media-back]').tap();
+  await drawAlbumCircle(page,false);await page.waitForFunction(()=>!photosHiddenVisible);assert.equal(await page.locator('[data-album-id="'+folder+'"]').count(),0);assert.equal(await page.evaluate(id=>mediaVisibleFolders().some(f=>f.id===id),folder),false);
+  await drawAlbumCircle(page,true,0);await page.waitForFunction(()=>photosHiddenVisible);await page.waitForFunction(id=>document.querySelector('[data-album-id="'+id+'"] .notes-album-count')?.textContent==='2',folder);await page.evaluate(()=>navigate(selected,'notes'));assert.equal(await page.evaluate(()=>photosHiddenVisible),false);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.evaluate(()=>navigate(selected,'photos'));assert.equal(await page.locator('[data-album-id="'+folder+'"]').count(),0);const records=await page.evaluate(async id=>Promise.all((await mediaQuery(id)).map(async x=>Array.from(new Uint8Array(await x.blob.arrayBuffer())))),folder);assert.equal(records.length,2);for(const bytes of records)assert.deepEqual(Buffer.from(bytes),png);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('scrolling albums does not reveal hidden folder; circles still work in a scrollable list',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.mediaFolders=Array.from({length:24},(_,i)=>({id:'ordinary-'+i,name:'Альбом '+i}));navigate(selected,'photos')});
+  const cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:180,y:650}]});for(let i=1;i<=12;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:180,y:650-320*i/12}]});await page.waitForTimeout(16)}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();await page.waitForTimeout(250);assert.equal(await page.evaluate(()=>photosHiddenVisible),false);assert.ok(await page.locator('#view').evaluate(el=>el.scrollTop)>0);
+  await drawAlbumCircle(page,true,0);await page.waitForFunction(()=>photosHiddenVisible);assert.equal(await page.evaluate(()=>mediaVisibleFolders().filter(f=>f.hidden).length),1);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

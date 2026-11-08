@@ -4,5 +4,5 @@ function renderPhotos(){
  if(tab!=='photos')return;
  if(mediaFolderActive){mediaFolderRender();return}
  mediaDispose();
- $('view').innerHTML='<section class="photos-page"><div class="notes-tools photos-tools"><strong>Фото</strong><button type="button" class="btn" data-media-new-folder>＋ Папка</button></div>'+mediaFolderCards()+(mediaFolderList().length?'':'<p class="empty-events">Создай альбом, чтобы добавить фотографии и видео.</p>')+'</section>';
+ $('view').innerHTML='<section class="photos-page"><div class="notes-tools photos-tools"><strong>Фото</strong><button type="button" class="btn" data-media-new-folder>＋ Папка</button></div>'+mediaFolderCards()+(mediaVisibleFolders().length?'':'<p class="empty-events">Создай альбом, чтобы добавить фотографии и видео.</p>')+'</section>';
 }

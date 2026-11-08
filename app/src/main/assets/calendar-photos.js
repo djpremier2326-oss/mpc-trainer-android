@@ -4,7 +4,7 @@
 let records=[],loaded=false,generation=0,urls=[];
 const dayDialog=$('calendar-day-settings');
 const camera='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m8 5 2-2h4l2 2h5v16H3V5z"/><circle cx="12" cy="12" r="4"/></svg>';
-function forDate(date){return records.filter(r=>r.calendarDate===date&&r.type?.startsWith('image/')).sort((a,b)=>a.created-b.created)}
+function forDate(date){return records.filter(r=>photosRecordVisible(r)&&r.calendarDate===date&&r.type?.startsWith('image/')).sort((a,b)=>a.created-b.created)}
 function badge(cell){cell.querySelector('.calendar-photo-badge')?.remove();const count=forDate(cell.dataset.date).length;if(!count)return;const mark=document.createElement('span');mark.className='calendar-photo-badge';mark.innerHTML=camera+'<small>'+count+'</small>';mark.setAttribute('aria-label','Фотографий: '+count);cell.append(mark)}
 function paint(){document.querySelectorAll('.cal-cell[data-date]').forEach(badge);captions()}
 async function refresh(){const token=++generation;try{const items=await mediaQuery();if(token!==generation)return;records=items;loaded=true;paint();if(dayDialog.open){thumbnails();if($('calendar-photo-status').textContent==='Загружаем фотографии…')$('calendar-photo-status').textContent=''}}catch(e){if(dayDialog.open)$('calendar-photo-status').textContent='Не удалось прочитать фотографии: '+e.message}}
