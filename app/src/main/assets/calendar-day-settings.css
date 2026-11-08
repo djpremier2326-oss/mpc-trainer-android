@@ -57,3 +57,6 @@ body[data-design=ice] .calendar-month .cal-cell{width:100%;min-width:0;margin:0;
 #calendar-day-settings .calendar-icon-choices button[hidden]{display:none!important}
 #calendar-icon-picked{font-weight:400;font-size:10px}
 #calendar-icon-empty[hidden]{display:none!important}
+/* Calendar text and status marks stay above a consistently bottom-aligned icon group. */
+.calendar-day-note{display:contents}
+body[data-design=ice] .calendar-month .cal-cell .calendar-day-icons{order:10;margin-top:auto;margin-bottom:0;flex-shrink:0}

@@ -644,3 +644,16 @@ test('new everyday icons are searchable and categorized, and running plus basket
   await holdCalendarDay(page,'2026-11-12');await page.locator('[data-icon-category=all]').tap();await page.screenshot({path:'/workspace/.planner-startup-review/calendar-icons-132.png'});await page.locator('#calendar-icon-search').fill('зубы');assert.equal(await page.locator('[data-calendar-icon=dental]').isVisible(),true);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('calendar icon groups align at the bottom regardless of text, task count and photo badges',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(async()=>{
+   state.prefs.variant='violet';applyTheme();state.prefs.calendarDayNotes={'2026-11-09':{text:'Зал и врач',icons:['dumbbell','hospital']},'2026-11-10':{text:'',icons:['run']},'2026-11-11':{text:'Важная встреча в больнице',icons:['hospital']}};
+   ensureHourlyDay('2026-11-09')[0].text='Дело';const c=document.createElement('canvas');c.width=10;c.height=10;const blob=await new Promise(resolve=>c.toBlob(resolve));await mediaPut({id:'alignment-photo',folder:'calendar',name:'Фото.png',type:'image/png',blob,created:1,calendarDate:'2026-11-11'});navigate('2026-11-09','calendar');
+  });
+  const layout=await page.evaluate(()=>['2026-11-09','2026-11-10','2026-11-11'].map(date=>{const cell=document.querySelector('#cal-2026-11 [data-date="'+date+'"]'),c=cell.getBoundingClientRect(),icons=cell.querySelector('.calendar-day-icons').getBoundingClientRect(),text=cell.querySelector('.calendar-day-text')?.getBoundingClientRect(),photo=cell.querySelector('.calendar-photo-badge')?.getBoundingClientRect();return {date,bottom:icons.bottom,offset:c.bottom-icons.bottom,textBottom:text?.bottom,photoBottom:photo?.bottom,iconsTop:icons.top}}));
+  assert.ok(layout.every(x=>Math.abs(x.bottom-layout[0].bottom)<1),JSON.stringify(layout));assert.ok(layout.every(x=>x.offset>=6&&x.offset<=10),JSON.stringify(layout));assert.ok(layout.every(x=>(!x.textBottom||x.textBottom<x.iconsTop)&&(!x.photoBottom||x.photoBottom<x.iconsTop)),JSON.stringify(layout));
+  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-bottom-icons-133.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
