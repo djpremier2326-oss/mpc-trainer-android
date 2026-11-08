@@ -495,7 +495,7 @@ test('calendar photos keep original bytes in Notes Calendar folder, show date ma
   assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small').innerText(),'2');
   const stored=await page.evaluate(async()=>{const rows=(await mediaQuery()).filter(r=>r.calendarDate==='2026-11-12');return {count:rows.length,bytes:await Promise.all(rows.map(async r=>Array.from(new Uint8Array(await r.blob.arrayBuffer())))),folder:state.mediaFolders.find(f=>f.id===rows[0].folder)?.name}});
   assert.equal(stored.count,2);assert.equal(stored.folder,'Календарь');for(const bytes of stored.bytes)assert.deepEqual(Buffer.from(bytes),png);
-  await page.locator('[data-calendar-photo-view]').first().tap();await page.locator('#notes-media-viewer').waitFor({state:'visible'});await page.locator('[data-media-viewer-close]').tap();
+  await page.locator('[data-calendar-photo-view]').first().tap();await page.locator('#calendar-photo-gallery').waitFor({state:'visible'});await page.locator('#calendar-gallery-close').tap();await page.locator('#calendar-day-settings-close').tap();
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.waitForFunction(()=>document.querySelector('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small')?.textContent==='2');
   await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('.calendar-photo-thumb').count(),2);await page.locator('#calendar-photo-folder').tap();assert.equal(await page.evaluate(()=>tab),'notes');
   await page.waitForFunction(()=>document.querySelectorAll('.notes-media-item').length===2);assert.equal(await page.locator('.calendar-photo-date').first().innerText(),'12 ноября 2026 г.');
@@ -503,5 +503,25 @@ test('calendar photos keep original bytes in Notes Calendar folder, show date ma
   await page.evaluate(()=>navigate('2026-11-08','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-photo-detach]').first().tap();await page.waitForFunction(()=>document.querySelectorAll('.calendar-photo-thumb').length===1);assert.equal(await page.evaluate(async()=>(await mediaQuery()).length),2);
   await page.locator('#calendar-day-settings-close').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small').innerText(),'1');
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-photo-marker-123.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('calendar photo button opens swipe gallery and closes back to the same preview and calendar',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(async()=>{
+   state.prefs.variant='violet';applyTheme();
+   for(let i=0;i<3;i++){const c=document.createElement('canvas');c.width=80;c.height=120;const x=c.getContext('2d');x.fillStyle=['red','blue','green'][i];x.fillRect(0,0,80,120);const blob=await new Promise(resolve=>c.toBlob(resolve));await mediaPut({id:'gallery-'+i,folder:'calendar-fixture',name:'Фото '+i+'.png',type:'image/png',blob,created:i,calendarDate:i<2?'2026-11-12':'2026-11-13'})}
+   navigate('2026-11-08','calendar');
+  });
+  await page.locator('#cal-2026-11 [data-date="2026-11-12"]').tap();assert.equal(await page.locator('#calendar-preview').isVisible(),true);
+  const initial=await page.evaluate(()=>({tab,selected,scroll:document.getElementById('view').scrollTop,preview:document.getElementById('calendar-preview').innerHTML}));
+  await page.locator('[data-calendar-photos-open="2026-11-12"]').tap();await page.locator('#calendar-photo-gallery').waitFor({state:'visible'});assert.equal(await page.locator('.calendar-gallery-page').count(),2);assert.equal(await page.locator('#calendar-gallery-count').innerText(),'1 / 2');assert.equal(await page.locator('#calendar-day-settings').isVisible(),false);
+  const b=await page.locator('#calendar-gallery-track').boundingBox(),cdp=await context.newCDPSession(page),y=b.y+b.height/2;
+  async function swipe(left){const x=left?b.x+b.width*.8:b.x+b.width*.2,end=left?b.x+b.width*.2:b.x+b.width*.8;await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});for(let i=1;i<=10;i++){await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+(end-x)*i/10,y}]});await page.waitForTimeout(20)}await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]})}
+  await swipe(true);await page.waitForFunction(()=>document.getElementById('calendar-gallery-count').textContent==='2 / 2');await page.waitForTimeout(250);await swipe(false);await page.waitForFunction(()=>document.getElementById('calendar-gallery-count').textContent==='1 / 2');await cdp.detach();
+  await page.locator('#calendar-gallery-close').tap();assert.equal(await page.locator('#calendar-photo-gallery').isVisible(),false);assert.equal(await page.locator('#calendar-preview').isVisible(),true);
+  assert.deepEqual(await page.evaluate(()=>({tab,selected,scroll:document.getElementById('view').scrollTop,preview:document.getElementById('calendar-preview').innerHTML})),initial);
+  await page.locator('[data-calendar-photos-open="2026-11-12"]').tap();assert.equal(await page.locator('#calendar-gallery-count').innerText(),'1 / 2');await page.keyboard.press('Escape');assert.equal(await page.locator('#calendar-preview').isVisible(),true);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
