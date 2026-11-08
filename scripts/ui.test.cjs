@@ -689,3 +689,21 @@ test('all ten original header pictures decode and remain selected after relaunch
   await page.locator('.header-artwork-swipe').press('ArrowRight');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'swoosh');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('exercise rest counts down in a stationary round button and signals once on completion',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'workout')});await page.locator('[data-workout-open=pull]').tap();
+  assert.equal(await page.locator('.workout-heading,.workout-intro,.workout-timer').count(),0);
+  const button=page.locator('.workout-rest-circle');await button.scrollIntoViewIfNeeded();
+  const before=await button.boundingBox();assert.equal(before.width,before.height);assert.equal(before.width,150);
+  await button.tap();assert.equal(await page.locator('.workout-timer').count(),0);assert.equal(await button.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(0, 0, 0)');
+  const after=await button.boundingBox();assert.ok(Math.abs(after.y-before.y)<1,JSON.stringify({before,after}));assert.equal(await button.locator('#workout-timer-value').innerText(),'1:00');
+  await page.evaluate(()=>{state.workout.timer.end=Date.now()+42000;workoutTick()});assert.equal(await button.locator('#workout-timer-value').innerText(),'0:42');
+  await page.locator('[data-workout-add-time]').tap();assert.equal(await button.locator('#workout-timer-value').innerText(),'1:12');
+  await page.evaluate(()=>{window.timerSignals=0;workoutSignal=()=>window.timerSignals++;state.workout.timer.end=Date.now()-1;workoutTick();workoutTick()});assert.equal(await page.evaluate(()=>timerSignals),1);assert.equal(await button.locator('#workout-timer-value').innerText(),'0:00');assert.equal(await button.locator('#workout-timer-label').innerText(),'Отдых окончен');
+  await button.tap();await page.screenshot({path:'/workspace/.planner-startup-review/workout-round-rest-137.png'});
+  await page.locator('[data-workout-set="0"]').tap();assert.equal(await page.locator('.workout-rest-circle.running').count(),1);assert.equal(await page.locator('[data-workout-set="0"]').getAttribute('aria-pressed'),'true');
+  await page.locator('[data-workout-stop-timer]').tap();assert.equal(await page.evaluate(()=>state.workout.timer),null);assert.ok((await button.innerText()).includes('Начать отдых'));assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

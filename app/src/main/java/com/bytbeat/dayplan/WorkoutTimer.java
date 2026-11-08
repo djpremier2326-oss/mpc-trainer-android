@@ -8,7 +8,7 @@ import android.os.*;
 
 /** One rest deadline, independent of WebView timers and Activity lifecycle. */
 public class WorkoutTimer extends BroadcastReceiver {
-    private static final String PREF="workout_rest",CHANNEL="workout_rest_v1";
+    private static final String PREF="workout_rest",CHANNEL="workout_rest_v2";
     private static final int ID=700;
     static volatile boolean foreground;
     private static PendingIntent alarm(Context c){
@@ -31,16 +31,28 @@ public class WorkoutTimer extends BroadcastReceiver {
         android.content.SharedPreferences p=c.getSharedPreferences(PREF,Context.MODE_PRIVATE);
         if(p.getString("token","").isEmpty()||p.getLong("end",0)>System.currentTimeMillis()+500)return;
         p.edit().putString("token","").apply();
-        if(foreground){
-            try{final ToneGenerator tone=new ToneGenerator(AudioManager.STREAM_NOTIFICATION,80);tone.startTone(ToneGenerator.TONE_PROP_BEEP2,600);new Handler(Looper.getMainLooper()).postDelayed(tone::release,1000);}catch(Exception ignored){}
-            try{Vibrator v=(Vibrator)c.getSystemService(Context.VIBRATOR_SERVICE);if(v!=null)v.vibrate(VibrationEffect.createWaveform(new long[]{0,200,100,200},-1));}catch(Exception ignored){}
-            return;
-        }
+        playSignals(c);
+        if(foreground)return;
         NotificationManager nm=c.getSystemService(NotificationManager.class);
-        NotificationChannel ch=new NotificationChannel(CHANNEL,"Отдых между подходами",NotificationManager.IMPORTANCE_HIGH);ch.enableVibration(true);nm.createNotificationChannel(ch);
+        // The receiver plays the three pulses; prevent a fourth channel sound.
+        NotificationChannel ch=new NotificationChannel(CHANNEL,"Отдых между подходами",NotificationManager.IMPORTANCE_HIGH);
+        ch.setSound(null,null);ch.enableVibration(false);nm.createNotificationChannel(ch);
         if(!ReminderScheduler.notificationsAllowed(c))return;
         Intent open=new Intent(c,PlannerActivity.class).putExtra("openWorkout",true).addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP|Intent.FLAG_ACTIVITY_SINGLE_TOP);
         PendingIntent tap=PendingIntent.getActivity(c,ID,open,PendingIntent.FLAG_UPDATE_CURRENT|PendingIntent.FLAG_IMMUTABLE);
         nm.notify(ID,new Notification.Builder(c,CHANNEL).setSmallIcon(com.bytbeat.dayplan.R.drawable.ic_notification).setContentTitle("Отдых окончен").setContentText(p.getString("title","")+" — можно начать следующий подход").setContentIntent(tap).setAutoCancel(true).setCategory(Notification.CATEGORY_ALARM).setVisibility(Notification.VISIBILITY_PRIVATE).build());
     }
+    private void playSignals(Context c){
+        final PendingResult pending=goAsync();
+        final Handler handler=new Handler(Looper.getMainLooper());
+        ToneGenerator created=null;
+        try{created=new ToneGenerator(AudioManager.STREAM_NOTIFICATION,80);}catch(Exception ignored){}
+        final ToneGenerator tone=created;
+        for(int i=0;i<3;i++){
+            handler.postDelayed(()->{try{if(tone!=null)tone.startTone(ToneGenerator.TONE_PROP_BEEP,200);}catch(Exception ignored){}},i*550L);
+        }
+        try{Vibrator v=(Vibrator)c.getSystemService(Context.VIBRATOR_SERVICE);if(v!=null)v.vibrate(VibrationEffect.createWaveform(new long[]{0,200,350,200,350,200},-1));}catch(Exception ignored){}
+        handler.postDelayed(()->{try{if(tone!=null)tone.release();}finally{if(pending!=null)pending.finish();}},1600);
+    }
+
 }

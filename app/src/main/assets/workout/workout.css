@@ -19,3 +19,12 @@ body[data-design=ice][data-variant=violet] .workout-record small,
 body[data-design=ice][data-variant=violet] .workout-record p{color:#111!important}
 body[data-design=ice][data-variant=violet] .workout-timer small,
 body[data-design=ice][data-variant=violet] .workout-timer p{color:#fff!important}
+
+/* The rest timer stays in its original place inside the exercise card. */
+body[data-design=ice][data-view=workout] .workout-rest-area{display:flex;flex-direction:column;align-items:center;gap:10px;margin:0 auto}
+body[data-design=ice][data-view=workout] .workout-rest-circle{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;width:150px!important;height:150px!important;min-height:150px!important;padding:12px!important;margin:0 auto;border:2px solid var(--workout-accent)!important;border-radius:50%!important;background:var(--workout-paper)!important;color:var(--workout-ink)!important;box-shadow:0 4px 16px #0002;cursor:pointer;touch-action:manipulation}
+body[data-design=ice][data-view=workout] .workout-rest-circle small{font-size:13px!important;color:inherit!important;line-height:1.3}
+body[data-design=ice][data-view=workout] .workout-rest-circle strong{font-size:32px!important;color:inherit!important;line-height:1.1;font-variant-numeric:tabular-nums}
+body[data-design=ice][data-view=workout] .workout-rest-circle.running{background:#000!important;color:#fff!important;border-color:#000!important}
+.workout-rest-actions{display:flex;justify-content:center;gap:8px;min-height:36px}
+.workout-rest-actions .btn{font-size:12px;padding:6px 10px}
