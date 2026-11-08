@@ -40,3 +40,20 @@ body[data-view=workout] .workout-heading h1{font-size:18px!important;line-height
 body[data-view=workout] .workout-heading small{display:none!important}
 body[data-view=workout] .workout-heading .btn,body[data-view=workout] .workout-heading .workout-back{display:flex;align-items:center;min-height:42px;margin:0;padding:6px 10px;background:transparent!important;color:#eee4fa!important;border:0;box-shadow:none!important;font-size:13px}
 body[data-view=workout] .workout-intro{font-size:12px!important;line-height:1.4!important;margin:8px 0 12px!important}
+
+/* Flat section controls. The home design and bottom navigation stay unchanged. */
+body[data-design=ice]:not([data-view=day]) main{background:var(--section-bg,var(--app-bg))!important}
+body:not([data-view=day]) #calendar-top-tools,
+body.notes-view .notes-tools,body.notes-view .notes-media-toolbar,
+body[data-view=workout] .workout-heading{
+ background:transparent!important;color:var(--section-ink,var(--text))!important;
+ border:0!important;border-radius:0!important;box-shadow:none!important;
+ position:relative;top:auto;
+}
+body.notes-view .notes-tools .btn,body.notes-view .notes-media-toolbar .btn,
+body.notes-view .notes-media-toolbar strong,
+body[data-view=workout] .workout-heading h1,
+body[data-view=workout] .workout-heading .btn,
+body[data-view=workout] .workout-heading .workout-back{color:var(--section-ink,var(--text))!important}
+body.notes-view .notes-tools #notes-search{background:var(--control)!important;color:var(--section-ink,var(--text))!important;border-color:var(--border)}
+body.notes-view .notes-tools #notes-search::placeholder{color:var(--muted)}

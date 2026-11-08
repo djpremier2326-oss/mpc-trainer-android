@@ -10,15 +10,18 @@ calendarMonthMarkup=function(month){const html=previousMonth(month),c=config();i
 const previousCalendar=renderCalendar;
 renderCalendar=function(){previousCalendar();const jump=document.querySelector('.calendar-jump');if(jump){jump.hidden=true;jump.querySelector("button")?.remove();}document.querySelector('.calendar-hint')?.remove();let bar=$('calendar-top-tools');if(!bar){bar=document.createElement('nav');bar.id='calendar-top-tools';bar.setAttribute('aria-label','Инструменты календаря');bar.innerHTML='<button type="button" id="calendar-schedule-open">'+iceIcon('calendar')+'<span>График</span></button><button type="button" id="calendar-today">'+iceIcon('today')+'<span>Сегодня</span></button>';document.querySelector('main').prepend(bar)}requestAnimationFrame(()=>{const el=$('cal-'+selected.slice(0,7));if(el)$('view').scrollTop=Math.max(0,el.offsetTop-$('view').offsetTop)})};
 function syncCalendarChrome(){
- const bar=$('calendar-top-tools'),nav=document.querySelector('.tabs');
- if(tab==='day'||tab==='notes'||tab==='workout'){window.AndroidFiles?.statusBarColor?.('#000000',true);return;}
- if(tab==='calendar'&&bar&&nav){
-  const style=getComputedStyle(nav),source=style.backgroundImage==='none'?style.backgroundColor:(style.backgroundImage.match(/rgba?\([^)]+\)/)?.[0]||style.backgroundColor),rgb=source.match(/\d+/g);
-  const color=rgb&&rgb.length>=3?'#'+rgb.slice(0,3).map(n=>Number(n).toString(16).padStart(2,'0')).join(''):'#000000';
-  bar.style.background=style.background;bar.style.color=accentText(color);
-  const dark=accentText(color)==='#ffffff'||accentText(color)==='#fff';
-  window.AndroidFiles?.statusBarColor?.(color,dark);
- }else window.AndroidFiles?.statusBarColor?.('',true);
+ if(tab==='day'){window.AndroidFiles?.statusBarColor?.('#000000',true);return;}
+ const view=$('view'),style=getComputedStyle(view);
+ const source=style.backgroundColor;
+ let rgb=source.match(/\d+(?:\.\d+)?/g);
+ if(!rgb||rgb.length>3&&Number(rgb[3])===0){
+  const fallback=document.createElement('span');fallback.style.color='var(--app-bg)';document.body.appendChild(fallback);
+  rgb=getComputedStyle(fallback).color.match(/\d+/g);fallback.remove();
+ }
+ const color=rgb&&rgb.length>=3?'#'+rgb.slice(0,3).map(n=>Number(n).toString(16).padStart(2,'0')).join(''):'#e9ddf7';
+ document.documentElement.style.setProperty('--section-bg',color);
+ document.documentElement.style.setProperty('--section-ink',style.color);
+ window.AndroidFiles?.statusBarColor?.(color,accentText(color)==='#ffffff');
 }
 const calendarRender=render;
 render=function(){calendarRender();syncCalendarChrome()};

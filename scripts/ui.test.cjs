@@ -107,28 +107,28 @@ test('calendar top panel, shift cycles, colors, persistence and removal',async()
  }finally{await context.close()}
 });
 
-test('compact calendar header matches system bar across all themes and resets on exit',async()=>{
+test('flat calendar controls and status bar follow page background across themes',async()=>{
  const {page,context,errors}=await open();
  try{
   for(const variant of Object.keys(palettes)){
    await page.evaluate(v=>{state.prefs.variant=v;applyTheme();navigate(selected,'calendar')},variant);
-   const chrome=await page.evaluate(()=>({height:document.getElementById('calendar-top-tools').getBoundingClientRect().height,top:getComputedStyle(document.getElementById('calendar-top-tools')).background,bottom:getComputedStyle(document.querySelector('.tabs')).background,status:statusColors.at(-1)}));
-   assert.ok(chrome.height<=52,JSON.stringify(chrome));assert.equal(chrome.top,chrome.bottom);assert.match(chrome.status.color,/^#[0-9a-f]{6}$/);if(variant==='violet')assert.equal(chrome.status.color,'#000000');
-   await page.evaluate(()=>navigate(selected,'events'));assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'');
+   const chrome=await page.evaluate(()=>({height:document.getElementById('calendar-top-tools').getBoundingClientRect().height,top:getComputedStyle(document.getElementById('calendar-top-tools')).backgroundColor,page:getComputedStyle(document.getElementById('view')).backgroundColor,status:statusColors.at(-1)}));
+   assert.ok(chrome.height<=52,JSON.stringify(chrome));assert.equal(chrome.top,'rgba(0, 0, 0, 0)');assert.match(chrome.status.color,/^#[0-9a-f]{6}$/);if(variant==='violet')assert.equal(chrome.status.color,'#e9ddf7');
+   await page.evaluate(()=>navigate(selected,'events'));assert.match(await page.evaluate(()=>statusColors.at(-1).color),/^#[0-9a-f]{6}$/);
   }
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
-test('home and notes have black system chrome; notes controls retain search and actions',async()=>{
+test('home stays black; notes have flat controls with working search and actions',async()=>{
  const {page,context,errors}=await open();
  try{
   assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'notes')});
   assert.equal(await page.locator('.app-heading').isVisible(),false);
-  assert.equal(await page.locator('.notes-tools').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(0, 0, 0)');
+  assert.equal(await page.locator('.notes-tools').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
   assert.ok(await page.locator('.notes-tools').evaluate(el=>el.getBoundingClientRect().height)<=60);
-  assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
+  assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#e9ddf7');
   await page.locator('#note-add').tap();await page.locator('#note-title').fill('Проверка поиска');await page.locator('#note-rich').fill('Запись на чёрной панели');await page.locator('#note-save').tap();await page.locator('#notes-back').tap();
   await page.locator('#notes-search').fill('Нет такой записи');assert.equal(await page.locator('[data-note-open]').count(),0);
   await page.locator('#notes-search').fill('Проверка поиска');assert.equal(await page.locator('[data-note-open]').count(),1);
@@ -175,13 +175,33 @@ test('workout uses the same compact header as calendar and notes; history and ex
    }
    assert.deepEqual(heights,[50,50,50]);
    assert.equal(await page.locator('.app-heading').isVisible(),false);
-   assert.equal(await page.locator('.workout-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(0, 0, 0)');
-   assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
+   assert.equal(await page.locator('.workout-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
+   assert.match(await page.evaluate(()=>statusColors.at(-1).color),/^#[0-9a-f]{6}$/);
    assert.equal(await page.locator('.workout-heading h1').evaluate(el=>getComputedStyle(el).fontSize),'18px');
   }
   await page.locator('[data-workout-history]').tap();assert.equal(await page.locator('.workout-heading h1').innerText(),'История');await page.locator('[data-workout-back]').tap();
   await page.screenshot({path:'/workspace/.planner-startup-review/workout-compact.png'});
   await page.locator('[data-workout-open]').first().tap();assert.equal(await page.locator('.workout-detail').isVisible(),true);
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('lavender status bar in all secondary sections; home and bottom navigation preserved',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'day')});
+  const homeBefore=await page.screenshot();
+  for(const section of ['calendar','notes','workout','events','savings','wishes','week','month']){
+   await page.evaluate(section=>navigate(selected,section),section);
+   await page.waitForTimeout(50);
+   assert.deepEqual(await page.evaluate(()=>statusColors.at(-1)),{color:'#e9ddf7',dark:false},section);
+   assert.equal(await page.locator('.tabs').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(0, 0, 0)');
+  }
+  await page.evaluate(()=>navigate(selected,'day'));
+  assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
+  await page.evaluate(()=>navigate(selected,'workout'));await page.screenshot({path:'/workspace/.planner-startup-review/workout-flat.png'});
+  await page.evaluate(()=>navigate(selected,'notes'));await page.screenshot({path:'/workspace/.planner-startup-review/notes-flat.png'});
+  await page.evaluate(()=>navigate(selected,'calendar'));await page.screenshot({path:'/workspace/.planner-startup-review/calendar-flat.png'});
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
