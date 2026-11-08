@@ -64,7 +64,7 @@ body[data-design=ice].notes-view .notes-media-toolbar .btn,
 body[data-design=ice][data-view=workout] .workout-heading button,
 body[data-design=ice] .events-tools .btn,
 body[data-design=ice] .wish-toolbar .btn{
- background:#000!important;color:#edb3d1!important;border:0!important;
+ background:#000!important;color:#c59af2!important;border:0!important;
  border-radius:12px!important;box-shadow:none!important;padding:8px 12px;
  min-height:42px;
 }
@@ -74,3 +74,9 @@ body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute{height:12
 body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute::before{top:38%!important;width:min(46vw,290px)!important;height:min(19vw,110px)!important}
 body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute .ice-date-line{bottom:12px!important}
 .violet-event-timeline{touch-action:pan-y}
+
+/* Use the actual brand silhouette and keep the existing compact hero dimensions. */
+body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute::before{background-image:url("violet/swoosh.svg")!important}
+body[data-design=ice][data-variant=violet] #violet-add-task{box-shadow:0 0 24px rgba(197,154,242,.48)!important}
+body[data-design=ice][data-variant=violet] .tabs>.ice-compose{box-shadow:0 0 18px rgba(197,154,242,.45)!important}
+body[data-design=ice][data-variant=violet] .tabs>.tab.active::after{box-shadow:0 0 10px rgba(197,154,242,.6)!important}

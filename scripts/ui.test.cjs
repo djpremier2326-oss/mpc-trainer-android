@@ -8,7 +8,7 @@ before(async()=>{
  server=http.createServer((req,res)=>{
   const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));
   if(!file.startsWith(root+path.sep)){res.writeHead(403).end();return}
-  try{res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file))}catch{res.writeHead(404).end()}
+  try{res.setHeader('Content-Type',({'.html':'text/html; charset=utf-8','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'})[path.extname(file)]||'application/octet-stream');res.end(fs.readFileSync(file))}catch{res.writeHead(404).end()}
  });
  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin=`http://127.0.0.1:${server.address().port}`;
  browser=await chromium.launch({executablePath:process.env.CHROMIUM_PATH||undefined,headless:true,args:['--no-sandbox']});
@@ -206,14 +206,14 @@ test('lavender status bar in all secondary sections; home and bottom navigation 
  }finally{await context.close()}
 });
 
-test('pink-on-black header buttons and a smaller violet hero leave more timeline visible',async()=>{
+test('lavender-on-black header buttons and a smaller violet hero leave more timeline visible',async()=>{
  const {page,context,errors}=await open();
  try{
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'calendar')});
   for(const section of ['calendar','notes','workout']){
    await page.evaluate(section=>navigate(selected,section),section);
    const buttons=page.locator(section==='calendar'?'#calendar-top-tools button':section==='notes'?'.notes-tools .btn':'.workout-heading button');
-   for(const button of await buttons.all())assert.deepEqual(await button.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,ink:getComputedStyle(el).color})),{bg:'rgb(0, 0, 0)',ink:'rgb(237, 179, 209)'});
+   for(const button of await buttons.all())assert.deepEqual(await button.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,ink:getComputedStyle(el).color})),{bg:'rgb(0, 0, 0)',ink:'rgb(197, 154, 242)'});
   }
   await page.evaluate(()=>navigate(selected,'day'));
   assert.equal(await page.locator('.ice-hero').evaluate(el=>el.getBoundingClientRect().height),124);
@@ -235,5 +235,25 @@ test('double touch on empty timeline opens the same editor as plus; a single tap
   assert.equal(await page.locator('#violet-task-editor').isVisible(),false);
   await page.touchscreen.tap(x,y);await page.waitForTimeout(70);await page.touchscreen.tap(x,y);await page.locator('#violet-editor-text').fill('Создано двойным тапом');await page.locator('#violet-editor-start').fill('10:00');await page.locator('#violet-editor-end').fill('10:30');await page.locator('#violet-editor-done').tap();
   assert.equal(await page.locator('.violet-event-card').filter({hasText:'Создано двойным тапом'}).count(),1);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('brand silhouette and glow are present; leaving home has no intermediate animated layout',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'day')});
+  const brand=await page.evaluate(()=>({logo:getComputedStyle(document.querySelector('.ice-tribute'),'::before').backgroundImage,plus:getComputedStyle(document.getElementById('violet-add-task')).boxShadow,menu:getComputedStyle(document.querySelector('.ice-compose')).boxShadow}));
+  assert.ok(brand.logo.includes('swoosh.svg'));assert.equal(await page.evaluate(async()=>{const img=new Image();img.src='violet/swoosh.svg';await img.decode();return img.naturalWidth>0}),true);assert.notEqual(brand.plus,'none');assert.notEqual(brand.menu,'none');
+  await page.screenshot({path:'/workspace/.planner-startup-review/home-brand-112.png'});
+  for(const section of ['notes','calendar','workout','events','savings']){
+   await page.evaluate(()=>navigate(selected,'day'));
+   const frames=await page.evaluate(async section=>{
+    navigate(selected,section);const frames=[];
+    for(let i=0;i<8;i++){await new Promise(requestAnimationFrame);const v=document.getElementById('view'),n=document.querySelector('.tabs'),b=v.getBoundingClientRect();frames.push({top:b.top,bottom:b.bottom,opacity:getComputedStyle(v).opacity,nav:n.getBoundingClientRect().top,animation:document.getAnimations().filter(a=>a.playState==='running').length,status:statusColors.at(-1).color})}
+    return frames;
+   },section);
+   assert.ok(frames.every(f=>f.opacity==='1'&&f.animation===0&&f.status==='#e9ddf7'),JSON.stringify(frames));assert.ok(frames.every(f=>f.top===frames[0].top&&f.bottom===frames[0].bottom&&f.nav===frames[0].nav),JSON.stringify(frames));
+  }
+  assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

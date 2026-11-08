@@ -112,4 +112,29 @@ public class PlannerStartupTest {
             assertEquals(0xff171126,a.getWindow().getStatusBarColor());
         }finally{c.pause().stop().destroy();}
     }
+    public static class FrameControlledWebView extends android.webkit.WebView {
+        final java.util.List<VisualStateCallback> frames=new java.util.ArrayList<>();
+        FrameControlledWebView(Context context){super(context);}
+        @Override public void postVisualStateCallback(long id,VisualStateCallback callback){frames.add(callback);}
+    }
+    @Test public void statusBarWaitsForCommittedPageAndIgnoresStaleNavigation()throws Exception{
+        theme(0xff171126);
+        var c=Robolectric.buildActivity(LaunchOnlyActivity.class).setup();var a=c.get();
+        try{
+            set(a,"pageReady",true);call(a,"applyWindowTheme");
+            a.new BackupBridge().statusBarColor("#000000",true);
+            FrameControlledWebView view=new FrameControlledWebView(a);set(a,"web",view);
+            a.new BackupBridge().statusBarColor("#e9ddf7",false);
+            assertEquals(0xff000000,a.getWindow().getStatusBarColor());
+            assertEquals(1,view.frames.size());
+            a.new BackupBridge().statusBarColor("#000000",true);
+            view.frames.get(0).onComplete(0);
+            assertEquals(0xff000000,a.getWindow().getStatusBarColor());
+            view.frames.get(1).onComplete(1);
+            a.new BackupBridge().statusBarColor("#e9ddf7",false);
+            assertEquals(0xff000000,a.getWindow().getStatusBarColor());
+            view.frames.get(2).onComplete(2);
+            assertEquals(0xffe9ddf7,a.getWindow().getStatusBarColor());
+        }finally{c.pause().stop().destroy();}
+    }
 }

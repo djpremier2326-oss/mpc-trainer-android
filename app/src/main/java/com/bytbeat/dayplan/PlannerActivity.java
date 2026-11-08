@@ -41,6 +41,7 @@ public class PlannerActivity extends Activity {
     private boolean nativeThemeInitialized,nativeDark;
     private int nativeThemeColor;
     private Integer statusBarOverride;
+    private long statusBarUpdate;
     private boolean statusBarDark;
     private String lastNotificationStatus;
     private android.widget.FrameLayout root;
@@ -299,7 +300,21 @@ public class PlannerActivity extends Activity {
         @JavascriptInterface public boolean syncReminders(String json){return ReminderScheduler.sync(PlannerActivity.this,json);}
         @JavascriptInterface public void testNotification(){runOnUiThread(()->{if(!ReminderScheduler.notificationsAllowed(PlannerActivity.this)){configureNotifications();return;}ReminderScheduler.notify(PlannerActivity.this,"test","Уведомления работают","Напоминания о делах появятся здесь",java.time.LocalDate.now().toString());message("Проверочное уведомление отправлено");});}
         @JavascriptInterface public void statusBarColor(String color,boolean dark){runOnUiThread(()->{
-            try{statusBarOverride=color==null||color.isEmpty()?null:Color.parseColor(color);statusBarDark=dark;applyStatusBarColor();}catch(IllegalArgumentException ignored){}
+            try{
+                final Integer next=color==null||color.isEmpty()?null:Color.parseColor(color);
+                final long update=++statusBarUpdate;
+                if(pageReady&&web!=null){
+                    final WebView current=web;
+                    // Change system chrome alongside the committed destination page,
+                    // rather than showing light chrome over the previous dark home frame.
+                    current.postVisualStateCallback(update,new WebView.VisualStateCallback(){
+                        @Override public void onComplete(long id){
+                            if(update!=statusBarUpdate||web!=current||isFinishing()||isDestroyed())return;
+                            statusBarOverride=next;statusBarDark=dark;applyStatusBarColor();
+                        }
+                    });
+                }else{statusBarOverride=next;statusBarDark=dark;applyStatusBarColor();}
+            }catch(IllegalArgumentException ignored){}
         });}
         @JavascriptInterface public void themeColors(String bg,boolean dark){runOnUiThread(()->{try{int color=Color.parseColor(bg);getSharedPreferences("appearance",MODE_PRIVATE).edit().putInt("background",color).putBoolean("dark",dark).apply();applyNativeTheme(color,dark);}catch(Exception e){}});}
 
