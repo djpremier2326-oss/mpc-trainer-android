@@ -396,13 +396,13 @@ test('calendar day settings share day colors with schedule and keep draft change
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate('2026-11-08','calendar')});
   const cell=page.locator('#cal-2026-11 [data-date="2026-11-12"]');
   assert.ok(await cell.evaluate(el=>el.getBoundingClientRect().width)>52);assert.equal(await page.locator('#cal-2026-11 .cal-grid').evaluate(el=>getComputedStyle(el).columnGap),'1px');
-  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-day-color=black]').tap();await page.locator('[data-calendar-icon=dumbbell]').tap();await page.locator('#calendar-day-settings [name=text]').fill('Зал');await page.locator('#calendar-day-settings [type=submit]').tap();
+  await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-color-toggle').tap();await page.locator('[data-calendar-day-color=black]').tap();await page.locator('[data-calendar-icon=dumbbell]').tap();await page.locator('#calendar-day-settings [name=text]').fill('Зал');await page.locator('#calendar-day-settings [type=submit]').tap();
   assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'black');assert.equal(await cell.locator('.calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)');
   await page.evaluate(()=>navigate('2026-11-12','day'));assert.equal(await page.evaluate(()=>dayColor(selected)),'black');
-  await page.evaluate(()=>navigate('2026-11-12','calendar'));await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('[data-calendar-day-color=black]').getAttribute('aria-pressed'),'true');await page.locator('[data-calendar-day-color=green]').tap();await page.locator('#calendar-day-settings-close').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'black');
-  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-day-color=green]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');assert.equal(await cell.locator('.calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
+  await page.evaluate(()=>navigate('2026-11-12','calendar'));await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('[data-calendar-day-color=black]').getAttribute('aria-pressed'),'true');await page.locator('#calendar-day-color-toggle').tap();await page.locator('[data-calendar-day-color=green]').tap();await page.locator('#calendar-day-settings-close').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'black');
+  await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-color-toggle').tap();await page.locator('[data-calendar-day-color=green]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');assert.equal(await cell.locator('.calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');
-  await page.evaluate(()=>navigate('2026-11-12','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-day-color=none]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'none');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Зал');
+  await page.evaluate(()=>navigate('2026-11-12','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-color-toggle').tap();await page.locator('[data-calendar-day-color=none]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'none');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Зал');
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-colors-118.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
@@ -588,5 +588,18 @@ test('note list cards have consistent compact previews with two text lines and b
   assert.equal(cards.length,3);assert.ok(cards.every(c=>c.height===124&&c.text===36&&c.clamp==='2'&&c.dates.length===2));assert.ok(cards.every(c=>c.dates[0].startsWith('Создано:')&&c.dates[1].startsWith('Изменено:')));
   await page.screenshot({path:'/workspace/.planner-startup-review/compact-note-previews-129.png'});
   await page.locator('[data-note-open=long-preview]').tap();assert.ok((await page.locator('#note-rich').innerText()).includes('Всё остальное остаётся внутри заметки'));assert.equal(await page.evaluate(()=>state.notes.find(n=>n.id==='long-preview').text.split('\n').length),103);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('calendar day settings open compact with collapsed colors and readily accessible icons and photos',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate('2026-11-08','calendar')});await holdCalendarDay(page,'2026-11-12');
+  assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),false);assert.equal(await page.locator('#calendar-day-color-toggle').getAttribute('aria-expanded'),'false');
+  const positions=await page.evaluate(()=>{const d=document.getElementById('calendar-day-settings').getBoundingClientRect(),photo=document.getElementById('calendar-photo-add').getBoundingClientRect(),icons=document.querySelector('.calendar-icon-choices').getBoundingClientRect();return {bottom:d.bottom,photoBottom:photo.bottom,iconsBottom:icons.bottom,scroll:document.getElementById('calendar-day-settings').scrollTop}});assert.equal(positions.scroll,0);assert.ok(positions.photoBottom<positions.bottom&&positions.iconsBottom<positions.bottom,JSON.stringify(positions));
+  await page.locator('#calendar-day-color-toggle').tap();assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),true);await page.locator('[data-calendar-day-color=green]').tap();assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),false);assert.ok((await page.locator('#calendar-day-color-name').innerText()).includes('Салатовый'));
+  await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');
+  await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),false);assert.equal(await page.locator('[data-calendar-day-color=green]').getAttribute('aria-pressed'),'true');
+  await page.screenshot({path:'/workspace/.planner-startup-review/compact-day-settings-130.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

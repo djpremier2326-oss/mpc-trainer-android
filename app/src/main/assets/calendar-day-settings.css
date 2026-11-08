@@ -26,3 +26,26 @@ body[data-design=ice] .calendar-month .cal-cell{width:100%;min-width:0;margin:0;
 .calendar-day-icons[data-count="1"] .calendar-day-icon{width:23px;height:23px}
 .calendar-day-icons[data-count="2"]{grid-template-columns:repeat(2,20px);gap:3px}
 .calendar-day-icons[data-count="2"] .calendar-day-icon{width:20px;height:20px}
+
+#calendar-day-settings{padding:14px}
+#calendar-day-settings .dialog-head{margin-bottom:8px}
+#calendar-day-settings .dialog-head h2{font-size:20px}
+#calendar-day-settings .dialog-note{font-size:11px;line-height:1.35;margin:8px 0}
+#calendar-day-settings .field{font-size:12px}
+#calendar-day-settings .field input{min-height:42px;padding:9px}
+#calendar-day-color-toggle{display:flex;align-items:center;gap:8px;width:100%;min-height:42px;margin:10px 0 8px;padding:8px 10px;text-align:left;font-size:12px}
+#calendar-day-color-current{width:20px;height:20px;flex:none;border:1px solid #8888;border-radius:50%}
+#calendar-day-color-name{flex:1}
+.calendar-day-color-choices[hidden]{display:none!important}
+#calendar-day-settings .calendar-icon-choices{grid-template-columns:repeat(6,minmax(0,1fr));gap:5px}
+#calendar-day-settings .calendar-icon-choices button{min-width:0;min-height:48px;padding:5px 2px;gap:3px}
+#calendar-day-settings .calendar-icon-choices svg{width:20px;height:20px;flex:none}
+#calendar-day-settings .calendar-icon-choices small{display:block;width:100%;font-size:8px;line-height:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#calendar-day-settings .dialog-actions{gap:6px;margin-top:10px}
+#calendar-day-settings .dialog-actions .btn{font-size:11px;padding:8px;min-height:40px}
+#calendar-day-settings .calendar-photo-actions .btn{font-size:12px;min-height:40px}
+#calendar-day-settings #calendar-photo-status:empty{display:none}
+#calendar-day-settings #calendar-photo-thumbnails{display:flex;gap:8px;overflow-x:auto;overscroll-behavior-x:contain}
+#calendar-day-settings .calendar-photo-thumb{flex:0 0 120px}
+#calendar-day-settings .calendar-photo-thumb img{height:70px}
+#calendar-day-settings .calendar-photo-thumb small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
