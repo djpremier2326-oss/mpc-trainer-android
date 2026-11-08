@@ -80,3 +80,18 @@ body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute::before{b
 body[data-design=ice][data-variant=violet] #violet-add-task{box-shadow:0 0 24px rgba(197,154,242,.48)!important}
 body[data-design=ice][data-variant=violet] .tabs>.ice-compose{box-shadow:0 0 18px rgba(197,154,242,.45)!important}
 body[data-design=ice][data-variant=violet] .tabs>.tab.active::after{box-shadow:0 0 10px rgba(197,154,242,.6)!important}
+/* Touch feedback must not leave rectangular browser focus/tap highlights. */
+body button,body a,body [role=button]{-webkit-tap-highlight-color:transparent}
+body[data-input-mode=pointer] button:focus,
+body[data-input-mode=pointer] button:focus-visible,
+body[data-input-mode=pointer] a:focus,
+body[data-input-mode=pointer] [role=button]:focus{outline:none!important}
+body[data-input-mode=keyboard] button:focus-visible{outline:2px solid #c59af2!important;outline-offset:2px}
+body.savings-view .app-heading{display:none!important}
+/* Media needs no decorative purple edge, glow or colored letterboxing. */
+body[data-design=ice][data-view=wishes] .wish-card{border:0!important;box-shadow:none!important;background:transparent!important}
+body[data-design=ice][data-view=wishes] .wish-image{background:transparent!important}
+/* Buttons are controls, not selectable text. Editors and note content are unaffected. */
+button,button *{user-select:none!important;-webkit-user-select:none!important;-webkit-touch-callout:none;-webkit-user-drag:none}
+body .tabs button,body .tabs button *{transition:none!important;animation:none!important}
+body .tabs>.tab:active{background:transparent!important}

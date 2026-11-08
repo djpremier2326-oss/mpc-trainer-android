@@ -257,3 +257,43 @@ test('brand silhouette and glow are present; leaving home has no intermediate an
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('touch navigation leaves no focus rectangles; keyboard focus remains visible',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();state.prefs.mainMenu=['day','calendar','notes'];render()});
+  for(const section of ['calendar','notes','day','calendar','day']){
+   await page.locator(section==='day'?'.tabs [data-ice-action=today]':`.tabs [data-tab=${section}]`).tap();
+   const focus=await page.evaluate(()=>{const el=document.activeElement,css=getComputedStyle(el);return {outline:css.outlineStyle,tap:css.webkitTapHighlightColor,mode:document.body.dataset.inputMode}});
+   assert.equal(focus.outline,'none');assert.equal(focus.tap,'rgba(0, 0, 0, 0)');assert.equal(focus.mode,'pointer');
+  }
+  await page.keyboard.press('Tab');assert.equal(await page.evaluate(()=>document.body.dataset.inputMode),'keyboard');
+  await page.locator('#violet-add-task').focus();assert.notEqual(await page.locator('#violet-add-task').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+  await page.locator('.tabs [data-tab=calendar]').tap();assert.equal(await page.locator('.tabs [data-tab=calendar]').evaluate(el=>getComputedStyle(el).outlineStyle),'none');
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('favorites have no purple media edge and savings has no duplicate date',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'wishes')});
+  const png=await page.evaluate(()=>{const c=document.createElement('canvas');c.width=60;c.height=80;c.getContext('2d').fillRect(0,0,60,80);return c.toDataURL().split(',')[1]});
+  await page.locator('[data-wish-add]').first().tap();await page.locator('#wish-file').setInputFiles({name:'original.png',mimeType:'image/png',buffer:Buffer.from(png,'base64')});
+  await page.waitForFunction(()=>!!wishDraftPhoto);await page.locator('#wish-save').tap();await page.waitForFunction(()=>document.querySelector('.wish-image img')?.naturalWidth>0);
+  const card=await page.locator('.wish-card').first().evaluate(el=>({border:getComputedStyle(el).borderTopWidth,shadow:getComputedStyle(el).boxShadow,bg:getComputedStyle(el.querySelector('.wish-image')).backgroundColor}));
+  assert.deepEqual(card,{border:'0px',shadow:'none',bg:'rgba(0, 0, 0, 0)'});
+  await page.evaluate(()=>navigate(selected,'savings'));assert.equal(await page.locator('.app-heading').isVisible(),false);assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#e9ddf7');
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('button labels cannot be selected or copied; note editor remains selectable',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  const labels=await page.locator('.tabs button span').evaluateAll(els=>els.map(el=>({select:getComputedStyle(el).userSelect,animation:getComputedStyle(el).animationName,transition:getComputedStyle(el).transitionDuration})));
+  assert.ok(labels.length>0);assert.ok(labels.every(x=>x.select==='none'&&x.animation==='none'&&x.transition==='0s'));
+  assert.equal(await page.locator('.tabs button').first().evaluate(el=>{const e=new MouseEvent('contextmenu',{bubbles:true,cancelable:true});return el.dispatchEvent(e)}),false);
+  await page.evaluate(()=>navigate(selected,'notes'));await page.locator('#note-add').tap();await page.locator('#note-rich').fill('Этот текст можно выделить');
+  assert.notEqual(await page.locator('#note-rich').evaluate(el=>getComputedStyle(el).userSelect),'none');assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

@@ -1,6 +1,11 @@
 /* Calendar-only controls. Schedule is part of the normal saved/exported preferences. */
 (()=>{
 'use strict';
+document.body.dataset.inputMode='pointer';
+document.addEventListener('contextmenu',e=>{if(e.target.closest('button'))e.preventDefault()});
+document.addEventListener('selectstart',e=>{if(e.target.parentElement?.closest('button')||e.target.closest?.('button'))e.preventDefault()});
+document.addEventListener('pointerdown',()=>{document.body.dataset.inputMode='pointer'},true);
+document.addEventListener('keydown',e=>{if(['Tab','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key))document.body.dataset.inputMode='keyboard'},true);
 const patterns={'2/2':['work','work','off','off'],'3/3':['work','work','work','off','off','off'],'1/3':['work','off','off','off'],'5/2':['work','work','work','work','work','off','off'],daynight:['day','night','off','off']};
 const labels={work:'Рабочая смена',day:'Дневная смена',night:'Ночная смена',off:'Выходной'};
 function config(){const c=state.prefs.calendarSchedule;if(!c||!validDate(c.start)||!Array.isArray(c.pattern)||!c.pattern.length||c.pattern.length>62||!c.pattern.every(k=>Object.hasOwn(labels,k))||!c.colors||!Object.keys(labels).every(k=>/^#[0-9a-f]{6}$/i.test(c.colors[k])))return null;return c}
