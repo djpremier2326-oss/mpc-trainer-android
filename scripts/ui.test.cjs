@@ -18,8 +18,8 @@ async function open(){
  const context=await browser.newContext({viewport:{width:393,height:851},isMobile:true,hasTouch:true,timezoneId:'Europe/Moscow'});
  const page=await context.newPage();page.setDefaultTimeout(8000);const errors=[];page.on('pageerror',e=>errors.push(e.message));
  await page.addInitScript(()=>{
-  window.nativeColors=[];
-  window.AndroidFiles={friendSchedule:()=>false,themeColors:(bg,dark)=>nativeColors.push({bg,dark}),startupMetrics:()=>{},hideKeyboard:()=>{},syncReminders:()=>true,notificationStatus:()=>'{"supported":true,"notifications":true,"exact":true}'};
+  window.nativeColors=[];window.statusColors=[];
+  window.AndroidFiles={friendSchedule:()=>false,statusBarColor:(color,dark)=>statusColors.push({color,dark}),themeColors:(bg,dark)=>nativeColors.push({bg,dark}),startupMetrics:()=>{},hideKeyboard:()=>{},syncReminders:()=>true,notificationStatus:()=>'{"supported":true,"notifications":true,"exact":true}'};
  });
  await page.goto(origin+'/index.html');await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
  await page.evaluate(()=>window.onAndroidReady?.());assert.deepEqual(errors,[]);
@@ -104,5 +104,18 @@ test('calendar top panel, shift cycles, colors, persistence and removal',async()
   await page.locator('#calendar-schedule-open').tap();await page.locator('#calendar-schedule-remove').tap();assert.equal(await page.locator('.calendar-shift-label').count(),0);assert.equal(await page.evaluate(()=>state.iceMarks.days['2026-11-09']),'purple');
   await page.evaluate(()=>navigate('2027-04-05','calendar'));await page.locator('#calendar-today').tap();assert.equal(await page.evaluate(()=>selected),await page.evaluate(()=>iso()));
   await page.evaluate(()=>navigate(selected,'day'));assert.equal(await page.locator('#calendar-top-tools').isVisible(),false);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('compact calendar header matches system bar across all themes and resets on exit',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const variant of Object.keys(palettes)){
+   await page.evaluate(v=>{state.prefs.variant=v;applyTheme();navigate(selected,'calendar')},variant);
+   const chrome=await page.evaluate(()=>({height:document.getElementById('calendar-top-tools').getBoundingClientRect().height,top:getComputedStyle(document.getElementById('calendar-top-tools')).background,bottom:getComputedStyle(document.querySelector('.tabs')).background,status:statusColors.at(-1)}));
+   assert.ok(chrome.height<=52,JSON.stringify(chrome));assert.equal(chrome.top,chrome.bottom);assert.match(chrome.status.color,/^#[0-9a-f]{6}$/);if(variant==='violet')assert.equal(chrome.status.color,'#000000');
+   await page.evaluate(()=>navigate(selected,'notes'));assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'');
+  }
+  assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

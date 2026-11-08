@@ -95,4 +95,21 @@ public class PlannerStartupTest {
         }
     }
     @Test @Config(sdk=35) public void android15StartsWithTheSameNeutralWindow()throws Exception{oldBluePreferenceCannotPaintAnIntermediateScreen();}
+    @Test public void calendarStatusBarMatchesPanelWithoutChangingSavedTheme()throws Exception{
+        theme(0xff171126);
+        var c=Robolectric.buildActivity(LaunchOnlyActivity.class).setup();var a=c.get();
+        try{
+            set(a,"pageReady",true);call(a,"applyWindowTheme");
+            a.new BackupBridge().statusBarColor("#000000",true);
+            assertEquals(0xff000000,a.getWindow().getStatusBarColor());
+            assertEquals(0,a.getWindow().getDecorView().getSystemUiVisibility()&View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR);
+            assertEquals(0xff171126,((ColorDrawable)((FrameLayout)get(a,"root")).getBackground()).getColor());
+            assertEquals(0xff171126,a.getSharedPreferences("appearance",0).getInt("background",0));
+            a.new BackupBridge().statusBarColor("#c7c7c7",false);
+            assertEquals(0xffc7c7c7,a.getWindow().getStatusBarColor());
+            assertTrue((a.getWindow().getDecorView().getSystemUiVisibility()&View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR)!=0);
+            a.new BackupBridge().statusBarColor("",true);
+            assertEquals(0xff171126,a.getWindow().getStatusBarColor());
+        }finally{c.pause().stop().destroy();}
+    }
 }
