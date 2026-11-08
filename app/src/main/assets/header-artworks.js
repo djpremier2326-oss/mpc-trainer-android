@@ -17,26 +17,31 @@ window.plannerHeaderImages=[
   },
   {
     "id": "header-04",
+    "edgeFade": "both",
     "title": "Заставка 4",
     "src": "header-images/header_04.png"
   },
   {
     "id": "header-05",
+    "edgeFade": "both",
     "title": "Заставка 5",
     "src": "header-images/header_05.png"
   },
   {
     "id": "header-06",
+    "edgeFade": "both",
     "title": "Заставка 6",
     "src": "header-images/header_06.png"
   },
   {
     "id": "header-07",
+    "edgeFade": "both",
     "title": "Заставка 7",
     "src": "header-images/header_07.png"
   },
   {
     "id": "header-08",
+    "edgeFade": "both",
     "title": "Заставка 8",
     "src": "header-images/header_08.png"
   },
@@ -47,6 +52,7 @@ window.plannerHeaderImages=[
   },
   {
     "id": "header-10",
+    "edgeFade": "right",
     "title": "Заставка 10",
     "src": "header-images/header_10.png"
   }

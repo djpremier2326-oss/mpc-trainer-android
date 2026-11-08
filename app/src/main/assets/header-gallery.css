@@ -1,6 +1,10 @@
-.header-artwork-image{position:absolute;inset:0 0 24px;display:block;width:100%;height:calc(100% - 24px);object-fit:contain;object-position:center;z-index:1;pointer-events:none;user-select:none;-webkit-user-select:none}
+.header-artwork-image{position:absolute;top:0;left:50%;display:block;width:min(100%,336px);height:auto;aspect-ratio:3/1;transform:translateX(-50%);object-fit:contain;object-position:center;z-index:1;pointer-events:none;user-select:none;-webkit-user-select:none}
 .header-artwork-image[hidden]{display:none!important}
 .header-artwork-swipe{position:absolute;inset:0 0 28px;z-index:3;touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent}
 body[data-input-mode=pointer] .header-artwork-swipe:focus{outline:none}
 body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute[data-header-artwork=image]::before,
 body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute[data-header-artwork=image]::after{display:none!important}
+
+/* Fade only the cut sides of the individual artwork, preserving the center. */
+.header-artwork-image[data-edge-fade=both]{-webkit-mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent);mask-image:linear-gradient(to right,transparent,#000 6%,#000 94%,transparent)}
+.header-artwork-image[data-edge-fade=right]{-webkit-mask-image:linear-gradient(to right,#000 94%,transparent);mask-image:linear-gradient(to right,#000 94%,transparent)}
