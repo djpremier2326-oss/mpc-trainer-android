@@ -27,6 +27,7 @@ PATCHES = [
     'scripts/apply-favorites-renaming.py',
     'scripts/apply-reminder-bell-fix.py',
     'scripts/remove-auto-day-switch.py',
+    'scripts/separate-photos.py',
 ]
 
 def prepare():
@@ -43,8 +44,8 @@ def prepare():
         assert html.count(startup)==1, 'Planner startup insertion marker missing'
         # Install section renderers before the very first render, including when
         # Calendar is the first menu item. No legacy controls may reach appReady.
-        html=html.replace(startup,'initializeExtras();\n</script><script src="calendar-tools.js"></script><script src="calendar-icon-library.js"></script><script src="calendar-day-settings.js"></script><script src="more-menu.js"></script><script src="home-date-strip.js"></script><script src="calendar-photos.js"></script><script src="note-albums.js"></script><script src="section-controls.js"></script><script src="header-artworks.js"></script><script src="header-gallery.js"></script><script src="album-gallery.js"></script><script>\ntab=state.prefs.mainMenu[0];')
-        html=html.replace('</head>','<link rel="stylesheet" href="calendar-tools.css"><link rel="stylesheet" href="navigation-overlay.css"><link rel="stylesheet" href="calendar-day-settings.css"><link rel="stylesheet" href="more-menu.css"><link rel="stylesheet" href="home-date-strip.css"><link rel="stylesheet" href="calendar-photos.css"><link rel="stylesheet" href="note-albums.css"><link rel="stylesheet" href="section-controls.css"><link rel="stylesheet" href="header-gallery.css"><link rel="stylesheet" href="theme-consistency.css"><link rel="stylesheet" href="album-gallery.css"></head>')
+        html=html.replace(startup,'initializeExtras();\n</script><script src="photos-section.js"></script><script src="calendar-tools.js"></script><script src="calendar-icon-library.js"></script><script src="calendar-day-settings.js"></script><script src="more-menu.js"></script><script src="home-date-strip.js"></script><script src="calendar-photos.js"></script><script src="note-albums.js"></script><script src="section-controls.js"></script><script src="header-artworks.js"></script><script src="header-gallery.js"></script><script src="album-gallery.js"></script><script>\ntab=state.prefs.mainMenu[0];')
+        html=html.replace('</head>','<link rel="stylesheet" href="calendar-tools.css"><link rel="stylesheet" href="navigation-overlay.css"><link rel="stylesheet" href="calendar-day-settings.css"><link rel="stylesheet" href="more-menu.css"><link rel="stylesheet" href="home-date-strip.css"><link rel="stylesheet" href="calendar-photos.css"><link rel="stylesheet" href="note-albums.css"><link rel="stylesheet" href="section-controls.css"><link rel="stylesheet" href="header-gallery.css"><link rel="stylesheet" href="theme-consistency.css"><link rel="stylesheet" href="album-gallery.css"><link rel="stylesheet" href="photos-section.css"></head>')
         html=html.replace('</body>','<script src="navigation-overlay.js"></script></body>')
         page.write_text(html)
         destination.mkdir(parents=True,exist_ok=True)

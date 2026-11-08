@@ -1,13 +1,13 @@
 /* All sections remain reachable. Only the bottom-panel duplicates are filtered. */
 (()=>{
 'use strict';
-const defaults=['wishes','workout','calculator','notes','savings','day','week','calendar','events','settings'];
+const defaults=['wishes','workout','calculator','photos','notes','savings','day','week','calendar','events','settings'];
 const icons={wishes:'speaker',workout:'workout',calculator:'calculator',notes:'notes',savings:'savings',day:'today',week:'week',calendar:'calendar',settings:'gear'};
 const titles={...MAIN_SECTIONS,calculator:'Калькулятор',settings:'Настройки'};
 const list=$('ice-tools-list'),dialog=$('ice-menu-dialog');
 function order(){const saved=state.prefs.moreMenuOrder;return [...new Set([...(Array.isArray(saved)?saved.filter(id=>defaults.includes(id)):[]),...defaults])]}
 function visible(){const bottom=state.prefs.mainMenu||[];return order().filter(id=>!bottom.includes(id))}
-function draw(){list.innerHTML=visible().map(id=>'<button type="button" data-more-menu="'+id+'" aria-label="'+titles[id]+'"><span>'+(id==='events'?uiIcon('bell'):iceIcon(icons[id]))+'</span><span><strong>'+titles[id]+'</strong></span><b aria-hidden="true">≡</b></button>').join('')}
+function draw(){list.innerHTML=visible().map(id=>'<button type="button" data-more-menu="'+id+'" aria-label="'+titles[id]+'"><span>'+(id==='photos'?photosIcon():id==='events'?uiIcon('bell'):iceIcon(icons[id]))+'</span><span><strong>'+titles[id]+'</strong></span><b aria-hidden="true">≡</b></button>').join('')}
 openIceMenu=function(){if(!$('more-menu-hint')){const hint=document.createElement('p');hint.id='more-menu-hint';hint.className='dialog-note';hint.textContent='Зажми раздел и перетащи, чтобы изменить порядок.';list.before(hint)}draw();if(!dialog.open)dialog.showModal()};
 let pending=null,drag=null,blockClick=false;
 function stopPending(){if(pending)clearTimeout(pending.timer);pending=null}

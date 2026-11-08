@@ -20,7 +20,7 @@ mediaOpenPreview=async function(id){
   viewer.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();mediaOverlayClose()}else if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();track.scrollBy({left:track.clientWidth*(e.key==='ArrowRight'?1:-1),behavior:'smooth'})}});
  }catch(error){mediaOverlayClose();toast('Не удалось открыть файл: '+error.message)}
 };
-function active(){return selectionFolder!==null&&selectionFolder===mediaFolderActive&&tab==='notes'}
+function active(){return selectionFolder!==null&&selectionFolder===mediaFolderActive&&tab==='photos'}
 function clear(){selected.clear();selectionFolder=null;paint()}
 function paint(){
  let bar=$('album-selection-bar');const grid=$('notes-media-grid');

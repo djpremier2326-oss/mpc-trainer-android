@@ -62,7 +62,7 @@ test('resuming the page keeps its current editor and does not show media overlay
 test('latest media folder menus and full-screen photo viewer survive relaunch',async()=>{
  const {page,context,errors}=await open();
  try{
-  await page.evaluate(()=>navigate(selected,'notes'));
+  await page.evaluate(()=>navigate(selected,'photos'));
   await page.locator('[data-media-new-folder]').tap();await page.locator('#media-folder-name').fill('Мои фото');await page.locator('[data-media-action="create-save"]').tap();
   await page.locator('[data-media-folder-menu]').tap();await page.locator('[data-media-action="folder-rename"]').tap();await page.locator('#media-folder-name').fill('Сохранённые фото');await page.locator('[data-media-action="folder-rename-save"]').tap();
   await page.locator('[data-media-folder-open]').tap();
@@ -72,7 +72,7 @@ test('latest media folder menus and full-screen photo viewer survive relaunch',a
   await page.locator('[data-media-preview]').waitFor({state:'visible'});await page.locator('[data-media-preview]').tap();
   await page.waitForFunction(()=>document.querySelector('.media-viewer-stage img')?.naturalWidth===20);
   await page.locator('[data-media-viewer-close]').tap();
-  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.evaluate(()=>navigate(selected,'notes'));
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.evaluate(()=>navigate(selected,'photos'));
   assert.match(await page.locator('[data-media-folder-open]').innerText(),/Сохранённые фото/);await page.locator('[data-media-folder-open]').tap();
   await page.locator('[data-media-preview]').waitFor({state:'visible'});await page.locator('[data-media-preview]').tap();await page.waitForFunction(()=>document.querySelector('.media-viewer-stage img')?.naturalWidth===20);
   const stored=await page.evaluate(async()=>{const item=(await mediaQuery(mediaFolderActive))[0];return {name:item.name,size:item.blob.size,type:item.type}});
@@ -132,7 +132,7 @@ test('home stays black; notes have flat controls with working search and actions
   await page.locator('#note-add').tap();await page.locator('#note-title').fill('Проверка поиска');await page.locator('#note-rich').fill('Запись на чёрной панели');await page.locator('#note-save').tap();await page.locator('#notes-back').tap();
   await page.locator('#notes-search').fill('Нет такой записи');assert.equal(await page.locator('[data-note-open]').count(),0);
   await page.locator('#notes-search').fill('Проверка поиска');assert.equal(await page.locator('[data-note-open]').count(),1);
-  await page.locator('#notes-search').fill('');assert.equal(await page.locator('[data-media-new-folder]').isVisible(),true);
+  await page.locator('#notes-search').fill('');assert.equal(await page.locator('[data-media-new-folder]').isVisible(),false);
   await page.screenshot({path:'/workspace/.planner-startup-review/notes-black-panel.png'});
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -435,7 +435,7 @@ test('more menu excludes bottom sections, exposes all remaining sections and ope
   for(const menu of [['day','calendar','notes'],['notes','workout','savings'],['events','wishes','week']]){
    await page.evaluate(menu=>{state.prefs.mainMenu=menu;render()},menu);await page.locator('#ice-add').tap();
    const sections=await page.locator('[data-more-menu]').evaluateAll(els=>els.filter(el=>el.parentElement.id==='ice-tools-list').map(el=>el.dataset.moreMenu));
-   const all=['day','week','calendar','notes','savings','events','wishes','workout','calculator','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
+   const all=['day','week','calendar','notes','savings','events','wishes','workout','photos','calculator','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
    await page.locator('[data-close="ice-menu-dialog"]').tap();
   }
   await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];render()});await page.locator('#ice-add').tap();await page.locator('[data-more-menu=events]').tap();assert.equal(await page.evaluate(()=>tab),'events');assert.equal(await page.locator('#ice-menu-dialog').isVisible(),false);assert.deepEqual(errors,[]);
@@ -484,10 +484,10 @@ test('date strip extends in both directions without duplicate dates or losing da
  }finally{await context.close()}
 });
 
-test('calendar photos keep original bytes in Notes Calendar folder, show date markers and survive relaunch',async()=>{
+test('calendar photos keep original bytes in Photos Calendar folder, show date markers and survive relaunch',async()=>{
  const {page,context,errors}=await open();
  try{
-  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['calendar','notes','day'];applyTheme();persist();navigate('2026-11-08','calendar')});
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['calendar','photos','day'];applyTheme();persist();navigate('2026-11-08','calendar')});
   await holdCalendarDay(page,'2026-11-12');
   const png=Buffer.from(await page.evaluate(()=>{const c=document.createElement('canvas');c.width=80;c.height=120;const x=c.getContext('2d');x.fillStyle='#c59af2';x.fillRect(0,0,80,120);return c.toDataURL().split(',')[1]}),'base64');
   await page.locator('#calendar-photo-picker').setInputFiles([{name:'first-original.png',mimeType:'image/png',buffer:png},{name:'second-original.png',mimeType:'image/png',buffer:png}]);
@@ -497,7 +497,7 @@ test('calendar photos keep original bytes in Notes Calendar folder, show date ma
   assert.equal(stored.count,2);assert.equal(stored.folder,'Календарь');for(const bytes of stored.bytes)assert.deepEqual(Buffer.from(bytes),png);
   await page.locator('[data-calendar-photo-view]').first().tap();await page.locator('#calendar-photo-gallery').waitFor({state:'visible'});await page.locator('#calendar-gallery-close').tap();await page.locator('#calendar-day-settings-close').tap();
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.waitForFunction(()=>document.querySelector('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small')?.textContent==='2');
-  await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('.calendar-photo-thumb').count(),2);await page.locator('#calendar-photo-folder').tap();assert.equal(await page.evaluate(()=>tab),'notes');
+  await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('.calendar-photo-thumb').count(),2);await page.locator('#calendar-photo-folder').tap();assert.equal(await page.evaluate(()=>tab),'photos');
   await page.waitForFunction(()=>document.querySelectorAll('.notes-media-item').length===2);assert.equal(await page.locator('.calendar-photo-date').first().innerText(),'12 ноября 2026 г.');
   await page.locator('[data-media-preview]').first().tap();await page.locator('#notes-media-viewer').waitFor({state:'visible'});await page.locator('[data-media-viewer-close]').tap();
   await page.evaluate(()=>navigate('2026-11-08','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-photo-detach]').first().tap();await page.waitForFunction(()=>document.querySelectorAll('.calendar-photo-thumb').length===1);assert.equal(await page.evaluate(async()=>(await mediaQuery()).length),2);
@@ -542,7 +542,7 @@ test('week entries follow actual start times and show saved half-hour intervals 
  }finally{await context.close()}
 });
 
-test('Notes albums show three square covers per row, fitting names and correct file counts',async()=>{
+test('Photos albums show three square covers per row, fitting names and correct file counts',async()=>{
  const {page,context,errors}=await open();
  try{
   await page.evaluate(async()=>{
@@ -551,13 +551,13 @@ test('Notes albums show three square covers per row, fitting names and correct f
    await mediaPut({id:'album-file-one',folder:'album-calendar',name:'Оригинал.png',type:'image/png',blob,created:1});
    await mediaPut({id:'album-file-two',folder:'album-photo',name:'Фото.png',type:'image/png',blob,created:2});
    await mediaPut({id:'album-file-three',folder:'album-photo',name:'Фото 2.png',type:'image/png',blob,created:3});
-   navigate(selected,'notes');
+   navigate(selected,'photos');
   });
   await page.waitForFunction(()=>document.querySelector('[data-album-id="album-calendar"] .notes-album-count')?.textContent==='1');
   const initial=await page.locator('.notes-album').first().evaluate(el=>el.getBoundingClientRect().width);assert.equal(await page.locator('.notes-album').count(),2);
   assert.equal(await page.locator('[data-album-id=album-photo] .notes-album-count').innerText(),'2');
   assert.equal(await page.locator('[data-album-id=album-calendar] .notes-album-name').evaluate(el=>el.scrollWidth<=el.clientWidth),true);
-  await page.evaluate(()=>{state.mediaFolders.push({id:'album-empty',name:'Пустая'},{id:'album-long',name:'Длинное название папки с фотографиями'});persist();renderNotes()});await page.waitForFunction(()=>document.querySelector('[data-album-id="album-empty"] .notes-album-count')?.textContent==='0');
+  await page.evaluate(()=>{state.mediaFolders.push({id:'album-empty',name:'Пустая'},{id:'album-long',name:'Длинное название папки с фотографиями'});persist();renderPhotos()});await page.waitForFunction(()=>document.querySelector('[data-album-id="album-empty"] .notes-album-count')?.textContent==='0');
   const layout=await page.locator('.notes-album').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),cover=el.querySelector('.notes-album-cover').getBoundingClientRect();return {top:b.top,left:b.left,width:b.width,coverWidth:cover.width,coverHeight:cover.height}}));
   assert.ok(Math.abs(layout[0].width-initial)<1);assert.equal(layout[0].top,layout[2].top);assert.ok(layout[3].top>layout[0].top);assert.ok(layout.every(b=>Math.abs(b.coverWidth-b.coverHeight)<1));
   assert.equal(await page.locator('.notes-album-cover img').count(),2);
@@ -572,7 +572,7 @@ test('album cover can display a frame from an original video file',async()=>{
   await page.evaluate(async()=>{
    const c=document.createElement('canvas');c.width=80;c.height=60;const x=c.getContext('2d');x.fillStyle='orange';x.fillRect(0,0,80,60);const stream=c.captureStream(10),chunks=[],recorder=new MediaRecorder(stream,{mimeType:'video/webm'});
    const done=new Promise(resolve=>{recorder.ondataavailable=e=>chunks.push(e.data);recorder.onstop=resolve});recorder.start();await new Promise(resolve=>setTimeout(resolve,200));recorder.stop();await done;stream.getTracks().forEach(t=>t.stop());const blob=new Blob(chunks,{type:'video/webm'});
-   state.mediaFolders=[{id:'video-album',name:'Видео'}];await mediaPut({id:'video-cover',folder:'video-album',name:'Original.webm',type:'video/webm',blob,created:1});navigate(selected,'notes');
+   state.mediaFolders=[{id:'video-album',name:'Видео'}];await mediaPut({id:'video-cover',folder:'video-album',name:'Original.webm',type:'video/webm',blob,created:1});navigate(selected,'photos');
   });
   await page.waitForFunction(()=>document.querySelector('.notes-album-cover video')?.readyState>=2);assert.equal(await page.locator('.notes-album-count').innerText(),'1');assert.equal(await page.locator('.notes-album-video').isVisible(),true);assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -741,11 +741,11 @@ test('palette correction stylesheet leaves Violet computed styles unchanged',asy
  }finally{await context.close()}
 });
 
-test('all Notes albums swipe photos without filenames and support long-hold batch deletion',async()=>{
+test('all Photos albums swipe photos without filenames and support long-hold batch deletion',async()=>{
  const {page,context,errors}=await open();
  try{
   await page.evaluate(async()=>{state.prefs.variant='violet';state.mediaFolders=[{id:'photos-a',name:'Фото'},{id:'photos-b',name:'Календарь'}];applyTheme();
-   for(let i=0;i<5;i++){const c=document.createElement('canvas');c.width=80;c.height=120;c.getContext('2d').fillRect(0,0,80,120);const blob=await new Promise(resolve=>c.toBlob(resolve));await mediaPut({id:'album-'+i,folder:i===4?'photos-b':'photos-a',name:'secret-file-'+i+'.png',type:'image/png',blob,created:i,calendarDate:i<3?'2026-11-12':null})}persist();mediaFolderActive='photos-a';navigate('2026-11-12','notes')});
+   for(let i=0;i<5;i++){const c=document.createElement('canvas');c.width=80;c.height=120;c.getContext('2d').fillRect(0,0,80,120);const blob=await new Promise(resolve=>c.toBlob(resolve));await mediaPut({id:'album-'+i,folder:i===4?'photos-b':'photos-a',name:'secret-file-'+i+'.png',type:'image/png',blob,created:i,calendarDate:i<3?'2026-11-12':null})}persist();mediaFolderActive='photos-a';navigate('2026-11-12','photos')});
   await page.locator('[data-media-preview]').first().waitFor();await page.locator('[data-media-preview="album-3"]').tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 4');assert.equal((await page.locator('.media-viewer-head').innerText()).includes('secret-file'),false);
   const track=page.locator('#album-gallery-track'),box=await track.boundingBox(),cdp=await context.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:box.width*.85,y:box.y+box.height*.5}]});for(let i=1;i<=10;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:box.width*(.85-.7*i/10),y:box.y+box.height*.5}]});await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();await page.waitForFunction(()=>document.querySelector('#album-gallery-count').textContent==='2 / 4');
   await page.locator('[data-media-viewer-close]').tap();assert.equal(await page.evaluate(()=>mediaFolderActive),'photos-a');assert.equal(await page.locator('[data-media-preview]').count(),4);
@@ -755,7 +755,19 @@ test('all Notes albums swipe photos without filenames and support long-hold batc
   page.once('dialog',dialog=>dialog.dismiss());await page.locator('[data-album-delete]').tap();assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-a')).length),4);assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 2');
   await page.screenshot({path:'/workspace/.planner-startup-review/album-selection-144.png'});page.once('dialog',dialog=>dialog.accept());await page.locator('[data-album-delete]').tap();await page.waitForFunction(async()=>(await mediaQuery('photos-a')).length===2);await page.waitForFunction(()=>document.querySelectorAll('[data-media-preview]').length===2);assert.equal(await page.locator('#album-selection-bar').isVisible(),false);assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-b')).length),1);
   await page.evaluate(()=>navigate('2026-11-12','calendar'));await page.waitForFunction(()=>document.querySelector('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small')?.textContent==='2');
-  await page.evaluate(()=>{mediaFolderActive='photos-b';navigate(selected,'notes')});await page.locator('[data-media-preview="album-4"]').tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 1');await page.locator('[data-media-viewer-close]').tap();
+  await page.evaluate(()=>{mediaFolderActive='photos-b';navigate(selected,'photos')});await page.locator('[data-media-preview="album-4"]').tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 1');await page.locator('[data-media-viewer-close]').tap();
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-a')).length),2);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('Photos is separate from Notes, retains old albums and can be the startup section',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.mediaFolders=[{id:'legacy-photos',name:'Старый альбом'}];state.notes=[{id:'text-note',title:'Моя заметка',text:'Текст сохранён',created:new Date().toISOString(),updated:new Date().toISOString()}];state.prefs.variant='violet';applyTheme();persist();navigate(selected,'notes')});
+  assert.equal(await page.locator('[data-note-open=text-note]').count(),1);assert.equal(await page.locator('.notes-media-folders,[data-media-new-folder]').count(),0);
+  await page.locator('#ice-add').tap();await page.locator('[data-more-menu=photos]').tap();assert.equal(await page.evaluate(()=>tab),'photos');assert.equal(await page.locator('[data-media-folder-open=legacy-photos]').count(),1);assert.equal(await page.locator('[data-note-open]').count(),0);
+  await page.evaluate(()=>{state.prefs.mainMenu=['photos','calendar','notes'];persist();render()});assert.equal(await page.locator('.tabs [data-tab=photos] svg').count(),1);await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>tab),'photos');assert.equal(await page.locator('[data-media-folder-open=legacy-photos]').count(),1);
+  await page.locator('#ice-add').tap();assert.equal(await page.locator('[data-more-menu=photos]').count(),0);await page.locator('[data-close="ice-menu-dialog"]').tap();await page.locator('.tabs [data-tab=notes]').tap();assert.equal(await page.locator('[data-note-open=text-note]').count(),1);assert.equal(await page.locator('[data-media-folder-open]').count(),0);
+  await page.evaluate(()=>navigate('2026-11-09','calendar'));await holdCalendarDay(page,'2026-11-12');assert.ok((await page.locator('.calendar-photo-section').innerText()).includes('Фото → Календарь'));assert.equal((await page.locator('.calendar-photo-section').innerText()).includes('Заметки'),false);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

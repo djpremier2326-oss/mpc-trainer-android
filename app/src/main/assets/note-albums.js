@@ -19,7 +19,7 @@ async function covers(){
   });
  }catch(error){if(grid.isConnected)grid.querySelectorAll('.notes-album-count').forEach(label=>{label.textContent='Не удалось загрузить'})}
 }
-const originalNotes=renderNotes;renderNotes=function(){dispose();originalNotes();covers()};
+const originalNotes=renderPhotos;renderPhotos=function(){dispose();originalNotes();covers()};
 // Release decoded covers when navigating away, not only when Notes rerenders.
-const originalRender=render;render=function(){if(tab!=='notes')dispose();originalRender()};
+const originalRender=render;render=function(){if(tab!=='photos')dispose();originalRender()};
 })();

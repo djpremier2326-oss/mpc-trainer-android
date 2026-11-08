@@ -1,0 +1,3 @@
+body[data-design=ice][data-view=photos] .toolbar{display:none!important}
+.photos-tools{justify-content:flex-end}
+.photos-tools>strong{margin-right:auto;font-size:18px}
