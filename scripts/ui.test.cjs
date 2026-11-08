@@ -173,7 +173,7 @@ test('workout uses the same compact header as calendar and notes; history and ex
     await page.evaluate(({variant,section})=>{state.prefs.variant=variant;applyTheme();navigate(selected,section)},{variant,section});
     heights.push(await page.locator(section==='calendar'?'#calendar-top-tools':section==='notes'?'.notes-tools':'.workout-heading').evaluate(el=>el.getBoundingClientRect().height));
    }
-   assert.deepEqual(heights,[50,50,50]);
+   assert.deepEqual(heights,[44,44,44]);
    assert.equal(await page.locator('.app-heading').isVisible(),false);
    assert.equal(await page.locator('.workout-heading').evaluate(el=>getComputedStyle(el).backgroundColor),'rgba(0, 0, 0, 0)');
    assert.match(await page.evaluate(()=>statusColors.at(-1).color),/^#[0-9a-f]{6}$/);
@@ -206,14 +206,14 @@ test('lavender status bar in all secondary sections; home and bottom navigation 
  }finally{await context.close()}
 });
 
-test('lavender-on-black header buttons and a smaller violet hero leave more timeline visible',async()=>{
+test('light header buttons and a smaller violet hero leave more timeline visible',async()=>{
  const {page,context,errors}=await open();
  try{
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'calendar')});
   for(const section of ['calendar','notes','workout']){
    await page.evaluate(section=>navigate(selected,section),section);
    const buttons=page.locator(section==='calendar'?'#calendar-top-tools button':section==='notes'?'.notes-tools .btn':'.workout-heading button');
-   for(const button of await buttons.all())assert.deepEqual(await button.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,ink:getComputedStyle(el).color})),{bg:'rgb(0, 0, 0)',ink:'rgb(197, 154, 242)'});
+   for(const button of await buttons.all())assert.deepEqual(await button.evaluate(el=>({bg:getComputedStyle(el).backgroundColor,ink:getComputedStyle(el).color})),{bg:'rgb(251, 248, 255)',ink:'rgb(23, 19, 34)'});
   }
   await page.evaluate(()=>navigate(selected,'day'));
   assert.equal(await page.locator('.ice-hero').evaluate(el=>el.getBoundingClientRect().height),124);
@@ -326,7 +326,7 @@ test('calendar startup has only compact right-aligned actions and restores shift
   assert.equal(await page.evaluate(()=>tab),'calendar');assert.equal(await page.locator('.calendar-jump').isVisible(),false);assert.equal(await page.locator('#calendar-top-tools').count(),1);assert.equal(await page.locator('#calendar-today').count(),1);
   assert.ok(await page.locator('.calendar-shift-label').count()>0);
   const actions=await page.locator('#calendar-top-tools').evaluate(el=>{const b=el.getBoundingClientRect(),buttons=[...el.querySelectorAll('button')];return {width:b.width,left:buttons[0].getBoundingClientRect().left-b.left,right:b.right-buttons[1].getBoundingClientRect().right,buttons:buttons.map(x=>({width:x.getBoundingClientRect().width,height:x.getBoundingClientRect().height,font:getComputedStyle(x).fontSize,bg:getComputedStyle(x).backgroundColor}))}});
-  assert.ok(actions.left>actions.width*.4,JSON.stringify(actions));assert.ok(actions.right<=14);assert.ok(actions.buttons.every(b=>b.width<120&&b.height===42&&b.font==='12px'&&b.bg==='rgb(0, 0, 0)'));
+  assert.ok(actions.left>actions.width*.4,JSON.stringify(actions));assert.ok(actions.right<=14);assert.ok(actions.buttons.every(b=>b.width<120&&b.height===36&&b.font==='12px'&&b.bg==='rgb(251, 248, 255)'));
   await page.locator('#calendar-schedule-open').tap();assert.equal(await page.locator('#calendar-schedule-dialog').isVisible(),true);await page.locator('#calendar-schedule-close').tap();await page.locator('#calendar-today').tap();
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-start-115.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -601,5 +601,33 @@ test('calendar day settings open compact with collapsed colors and readily acces
   await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');
   await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),false);assert.equal(await page.locator('[data-calendar-day-color=green]').getAttribute('aria-pressed'),'true');
   await page.screenshot({path:'/workspace/.planner-startup-review/compact-day-settings-130.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('section actions share light buttons, black text and top alignment; week retains date selection',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  const tops=[];
+  for(const [section,selector] of [['calendar','#calendar-top-tools button'],['week','.toolbar .nav .btn'],['notes','.notes-tools .btn'],['workout','.workout-heading button'],['wishes','.wishes-heading-actions .btn'],['events','.events-tools .btn'],['savings','#savings-configure']]){
+   await page.evaluate(section=>{state.prefs.variant='violet';applyTheme();navigate(selected,section)},section);
+   const buttons=await page.locator(selector).evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),s=getComputedStyle(el);return {top:b.top,height:b.height,bg:s.backgroundColor,ink:s.color,font:s.fontSize,family:s.fontFamily}}));
+   assert.ok(buttons.length>0,section);assert.ok(buttons.every(b=>b.height===36&&b.bg==='rgb(251, 248, 255)'&&b.ink==='rgb(23, 19, 34)'&&b.font==='12px'),JSON.stringify({section,buttons}));tops.push({section,top:buttons[0].top});
+   if(section==='calendar')assert.equal(await page.locator('#calendar-top-tools svg').count(),0);
+   if(section==='week'){assert.equal(await page.locator('.app-heading').isVisible(),false);assert.equal(await page.locator('#date').isVisible(),true)}
+  }
+  assert.ok(tops.every(t=>Math.abs(t.top-tops[0].top)<1),JSON.stringify(tops));
+  await page.evaluate(()=>navigate(selected,'calendar'));await page.screenshot({path:'/workspace/.planner-startup-review/light-controls-calendar-131.png'});
+  await page.evaluate(()=>navigate(selected,'week'));await page.screenshot({path:'/workspace/.planner-startup-review/light-controls-week-131.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('week keeps date picker and arrows for moving between weeks',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>navigate('2026-11-09','week'));assert.equal(await page.locator('#date').isVisible(),true);
+  await page.locator('#next').tap();assert.equal(await page.evaluate(()=>selected),'2026-11-16');assert.equal(await page.evaluate(()=>tab),'week');
+  await page.locator('#prev').tap();assert.equal(await page.evaluate(()=>selected),'2026-11-09');
+  await page.locator('#date').fill('2026-12-14');await page.locator('#date').dispatchEvent('change');assert.equal(await page.evaluate(()=>selected),'2026-12-14');assert.equal(await page.evaluate(()=>tab),'week');
+  await page.locator('#today').tap();assert.equal(await page.evaluate(()=>selected),await page.evaluate(()=>iso()));assert.equal(await page.evaluate(()=>tab),'week');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

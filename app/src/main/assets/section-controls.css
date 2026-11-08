@@ -1,0 +1,27 @@
+/* One placement and size for top actions on the lavender page, without a panel. */
+:root{--section-toolbar-height:44px}
+body[data-design=ice]:not([data-view=day]) .app-heading{display:none!important}
+body[data-design=ice]:not([data-view=day]) #view{padding-top:0!important}
+body[data-design=ice][data-view=week] .toolbar{display:flex;flex:none;justify-content:flex-end;align-items:center;height:44px;min-height:44px;margin:0 0 7px;padding:4px 12px}
+body[data-view=week] .toolbar .period-title{display:none!important}
+body[data-view=week] .toolbar .nav{width:100%;display:flex;justify-content:flex-end;align-items:center;gap:8px}
+body[data-design=ice].calendar-view #calendar-top-tools{height:44px;min-height:44px;padding:4px 12px}
+body[data-design=ice].notes-view .notes-tools,body[data-design=ice].notes-view .notes-media-toolbar,body[data-design=ice][data-view=workout] .workout-heading{height:44px;min-height:44px;padding-top:4px;padding-bottom:4px}
+body[data-design=ice].notes-view .notes-tools #notes-search{height:36px;min-height:36px}
+body[data-design=ice] .notes-media-gallery{padding-top:0;padding-left:0;padding-right:0}
+body[data-design=ice] .wishes-page{padding-top:0;padding-left:0;padding-right:0}
+body[data-design=ice] .wishes-heading{height:44px;min-height:44px;display:flex;flex-direction:row;justify-content:flex-end;align-items:center;margin:0 -12px 10px;padding:4px 12px}
+body[data-design=ice] .wishes-heading-actions{align-self:center;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+body[data-design=ice] .events-tools{height:44px;min-height:44px;display:flex;align-items:center;justify-content:flex-end;gap:8px;margin:0 -12px 10px;padding:4px 12px}
+body[data-design=ice] .savings-top{align-items:flex-start;margin-top:0;padding-top:3px}
+body[data-design=ice] .savings-top .btn{margin-top:0;align-self:flex-start}
+body[data-design=ice]:not([data-view=day]) :is(#calendar-top-tools button,.notes-tools .btn,.notes-media-toolbar .btn,.note-full-actions .btn,.workout-heading button,.wishes-heading-actions .btn,.events-tools .btn,#savings-configure,.toolbar .nav .btn){
+ box-sizing:border-box;height:36px!important;min-height:36px!important;min-width:0!important;width:auto!important;
+ padding:7px 10px!important;border:1px solid #c9a6e1!important;border-radius:12px!important;
+ background:#fbf8ff!important;background-image:none!important;color:#171322!important;
+ font-family:PlannerManrope,system-ui,sans-serif!important;font-size:12px!important;font-weight:600!important;line-height:20px!important;
+ box-shadow:0 2px 6px #0002!important;white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:0;
+}
+
+body[data-view=week] #date{display:block;flex:1;min-width:0;width:auto;max-width:none;box-sizing:border-box;height:36px;min-height:36px;padding:7px 8px;border:1px solid #c9a6e1;border-radius:12px;background:#fbf8ff;color:#171322;font-family:PlannerManrope,system-ui,sans-serif;font-size:12px;box-shadow:0 2px 6px #0002}
+body[data-view=week] .toolbar .nav .arrow{width:36px!important;flex:0 0 36px}
