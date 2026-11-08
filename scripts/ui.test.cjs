@@ -631,3 +631,16 @@ test('week keeps date picker and arrows for moving between weeks',async()=>{
   await page.locator('#today').tap();assert.equal(await page.evaluate(()=>selected),await page.evaluate(()=>iso()));assert.equal(await page.evaluate(()=>tab),'week');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('new everyday icons are searchable and categorized, and running plus basketball persist on a calendar day',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['calendar','notes','day'];applyTheme();persist();navigate('2026-11-08','calendar')});await holdCalendarDay(page,'2026-11-12');
+  assert.ok(await page.locator('[data-calendar-icon]').count()>=40);await page.locator('[data-icon-category=sport]').tap();assert.equal(await page.locator('[data-calendar-icon=run]').isVisible(),true);assert.equal(await page.locator('[data-calendar-icon=ball-basketball]').isVisible(),true);assert.equal(await page.locator('[data-calendar-icon=wallet]').isVisible(),false);
+  await page.locator('[data-calendar-icon=run]').tap();await page.locator('#calendar-icon-search').fill('баскет');assert.equal(await page.locator('[data-calendar-icon=ball-basketball]').isVisible(),true);await page.locator('[data-calendar-icon=ball-basketball]').tap();
+  await page.locator('[data-icon-category=selected]').tap();assert.equal(await page.locator('.calendar-icon-choices [aria-pressed=true]:visible').count(),2);
+  await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').count(),2);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').count(),2);
+  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-icon-category=all]').tap();await page.screenshot({path:'/workspace/.planner-startup-review/calendar-icons-132.png'});await page.locator('#calendar-icon-search').fill('зубы');assert.equal(await page.locator('[data-calendar-icon=dental]').isVisible(),true);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
