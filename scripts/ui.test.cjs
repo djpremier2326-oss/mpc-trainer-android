@@ -137,3 +137,29 @@ test('home and notes have black system chrome; notes controls retain search and 
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('scrolling content extends behind rounded bottom navigation in every theme',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const variant of Object.keys(palettes)){
+   for(const section of ['day','calendar','notes']){
+    await page.evaluate(({variant,section})=>{state.prefs.variant=variant;applyTheme();navigate(selected,section)},{variant,section});
+    await page.waitForTimeout(50);
+    const bounds=await page.evaluate(()=>{
+     const nav=document.querySelector('main>.tabs'),view=document.getElementById('view'),n=nav.getBoundingClientRect(),v=view.getBoundingClientRect();
+     return {navBottom:n.bottom,viewBottom:v.bottom,navPosition:getComputedStyle(nav).position,cornerTag:document.elementFromPoint(n.left+1,n.top+1)?.closest('.tabs')!==null};
+    });
+    assert.equal(bounds.navPosition,'absolute');assert.ok(bounds.viewBottom>=bounds.navBottom-1,JSON.stringify(bounds));assert.equal(bounds.cornerTag,false);
+   }
+  }
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate('2026-11-08','day')});
+  await page.locator('.violet-event-paper').evaluate(el=>el.scrollTop=el.scrollHeight);
+  const end=await page.evaluate(()=>{
+   const nav=document.querySelector('.tabs').getBoundingClientRect(),paper=document.querySelector('.violet-event-paper'),track=document.querySelector('.violet-event-timeline').getBoundingClientRect();
+   return {paperBottom:paper.getBoundingClientRect().bottom,navBottom:nav.bottom,trackBottom:track.bottom};
+  });
+  assert.ok(end.paperBottom>=end.navBottom-1);assert.ok(end.trackBottom>=end.navBottom-1);
+  await page.screenshot({path:'/workspace/.planner-startup-review/bottom-corners-fixed.png'});
+  assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

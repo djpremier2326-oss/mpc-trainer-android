@@ -38,7 +38,7 @@ def prepare():
         for patch in PATCHES:
             subprocess.run([sys.executable,str(ROOT / patch)],cwd=work,check=True)
         page=assets / 'index.html'
-        page.write_text(page.read_text().replace('</head>','<link rel="stylesheet" href="calendar-tools.css"></head>').replace('</body>','<script src="calendar-tools.js"></script></body>'))
+        page.write_text(page.read_text().replace('</head>','<link rel="stylesheet" href="calendar-tools.css"><link rel="stylesheet" href="navigation-overlay.css"></head>').replace('</body>','<script src="calendar-tools.js"></script><script src="navigation-overlay.js"></script></body>'))
         destination.mkdir(parents=True,exist_ok=True)
         for child in destination.iterdir():
             if child.is_dir():shutil.rmtree(child)
