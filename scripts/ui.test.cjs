@@ -422,3 +422,34 @@ test('multiple calendar icons toggle independently, scale and survive relaunch a
   await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=""]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),0);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-text').innerText(),'Зал и врач');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+async function dragMenuItem(page,id,target,last=false){
+ const source=page.locator(`[data-more-menu="${id}"]`),destination=page.locator(`[data-more-menu="${target}"]`);await source.scrollIntoViewIfNeeded();const a=await source.boundingBox(),b=await destination.boundingBox(),cdp=await page.context().newCDPSession(page),x=a.x+a.width/2,y=a.y+a.height/2,end=last?b.y+b.height-3:b.y+3;
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x,y}]});await page.waitForTimeout(520);assert.equal(await page.locator('.more-menu-drag-ghost').isVisible(),true);
+ for(let i=1;i<=6;i++)await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x,y:y+(end-y)*i/6}]});
+ await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();
+}
+test('more menu excludes bottom sections, exposes all remaining sections and opens reminders',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const menu of [['day','calendar','notes'],['notes','workout','savings'],['events','wishes','week']]){
+   await page.evaluate(menu=>{state.prefs.mainMenu=menu;render()},menu);await page.locator('#ice-add').tap();
+   const sections=await page.locator('[data-more-menu]').evaluateAll(els=>els.filter(el=>el.parentElement.id==='ice-tools-list').map(el=>el.dataset.moreMenu));
+   const all=['day','week','calendar','notes','savings','events','wishes','workout','calculator','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
+   await page.locator('[data-close="ice-menu-dialog"]').tap();
+  }
+  await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];render()});await page.locator('#ice-add').tap();await page.locator('[data-more-menu=events]').tap();assert.equal(await page.evaluate(()=>tab),'events');assert.equal(await page.locator('#ice-menu-dialog').isVisible(),false);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('long-hold touch dragging reorders menu and persists without opening a section',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.mainMenu=['day','calendar','notes'];applyTheme();render()});await page.locator('#ice-add').tap();
+  await dragMenuItem(page,'workout','wishes');assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.equal(await page.evaluate(()=>tab),'day');assert.equal(await page.locator('#ice-menu-dialog').isVisible(),true);
+  await dragMenuItem(page,'savings','settings',true);assert.equal(await page.locator('#ice-tools-list>button').last().getAttribute('data-more-menu'),'savings');assert.equal(await page.locator('.more-menu-drag-ghost').count(),0);
+  await page.locator('[data-close="ice-menu-dialog"]').tap();await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.equal(await page.locator('#ice-tools-list>button').last().getAttribute('data-more-menu'),'savings');
+  await page.screenshot({path:'/workspace/.planner-startup-review/reordered-menu-121.png'});await page.locator('[data-more-menu=workout]').tap();assert.equal(await page.evaluate(()=>tab),'workout');
+  await page.evaluate(()=>{state.prefs.mainMenu=['workout','calendar','notes'];persist();render()});await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list [data-more-menu=workout]').count(),0);assert.equal(await page.locator('#ice-tools-list [data-more-menu=day]').count(),1);await page.locator('[data-close="ice-menu-dialog"]').tap();
+  await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];persist();render()});await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

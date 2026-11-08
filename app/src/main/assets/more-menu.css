@@ -1,0 +1,7 @@
+#ice-tools-list>button{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+#ice-tools-list>button>b{font-size:22px;opacity:.65}
+#ice-tools-list>.more-menu-drag-placeholder{opacity:.2}
+.more-menu-drag-ghost{position:fixed;z-index:2147483647;display:grid;grid-template-columns:31px minmax(0,1fr) 15px;gap:12px;align-items:center;min-height:60px;padding:12px 8px;border:1px solid #c59af2;border-radius:12px;background:var(--card,#fbf8ff);color:var(--text,#171322);box-shadow:0 5px 24px #0005;pointer-events:none;user-select:none;-webkit-user-select:none}
+.more-menu-drag-ghost svg{width:26px;height:26px;color:#c59af2}
+.more-menu-drag-ghost strong{font-size:14px}
+.more-menu-drag-ghost b{font-size:22px;font-weight:400}
