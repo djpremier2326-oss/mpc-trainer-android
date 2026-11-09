@@ -891,7 +891,7 @@ try{
  let local=null,readError=null;try{local=localStorage.getItem(KEY)}catch(e){readError=e}
  let mirrors=[];if(window.AndroidFiles?.vaultStates)mirrors=JSON.parse(AndroidFiles.vaultStates());
  const candidates=[mirrors[0],local,mirrors[1]];let loaded=false;
- for(const raw of candidates){if(!raw)continue;try{const parsed=JSON.parse(raw);if(validState(parsed)){state=parsed;loaded=true;break}}catch(e){}}
+ for(const raw of candidates){if(!raw)continue;try{const parsed=JSON.parse(raw);if(validState(parsed)){state=parsed;loaded=true;if(raw!==local&&(!local||(()=>{try{return !validState(JSON.parse(local))}catch(e){return true}})()))window.__vaultStorageRecovered=true;break}}catch(e){}}
  if(!loaded&&(candidates.some(Boolean)||readError))throw Error('Данные не прочитаны');
  // Save the unmodified pre-upgrade state before any normalization or new feature runs.
  if(loaded&&window.AndroidFiles?.vaultSaveState&&!AndroidFiles.vaultSaveState(JSON.stringify(state)))throw Error('Не удалось защитить исходную запись');

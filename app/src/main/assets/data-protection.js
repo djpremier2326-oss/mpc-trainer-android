@@ -13,7 +13,7 @@ function status(){
  label.textContent='Защищённая копия внутри приложения: '+date(s.localAt)+'. Зашифрованная облачная копия: '+date(s.externalAt)+'. '+(s.folder?'Облако подключено. ':'Подключи облако для защиты после удаления приложения. ')+(s.error||'');
  }catch(error){notifyError(error)}
 }
-function dirty(){revision++;if(restoring||window.__plannerLoadFailed)return;if(running){again=true;return}if(!timer)timer=setTimeout(()=>{timer=null;checkpoint().catch(notifyError)},15000)}
+function dirty(){revision++;if(restoring||window.__plannerLoadFailed||window.__vaultStorageRecovered)return;if(running){again=true;return}if(!timer)timer=setTimeout(()=>{timer=null;checkpoint().catch(notifyError)},15000)}
 window.vaultDirty=dirty;
 async function records(db,storeName){return new Promise((resolve,reject)=>{
  const tx=db.transaction(storeName,'readonly'),store=tx.objectStore(storeName),values=store.getAll(),keys=store.getAllKeys();
@@ -25,7 +25,8 @@ async function writeEntry(name,blob){
  for(let at=0;at<blob.size;at+=196608){const bytes=new Uint8Array(await blob.slice(at,at+196608).arrayBuffer());if(!native.vaultChunk(await encode(bytes)))throw Error('Не хватает места для копии');await new Promise(r=>setTimeout(r,0))}
  if(!native.vaultEndEntry())throw Error('Не удалось записать файл копии');
 }
-async function checkpoint(force=false){
+async function checkpoint(force=false,allowReduction=false){
+ if(window.__vaultStorageRecovered)throw Error('Записи восстановлены из защиты. Сначала восстанови полную копию с фото и видео: автокопирование приостановлено, чтобы не заменить прежние файлы');
  if(!force&&lastCompleted===revision)return true;
  if(window.__plannerLoadFailed)throw Error('Исходные данные не прочитаны. Автокопирование остановлено для их защиты');
  if(running)throw Error('Предыдущая копия ещё сохраняется');
@@ -36,6 +37,8 @@ async function checkpoint(force=false){
   const db=await mediaDB();const media=await records(db,'media');
   const wishDb=await wishPhotoDb();let wishes;try{wishes=await records(wishDb,'photos')}finally{wishDb.close()}
   if(started!==revision)throw Error('Записи изменились во время чтения. Повторю копирование');
+  const last=JSON.parse(native.vaultStatus());const reduction=(last.mediaCount>0&&media.length===0)||(last.notesCount>0&&!(saved.notes||[]).length);
+  if(reduction&&(!allowReduction||!confirm('В новой копии исчезли все фото/видео или все заметки. Если это не намеренное удаление, нажми «Отмена» и восстанови прежнюю копию. Подтверждаешь сохранение пустого раздела?')))throw Error('Резкое исчезновение данных: прежние копии защищены от перезаписи. Восстанови копию либо явно подтверди намеренное удаление через «Сохранить зашифрованную копию сейчас»');
   for(const wish of saved.wishes||[])if(!wishes.some(r=>r.key===wish.id))throw Error('Не найден файл избранного. Неполная копия не заменит прежнюю');
   if(!native.vaultBegin())throw Error('Не удалось начать копирование');
   const manifest={format:'black-deeds-vault-1',createdAt:new Date().toISOString(),state:saved,media:[],wishes:[]};let blobId=0;
@@ -45,7 +48,7 @@ async function checkpoint(force=false){
   await writeEntry('manifest.json',new Blob([JSON.stringify(manifest)],{type:'application/json'}));
   const result=await new Promise(resolve=>{pendingFinish=resolve;const legacy=native.vaultFinish();if(typeof legacy==='string')window.vaultSnapshotDone(legacy)});if(result.error)throw Error(result.error);lastCompleted=started;retryDelay=30000;status();return true;
  }catch(error){native.vaultAbort();notifyError(error);retry=true;throw error}
- finally{running=false;if(again&&!restoring){again=false;dirty()}else if(retry&&!restoring&&!window.__plannerLoadFailed){timer=setTimeout(()=>{timer=null;checkpoint().catch(notifyError)},retryDelay);retryDelay=Math.min(300000,retryDelay*2)}}
+ finally{running=false;if(again&&!restoring){again=false;dirty()}else if(retry&&!restoring&&!window.__plannerLoadFailed&&!window.__vaultStorageRecovered){timer=setTimeout(()=>{timer=null;checkpoint().catch(notifyError)},retryDelay);retryDelay=Math.min(300000,retryDelay*2)}}
 }
 window.vaultCheckpoint=checkpoint;
 // Watch committed changes, including media changes made without a state write.
@@ -64,7 +67,7 @@ window.restoreVaultArchive=async text=>{
   const manifest=JSON.parse(text);if(manifest.format!=='black-deeds-vault-1'||!validState(manifest.state)||!Array.isArray(manifest.media)||!Array.isArray(manifest.wishes))throw Error('Нужна полная копия «Чёрных дел»');
   if(!confirm('Восстановить полную копию от '+new Date(manifest.createdAt).toLocaleString('ru-RU')+'? Текущие данные сначала будут сохранены отдельной копией.'))return;
   if(running)throw Error('Дождись завершения текущей копии');
-  if(!window.__plannerLoadFailed)await checkpoint();
+  if(!window.__plannerLoadFailed&&!window.__vaultStorageRecovered)await checkpoint();
   restoring=true;window.__vaultRestoring=true;
   // Write into new databases and publish their names only with the restored state.
   // A failed import cannot modify current photos or reveal old hidden albums.
@@ -75,21 +78,21 @@ window.restoreVaultArchive=async text=>{
    for(const row of manifest.media){const {file,mime,bytes,...metadata}=row;await putRestored(mediaTarget,'media',{...metadata,blob:await readBlob(row)})}
    for(const row of manifest.wishes){if(!row.file&&typeof row.value!=='string')throw Error('Не прочитан файл избранного');await putRestored(wishTarget,'photos',row.file?await readBlob(row):row.value,row.id)}
   }finally{mediaTarget.close();wishTarget.close()}
-  const old=state,failed=window.__plannerLoadFailed;state=restored;window.__plannerLoadFailed=false;window.__vaultRestoring=false;
+  const old=state,failed=window.__plannerLoadFailed;state=restored;window.__plannerLoadFailed=false;window.__vaultStorageRecovered=false;window.__vaultRestoring=false;
   if(!persist()){state=old;window.__plannerLoadFailed=failed;throw Error('Восстановление не завершено: исходные данные сохранены')}
   location.reload();
  }catch(error){toast('Восстановление не завершено: '+notifyError(error),8000)}finally{restoring=false;window.__vaultRestoring=false;native.vaultCloseRestore()}
 };
 const settings=document.querySelector('#settings .settings-buttons');
 if(settings){const block=document.createElement('section');block.innerHTML='<h3>Защита скрытых данных</h3><p id="vault-status" role="status" class="dialog-note"></p><button class="btn" id="vault-password">Задать пароль облачных копий</button><button class="btn" id="vault-cloud-files">Подключить Google Диск / облачные файлы</button><button class="btn" id="vault-folder">Подключить папку другого облака</button><button class="btn" id="vault-now">Сохранить зашифрованную копию сейчас</button><button class="btn" id="vault-local">Восстановить защищённую копию приложения</button><button class="btn" id="vault-open">Восстановить зашифрованную копию из облака</button><p class="dialog-note">Содержимое скрытых папок, имена файлов и записи шифруются. В галерее и общих папках телефона копии не создаются. Для облачных автокопий задай пароль и выбери облачный диск в системном окне. Для Google Диска подключаются два файла A и B: приложение обновляет их по очереди, сохраняя предыдущую копию при сбое. После переустановки открой файл .bdvault из облака и введи пароль. Приложение не сможет восстановить забытый пароль. Копии создаются после изменений; проверяй дату последней облачной копии, свободное место и завершение синхронизации в выбранном облаке.</p>';settings.append(block);
- document.getElementById('vault-cloud-files').onclick=()=>native.vaultCloudFiles();document.getElementById('vault-password').onclick=()=>native.vaultPassword();document.getElementById('vault-folder').onclick=()=>native.vaultFolder();document.getElementById('vault-now').onclick=async()=>{try{await checkpoint(true);toast('Полная копия сохранена')}catch(error){toast(notifyError(error),8000)}};document.getElementById('vault-local').onclick=()=>native.vaultLocal();document.getElementById('vault-open').onclick=()=>native.vaultOpen();
+ document.getElementById('vault-cloud-files').onclick=()=>native.vaultCloudFiles();document.getElementById('vault-password').onclick=()=>native.vaultPassword();document.getElementById('vault-folder').onclick=()=>native.vaultFolder();document.getElementById('vault-now').onclick=async()=>{try{await checkpoint(true,true);toast('Полная копия сохранена')}catch(error){toast(notifyError(error),8000)}};document.getElementById('vault-local').onclick=()=>native.vaultLocal();document.getElementById('vault-open').onclick=()=>native.vaultOpen();
  const settingsDialog=document.getElementById('settings');new MutationObserver(status).observe(settingsDialog,{attributes:true,attributeFilter:['open']});
 }
 window.vaultPasswordConfigured=()=>{status();dirty()};
 window.vaultFolderSelected=async()=>{status();try{await checkpoint(true);if(JSON.parse(native.vaultStatus()).files)await checkpoint(true);toast('Облако подключено, зашифрованные копии проверены')}catch(error){toast(notifyError(error),8000)}};
-const oldExport=document.getElementById('export');if(oldExport){oldExport.hidden=true;oldExport.onclick=async()=>{try{await checkpoint(true);toast('Зашифрованная копия сохранена')}catch(error){toast(notifyError(error),8000)}};}
+const oldExport=document.getElementById('export');if(oldExport){oldExport.hidden=true;oldExport.onclick=async()=>{try{await checkpoint(true,true);toast('Зашифрованная копия сохранена')}catch(error){toast(notifyError(error),8000)}};}
 status();dirty();
-if(window.__plannerLoadFailed){const warning=document.createElement('div');warning.setAttribute('role','alert');warning.style.cssText='padding:16px;margin:12px;border:2px solid #c94747;border-radius:12px;background:var(--surface);color:var(--text)';warning.textContent='Данные не удалось прочитать. Исходные файлы сохранены, запись поверх них заблокирована. Открой Настройки → Защита скрытых данных, чтобы восстановить копию.';document.querySelector('main')?.prepend(warning);}
+if(window.__plannerLoadFailed||window.__vaultStorageRecovered){const warning=document.createElement('div');warning.setAttribute('role','alert');warning.style.cssText='padding:16px;margin:12px;border:2px solid #c94747;border-radius:12px;background:var(--surface);color:var(--text)';warning.textContent=window.__vaultStorageRecovered?'Записи восстановлены из независимого хранилища. Автокопирование приостановлено: восстанови полную копию с фото и видео в Настройках → Защита скрытых данных.':'Данные не удалось прочитать. Исходные файлы сохранены, запись поверх них заблокирована. Открой Настройки → Защита скрытых данных, чтобы восстановить копию.';document.querySelector('main')?.prepend(warning);}
 // Request a backup at background transition as well as through the debounce timer.
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&!running&&!window.__plannerLoadFailed)checkpoint().catch(notifyError)});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&!running&&!window.__plannerLoadFailed&&!window.__vaultStorageRecovered)checkpoint().catch(notifyError)});
 })();
