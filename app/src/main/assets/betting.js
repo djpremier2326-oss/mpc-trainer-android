@@ -1,8 +1,7 @@
 /* Temporary visible entry; a concealed entry will be decided separately. */
 (()=>{
 'use strict';
-// One-time reset of the trial ledger, requested before real use.
-if(!state.prefs.workTrialReset160){const previous=state.betting;delete state.betting;state.prefs.workTrialReset160=true;if(!persist()){delete state.prefs.workTrialReset160;if(previous!==undefined)state.betting=previous}}
+// Feature upgrades must never clear user ledgers.
 const engine=BettingCore;let history=false,displayDate='';
 const rub=value=>new Intl.NumberFormat('ru-RU',{minimumFractionDigits:value%100?2:0,maximumFractionDigits:2}).format(value/100)+' ₽';
 const signed=value=>(value>0?'+':'')+rub(value);

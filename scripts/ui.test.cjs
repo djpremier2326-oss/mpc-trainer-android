@@ -2,7 +2,7 @@ const {test,before,after}=require('node:test');
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),http=require('node:http');
 const {chromium}=require('playwright');
-const root=path.resolve('app/build/generated/plannerAssets');
+const root=path.resolve(process.env.PLANNER_ASSETS||'app/build/generated/plannerAssets');
 let browser,server,origin;
 before(async()=>{
  server=http.createServer((req,res)=>{
@@ -100,7 +100,7 @@ test('calendar top panel, shift cycles, colors, persistence and removal',async()
    assert.equal(await label('2026-11-09'),mode==='daynight'?'Ночь':'Смена');
    assert.equal(await label('2026-11-11'),mode==='custom'?'Смена':'Вых.');
   }
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-2.3.105.png'});
+  await page.screenshot({path:'work/ui-evidence/calendar-2.3.105.png'});
   await page.locator('#calendar-schedule-open').tap();await page.locator('#calendar-schedule-remove').tap();assert.equal(await page.locator('.calendar-shift-label').count(),0);assert.equal(await page.evaluate(()=>state.iceMarks.days['2026-11-09']),'purple');
   await page.evaluate(()=>navigate('2027-04-05','calendar'));await page.locator('#calendar-today').tap();assert.equal(await page.evaluate(()=>selected),await page.evaluate(()=>iso()));
   await page.evaluate(()=>navigate(selected,'day'));assert.equal(await page.locator('#calendar-top-tools').isVisible(),false);assert.deepEqual(errors,[]);
@@ -133,7 +133,7 @@ test('home stays black; notes have flat controls with working search and actions
   await page.locator('#notes-search').fill('Нет такой записи');assert.equal(await page.locator('[data-note-open]').count(),0);
   await page.locator('#notes-search').fill('Проверка поиска');assert.equal(await page.locator('[data-note-open]').count(),1);
   await page.locator('#notes-search').fill('');assert.equal(await page.locator('[data-media-new-folder]').isVisible(),false);
-  await page.screenshot({path:'/workspace/.planner-startup-review/notes-black-panel.png'});
+  await page.screenshot({path:'work/ui-evidence/notes-black-panel.png'});
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
@@ -159,7 +159,7 @@ test('scrolling content extends behind rounded bottom navigation in every theme'
    return {paperBottom:paper.getBoundingClientRect().bottom,navBottom:nav.bottom,trackBottom:track.bottom};
   });
   assert.ok(end.paperBottom>=end.navBottom-1);assert.ok(end.trackBottom>=end.navBottom-1);
-  await page.screenshot({path:'/workspace/.planner-startup-review/bottom-corners-fixed.png'});
+  await page.screenshot({path:'work/ui-evidence/bottom-corners-fixed.png'});
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
@@ -180,7 +180,7 @@ test('workout uses the same compact header as calendar and notes; history and ex
    assert.equal(await page.locator('.workout-heading h1').evaluate(el=>getComputedStyle(el).fontSize),'18px');
   }
   await page.locator('[data-workout-history]').tap();assert.equal(await page.locator('.workout-heading h1').innerText(),'История');await page.locator('[data-workout-back]').tap();
-  await page.screenshot({path:'/workspace/.planner-startup-review/workout-compact.png'});
+  await page.screenshot({path:'work/ui-evidence/workout-compact.png'});
   await page.locator('[data-workout-open]').first().tap();assert.equal(await page.locator('.workout-detail').isVisible(),true);
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -199,9 +199,9 @@ test('lavender status bar in all secondary sections; home and bottom navigation 
   }
   await page.evaluate(()=>navigate(selected,'day'));
   assert.equal(await page.evaluate(()=>statusColors.at(-1).color),'#000000');
-  await page.evaluate(()=>navigate(selected,'workout'));await page.screenshot({path:'/workspace/.planner-startup-review/workout-flat.png'});
-  await page.evaluate(()=>navigate(selected,'notes'));await page.screenshot({path:'/workspace/.planner-startup-review/notes-flat.png'});
-  await page.evaluate(()=>navigate(selected,'calendar'));await page.screenshot({path:'/workspace/.planner-startup-review/calendar-flat.png'});
+  await page.evaluate(()=>navigate(selected,'workout'));await page.screenshot({path:'work/ui-evidence/workout-flat.png'});
+  await page.evaluate(()=>navigate(selected,'notes'));await page.screenshot({path:'work/ui-evidence/notes-flat.png'});
+  await page.evaluate(()=>navigate(selected,'calendar'));await page.screenshot({path:'work/ui-evidence/calendar-flat.png'});
   assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
@@ -218,7 +218,7 @@ test('light header buttons and a smaller violet hero leave more timeline visible
   await page.evaluate(()=>navigate(selected,'day'));
   assert.equal(await page.locator('.ice-hero').evaluate(el=>el.getBoundingClientRect().height),124);
   assert.ok(await page.locator('.violet-event-paper').evaluate(el=>el.getBoundingClientRect().height)>500);
-  await page.screenshot({path:'/workspace/.planner-startup-review/compact-home-111.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/compact-home-111.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 test('double touch on empty timeline opens the same editor as plus; a single tap and drag do not',async()=>{
@@ -244,7 +244,7 @@ test('brand silhouette and glow are present; leaving home has no intermediate an
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();navigate(selected,'day')});
   const brand=await page.evaluate(()=>({logo:getComputedStyle(document.querySelector('.ice-tribute'),'::before').backgroundImage,plus:getComputedStyle(document.getElementById('violet-add-task')).boxShadow,menu:getComputedStyle(document.querySelector('.ice-compose')).boxShadow}));
   assert.ok(brand.logo.includes('swoosh.svg'));assert.equal(await page.evaluate(async()=>{const img=new Image();img.src='violet/swoosh.svg';await img.decode();return img.naturalWidth>0}),true);assert.notEqual(brand.plus,'none');assert.notEqual(brand.menu,'none');
-  await page.screenshot({path:'/workspace/.planner-startup-review/home-brand-112.png'});
+  await page.screenshot({path:'work/ui-evidence/home-brand-112.png'});
   for(const section of ['notes','calendar','workout','events','savings']){
    await page.evaluate(()=>navigate(selected,'day'));
    const frames=await page.evaluate(async section=>{
@@ -328,7 +328,7 @@ test('calendar startup has only compact right-aligned actions and restores shift
   const actions=await page.locator('#calendar-top-tools').evaluate(el=>{const b=el.getBoundingClientRect(),buttons=[...el.querySelectorAll('button')];return {width:b.width,left:buttons[0].getBoundingClientRect().left-b.left,right:b.right-buttons[1].getBoundingClientRect().right,buttons:buttons.map(x=>({width:x.getBoundingClientRect().width,height:x.getBoundingClientRect().height,font:getComputedStyle(x).fontSize,bg:getComputedStyle(x).backgroundColor}))}});
   assert.ok(actions.left>actions.width*.4,JSON.stringify(actions));assert.ok(actions.right<=14);assert.ok(actions.buttons.every(b=>b.width<120&&b.height===36&&b.font==='12px'&&b.bg==='rgb(251, 248, 255)'));
   await page.locator('#calendar-schedule-open').tap();assert.equal(await page.locator('#calendar-schedule-dialog').isVisible(),true);await page.locator('#calendar-schedule-close').tap();await page.locator('#calendar-today').tap();
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-start-115.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/calendar-start-115.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -352,7 +352,7 @@ test('mixed favorite photo and video previews have the same gap without stretchi
    assert.ok(boxes.every(b=>Math.abs(b.height-b.imageHeight)<.6&&Math.abs(b.ratio-b.naturalRatio)<.02),JSON.stringify(boxes));
   }
   assert.equal(await page.locator('.wish-play').count(),1);
-  await page.setViewportSize({width:393,height:851});await page.screenshot({path:'/workspace/.planner-startup-review/favorites-spacing-116.png'});assert.deepEqual(errors,[]);
+  await page.setViewportSize({width:393,height:851});await page.screenshot({path:'work/ui-evidence/favorites-spacing-116.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -373,7 +373,7 @@ test('long-press calendar labels and monochrome icons persist, edit and remove w
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>tab),'calendar');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Больница');
   await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings [name=text]').fill('');await page.locator('[data-calendar-icon=hospital]').tap();await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await cell.locator('.calendar-day-text').count(),0);assert.equal(await cell.locator('.calendar-day-icon').count(),1);
   await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-settings [name=text]').fill('Прогулка');await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-labels-117.png'});
+  await page.screenshot({path:'work/ui-evidence/calendar-labels-117.png'});
   await holdCalendarDay(page,'2026-11-11');await page.locator('#calendar-day-settings-remove').tap();assert.equal(await cell.locator('.calendar-day-note').count(),0);
   await page.waitForTimeout(1500);
   const day=page.locator('#cal-2026-11 [data-date="2026-11-12"]');await day.scrollIntoViewIfNeeded();const b=await day.boundingBox();await page.mouse.click(b.x+b.width/2,b.y+10);await page.waitForTimeout(80);await page.mouse.click(b.x+b.width/2,b.y+10);assert.equal(await page.evaluate(()=>tab),'day');assert.equal(await page.evaluate(()=>selected),'2026-11-12');
@@ -403,7 +403,7 @@ test('calendar day settings share day colors with schedule and keep draft change
   await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-color-toggle').tap();await page.locator('[data-calendar-day-color=green]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');assert.equal(await cell.locator('.calendar-day-icon').evaluate(el=>getComputedStyle(el).color),'rgb(0, 0, 0)');
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');
   await page.evaluate(()=>navigate('2026-11-12','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('#calendar-day-color-toggle').tap();await page.locator('[data-calendar-day-color=none]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'none');assert.equal(await cell.locator('.calendar-day-text').innerText(),'Зал');
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-colors-118.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/calendar-colors-118.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -417,7 +417,7 @@ test('multiple calendar icons toggle independently, scale and survive relaunch a
   assert.equal(await icons.count(),2);assert.equal(await icons.first().evaluate(el=>el.getBoundingClientRect().width),20);
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await icons.count(),2);
   await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=person]').tap();await page.locator('[data-calendar-icon=work]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),4);assert.equal(await icons.first().evaluate(el=>el.getBoundingClientRect().width),14);
-  assert.ok(await icons.evaluateAll(els=>els.every(el=>{const b=el.getBoundingClientRect(),c=el.closest('.cal-cell').getBoundingClientRect();return b.left>=c.left&&b.right<=c.right})));await page.screenshot({path:'/workspace/.planner-startup-review/calendar-multi-icons-119.png'});
+  assert.ok(await icons.evaluateAll(els=>els.every(el=>{const b=el.getBoundingClientRect(),c=el.closest('.cal-cell').getBoundingClientRect();return b.left>=c.left&&b.right<=c.right})));await page.screenshot({path:'work/ui-evidence/calendar-multi-icons-119.png'});
   await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=hospital]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),3);
   await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-icon=""]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await icons.count(),0);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-text').innerText(),'Зал и врач');assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -435,7 +435,7 @@ test('more menu excludes bottom sections, exposes all remaining sections and ope
   for(const menu of [['day','calendar','notes'],['notes','workout','savings'],['events','wishes','week']]){
    await page.evaluate(menu=>{state.prefs.mainMenu=menu;render()},menu);await page.locator('#ice-add').tap();
    const sections=await page.locator('[data-more-menu]').evaluateAll(els=>els.filter(el=>el.parentElement.id==='ice-tools-list').map(el=>el.dataset.moreMenu));
-   const all=['day','week','calendar','notes','savings','events','wishes','workout','photos','calculator','betting','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
+   const all=['day','week','calendar','notes','savings','events','wishes','workout','photos','calculator','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
    await page.locator('[data-close="ice-menu-dialog"]').tap();
   }
   await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];render()});await page.locator('#ice-add').tap();await page.locator('[data-more-menu=events]').tap();assert.equal(await page.evaluate(()=>tab),'events');assert.equal(await page.locator('#ice-menu-dialog').isVisible(),false);assert.deepEqual(errors,[]);
@@ -448,7 +448,7 @@ test('long-hold touch dragging reorders menu and persists without opening a sect
   await dragMenuItem(page,'workout','wishes');assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.equal(await page.evaluate(()=>tab),'day');assert.equal(await page.locator('#ice-menu-dialog').isVisible(),true);
   await dragMenuItem(page,'savings','settings',true);assert.equal(await page.locator('#ice-tools-list>button').last().getAttribute('data-more-menu'),'savings');assert.equal(await page.locator('.more-menu-drag-ghost').count(),0);
   await page.locator('[data-close="ice-menu-dialog"]').tap();await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.equal(await page.locator('#ice-tools-list>button').last().getAttribute('data-more-menu'),'savings');
-  await page.screenshot({path:'/workspace/.planner-startup-review/reordered-menu-121.png'});await page.locator('[data-more-menu=workout]').tap();assert.equal(await page.evaluate(()=>tab),'workout');
+  await page.screenshot({path:'work/ui-evidence/reordered-menu-121.png'});await page.locator('[data-more-menu=workout]').tap();assert.equal(await page.evaluate(()=>tab),'workout');
   await page.evaluate(()=>{state.prefs.mainMenu=['workout','calendar','notes'];persist();render()});await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list [data-more-menu=workout]').count(),0);assert.equal(await page.locator('#ice-tools-list [data-more-menu=day]').count(),1);await page.locator('[data-close="ice-menu-dialog"]').tap();
   await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];persist();render()});await page.locator('#ice-add').tap();assert.equal(await page.locator('#ice-tools-list>button').first().getAttribute('data-more-menu'),'workout');assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -467,7 +467,7 @@ test('home dates swipe both ways and open tomorrow directly to add a task',async
   await page.locator('#violet-add-task').tap();await page.locator('#violet-editor-text').fill('План на завтра');await page.locator('#violet-editor-start').fill('10:00');await page.locator('#violet-editor-end').fill('10:30');await page.locator('#violet-editor-done').tap();assert.equal(await page.locator('.violet-event-card').filter({hasText:'План на завтра'}).count(),1);
   const firstVisible=el=>{const left=el.getBoundingClientRect().left;return [...el.children].find(b=>b.getBoundingClientRect().right>left+8).dataset.date};const before=await nav.evaluate(firstVisible);await swipeDateStrip(page,false);assert.ok(await nav.evaluate(firstVisible)<before);
   await page.locator('.home-date-strip [data-date="2026-11-08"]').tap();assert.equal(await page.evaluate(()=>selected),'2026-11-08');assert.equal(await page.locator('.violet-event-card').filter({hasText:'План на завтра'}).count(),0);
-  await page.screenshot({path:'/workspace/.planner-startup-review/home-scroll-dates-122.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/home-scroll-dates-122.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 test('date strip extends in both directions without duplicate dates or losing day selection',async()=>{
@@ -502,7 +502,7 @@ test('calendar photos keep original bytes in Photos Calendar folder, show date m
   await page.locator('[data-media-preview]').first().tap();await page.locator('#notes-media-viewer').waitFor({state:'visible'});await page.locator('[data-media-viewer-close]').tap();
   await page.evaluate(()=>navigate('2026-11-08','calendar'));await holdCalendarDay(page,'2026-11-12');await page.locator('[data-calendar-photo-detach]').first().tap();await page.waitForFunction(()=>document.querySelectorAll('.calendar-photo-thumb').length===1);assert.equal(await page.evaluate(async()=>(await mediaQuery()).length),2);
   await page.locator('#calendar-day-settings-close').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small').innerText(),'1');
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-photo-marker-123.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/calendar-photo-marker-123.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -538,7 +538,7 @@ test('week entries follow actual start times and show saved half-hour intervals 
   const entries=await page.locator('.overview').first().locator('.preview-line').evaluateAll(els=>els.map(el=>({time:el.querySelector('.preview-time').textContent,title:el.querySelector('p').textContent})));
   assert.deepEqual(entries,[{time:'06:00–06:40',title:'Подъём'},{time:'06:40–07:30',title:'Прогулка'},{time:'07:30–08:00',title:'Завтрак'},{time:'08:00–10:00',title:'Работа'},{time:'12:30–13:00',title:'Обед'},{time:'15:00–16:00',title:'Тренировка'}]);
   assert.equal(await page.evaluate(()=>JSON.stringify(state.hourlyDays)===window.weekFixture),true);
-  await page.screenshot({path:'/workspace/.planner-startup-review/week-chronological-127.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/week-chronological-127.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -561,7 +561,7 @@ test('Photos albums show three square covers per row, fitting names and correct 
   const layout=await page.locator('.notes-album').evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),cover=el.querySelector('.notes-album-cover').getBoundingClientRect();return {top:b.top,left:b.left,width:b.width,coverWidth:cover.width,coverHeight:cover.height}}));
   assert.ok(Math.abs(layout[0].width-initial)<1);assert.equal(layout[0].top,layout[2].top);assert.ok(layout[3].top>layout[0].top);assert.ok(layout.every(b=>Math.abs(b.coverWidth-b.coverHeight)<1));
   assert.equal(await page.locator('.notes-album-cover img').count(),2);assert.equal(await page.locator('[data-album-id=album-calendar] .notes-album-cover svg').count(),0);assert.equal(await page.locator('[data-album-id=album-empty] .notes-album-cover svg').count(),1);
-  await page.screenshot({path:'/workspace/.planner-startup-review/note-albums-128.png'});
+  await page.screenshot({path:'work/ui-evidence/note-albums-128.png'});
   await page.locator('[data-media-folder-open=album-calendar]').tap();await page.waitForFunction(()=>document.querySelectorAll('.notes-media-item').length===1);assert.equal(await page.locator('.notes-media-toolbar strong').innerText(),'Календарь');
   await page.locator('[data-media-back]').tap();await page.locator('[data-media-folder-menu=album-empty]').tap();assert.equal(await page.locator('#notes-media-sheet').isVisible(),true);assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -586,7 +586,7 @@ test('note list cards have consistent compact previews with two text lines and b
   });
   const cards=await page.locator('#notes-list .note-card').evaluateAll(els=>els.map(el=>({height:el.getBoundingClientRect().height,text:el.querySelector('p').getBoundingClientRect().height,dates:[...el.querySelectorAll('small')].map(x=>x.textContent),clamp:getComputedStyle(el.querySelector('p')).webkitLineClamp})));
   assert.equal(cards.length,3);assert.ok(cards.every(c=>c.height===124&&c.text===36&&c.clamp==='2'&&c.dates.length===2));assert.ok(cards.every(c=>c.dates[0].startsWith('Создано:')&&c.dates[1].startsWith('Изменено:')));
-  await page.screenshot({path:'/workspace/.planner-startup-review/compact-note-previews-129.png'});
+  await page.screenshot({path:'work/ui-evidence/compact-note-previews-129.png'});
   await page.locator('[data-note-open=long-preview]').tap();assert.ok((await page.locator('#note-rich').innerText()).includes('Всё остальное остаётся внутри заметки'));assert.equal(await page.evaluate(()=>state.notes.find(n=>n.id==='long-preview').text.split('\n').length),103);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
@@ -600,7 +600,7 @@ test('calendar day settings open compact with collapsed colors and readily acces
   await page.locator('#calendar-day-color-toggle').tap();assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),true);await page.locator('[data-calendar-day-color=green]').tap();assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),false);assert.ok((await page.locator('#calendar-day-color-name').innerText()).includes('Салатовый'));
   await page.locator('[data-calendar-icon=person]').tap();await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.evaluate(()=>dayColor('2026-11-12')),'green');
   await holdCalendarDay(page,'2026-11-12');assert.equal(await page.locator('#calendar-day-color-choices').isVisible(),false);assert.equal(await page.locator('[data-calendar-day-color=green]').getAttribute('aria-pressed'),'true');
-  await page.screenshot({path:'/workspace/.planner-startup-review/compact-day-settings-130.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/compact-day-settings-130.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -616,8 +616,8 @@ test('section actions share light buttons, black text and top alignment; week re
    if(section==='week'){assert.equal(await page.locator('.app-heading').isVisible(),false);assert.equal(await page.locator('#date').isVisible(),true)}
   }
   assert.ok(tops.every(t=>Math.abs(t.top-tops[0].top)<1),JSON.stringify(tops));
-  await page.evaluate(()=>navigate(selected,'calendar'));await page.screenshot({path:'/workspace/.planner-startup-review/light-controls-calendar-131.png'});
-  await page.evaluate(()=>navigate(selected,'week'));await page.screenshot({path:'/workspace/.planner-startup-review/light-controls-week-131.png'});assert.deepEqual(errors,[]);
+  await page.evaluate(()=>navigate(selected,'calendar'));await page.screenshot({path:'work/ui-evidence/light-controls-calendar-131.png'});
+  await page.evaluate(()=>navigate(selected,'week'));await page.screenshot({path:'work/ui-evidence/light-controls-week-131.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -641,7 +641,7 @@ test('new everyday icons are searchable and categorized, and running plus basket
   await page.locator('[data-icon-category=selected]').tap();assert.equal(await page.locator('.calendar-icon-choices [aria-pressed=true]:visible').count(),2);
   await page.locator('#calendar-day-settings [type=submit]').tap();assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').count(),2);
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-12"] .calendar-day-icon').count(),2);
-  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-icon-category=all]').tap();await page.screenshot({path:'/workspace/.planner-startup-review/calendar-icons-132.png'});await page.locator('#calendar-icon-search').fill('зубы');assert.equal(await page.locator('[data-calendar-icon=dental]').isVisible(),true);assert.deepEqual(errors,[]);
+  await holdCalendarDay(page,'2026-11-12');await page.locator('[data-icon-category=all]').tap();await page.screenshot({path:'work/ui-evidence/calendar-icons-132.png'});await page.locator('#calendar-icon-search').fill('зубы');assert.equal(await page.locator('[data-calendar-icon=dental]').isVisible(),true);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -655,7 +655,7 @@ test('calendar icon groups align at the bottom regardless of text, task count an
   assert.equal(await page.locator('.calendar-month .cal-cell .dots').count(),0);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-09"] .cal-count').innerText(),'1 бл.');
   const layout=await page.evaluate(()=>['2026-11-09','2026-11-10','2026-11-11'].map(date=>{const cell=document.querySelector('#cal-2026-11 [data-date="'+date+'"]'),c=cell.getBoundingClientRect(),icons=cell.querySelector('.calendar-day-icons').getBoundingClientRect(),text=cell.querySelector('.calendar-day-text')?.getBoundingClientRect(),photo=cell.querySelector('.calendar-photo-badge')?.getBoundingClientRect();return {date,bottom:icons.bottom,offset:c.bottom-icons.bottom,textBottom:text?.bottom,photoBottom:photo?.bottom,iconsTop:icons.top}}));
   assert.ok(layout.every(x=>Math.abs(x.bottom-layout[0].bottom)<1),JSON.stringify(layout));assert.ok(layout.every(x=>x.offset>=6&&x.offset<=10),JSON.stringify(layout));assert.ok(layout.every(x=>(!x.textBottom||x.textBottom<x.iconsTop)&&(!x.photoBottom||x.photoBottom<x.iconsTop)),JSON.stringify(layout));
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-bottom-icons-133.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/calendar-bottom-icons-133.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -683,9 +683,9 @@ test('all ten original header pictures decode and remain selected after relaunch
   const hit=page.locator('.header-artwork-swipe');await hit.focus();
   for(let i=1;i<=10;i++){await hit.press('ArrowRight');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'header-'+String(i).padStart(2,'0'));await page.locator('.header-artwork-image').evaluate(image=>image.decode());
    const layout=await page.locator('.header-artwork-image').evaluate(image=>({width:image.getBoundingClientRect().width,mask:getComputedStyle(image).maskImage,fade:image.dataset.edgeFade,hero:image.parentElement.getBoundingClientRect().height}));assert.equal(layout.width,i===6?389:336);assert.equal(layout.hero,124);assert.equal(layout.fade,[4,5,6,7,8].includes(i)?'both':i===10?'right':'none');assert.equal(layout.mask==='none',![4,5,6,7,8,10].includes(i));
-   if(i===6)await page.screenshot({path:'/workspace/.planner-startup-review/header-city-135.png'});
+   if(i===6)await page.screenshot({path:'work/ui-evidence/header-city-135.png'});
   }
-  await page.screenshot({path:'/workspace/.planner-startup-review/header-original-134.png'});
+  await page.screenshot({path:'work/ui-evidence/header-original-134.png'});
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'header-10');await page.locator('.header-artwork-image').evaluate(image=>image.decode());
   await page.locator('.header-artwork-swipe').press('ArrowRight');assert.equal(await page.evaluate(()=>state.prefs.headerArtwork),'swoosh');assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -703,7 +703,7 @@ test('exercise rest counts down in a stationary round button and signals once on
   await page.evaluate(()=>{state.workout.timer.end=Date.now()+42000;workoutTick()});assert.equal(await button.locator('#workout-timer-value').innerText(),'42');
   await page.locator('[data-workout-add-time]').tap();assert.equal(await button.locator('#workout-timer-value').innerText(),'72');
   await page.evaluate(()=>{window.timerSignals=0;workoutSignal=()=>window.timerSignals++;state.workout.timer.end=Date.now()-1;workoutTick();workoutTick()});assert.equal(await page.evaluate(()=>timerSignals),1);assert.equal(await button.locator('#workout-timer-value').innerText(),'0');assert.equal(await button.locator('#workout-timer-label').isVisible(),true);assert.equal(await button.locator('#workout-timer-label').innerText(),'Отдых');
-  await button.tap();await page.screenshot({path:'/workspace/.planner-startup-review/workout-round-rest-137.png'});
+  await button.tap();await page.screenshot({path:'work/ui-evidence/workout-round-rest-137.png'});
   await page.locator('[data-workout-set="0"]').tap();assert.equal(await page.locator('.workout-rest-circle.running').count(),1);assert.equal(await page.locator('[data-workout-set="0"]').getAttribute('aria-pressed'),'true');
   await page.locator('[data-workout-stop-timer]').tap();assert.equal(await page.evaluate(()=>state.workout.timer),null);assert.ok((await button.innerText()).includes('Начать отдых'));assert.deepEqual(errors,[]);
  }finally{await context.close()}
@@ -754,7 +754,7 @@ test('all Photos albums swipe photos without filenames and support long-hold bat
   assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 1');assert.equal(await page.locator('#notes-media-viewer').count(),0);await page.locator('[data-media-preview="album-2"]').tap();assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 2');
   await page.locator('[data-album-select-all]').tap();assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 4');await page.locator('[data-album-select-all]').tap();assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 0');await page.locator('[data-media-preview="album-3"]').tap();await page.locator('[data-media-preview="album-2"]').tap();
   page.once('dialog',dialog=>dialog.dismiss());await page.locator('[data-album-delete]').tap();assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-a')).length),4);assert.equal(await page.locator('#album-selection-count').innerText(),'Выбрано: 2');
-  await page.screenshot({path:'/workspace/.planner-startup-review/album-selection-144.png'});page.once('dialog',dialog=>dialog.accept());await page.locator('[data-album-delete]').tap();await page.waitForFunction(async()=>(await mediaQuery('photos-a')).length===2);await page.waitForFunction(()=>document.querySelectorAll('[data-media-preview]').length===2);assert.equal(await page.locator('#album-selection-bar').isVisible(),false);assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-b')).length),1);
+  await page.screenshot({path:'work/ui-evidence/album-selection-144.png'});page.once('dialog',dialog=>dialog.accept());await page.locator('[data-album-delete]').tap();await page.waitForFunction(async()=>(await mediaQuery('photos-a')).length===2);await page.waitForFunction(()=>document.querySelectorAll('[data-media-preview]').length===2);assert.equal(await page.locator('#album-selection-bar').isVisible(),false);assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-b')).length),1);
   await page.evaluate(()=>navigate('2026-11-12','calendar'));await page.waitForFunction(()=>document.querySelector('#cal-2026-11 [data-date="2026-11-12"] .calendar-photo-badge small')?.textContent==='2');
   await page.evaluate(()=>{mediaFolderActive='photos-b';navigate(selected,'photos')});await page.locator('[data-media-preview="album-4"]').tap();assert.equal(await page.locator('#album-gallery-count').innerText(),'1 / 1');await page.locator('[data-media-viewer-close]').tap();
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(async()=>(await mediaQuery('photos-a')).length),2);assert.deepEqual(errors,[]);
@@ -828,7 +828,7 @@ test('calendar numbers sit at top right with reminder bell beside them in every 
    const layout=await page.locator('#cal-2026-11 [data-date="2026-11-12"]').evaluate(el=>{const cell=el.getBoundingClientRect(),number=el.querySelector('.calendar-date-number').getBoundingClientRect(),bell=el.querySelector('.cal-reminder').getBoundingClientRect(),text=el.querySelector('.calendar-day-text').getBoundingClientRect();return {right:cell.right-number.right,top:number.top-cell.top,centers:Math.abs((number.top+number.bottom-bell.top-bell.bottom)/2),bellRight:bell.right,numberLeft:number.left,textTop:text.top,headerBottom:number.bottom}});
    assert.ok(layout.right>=4&&layout.right<=8,JSON.stringify(layout));assert.ok(layout.top>=0&&layout.top<=4);assert.ok(layout.centers<1);assert.ok(layout.bellRight<layout.numberLeft);assert.ok(layout.textTop>=layout.headerBottom);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-13"] .cal-reminder').count(),0);
   }
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-right-corner-155.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/calendar-right-corner-155.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -837,8 +837,8 @@ test('calendar day text uses all lines without ellipsis, with or without icons',
  try{
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();const text='Больница утром потом магазин и прогулка вечером после работы';state.prefs.calendarDayNotes={'2026-11-12':{text,icons:[]},'2026-11-13':{text,icons:['hospital']}};navigate('2026-11-12','calendar')});
   for(const day of ['12','13']){const layout=await page.locator('#cal-2026-11 [data-date="2026-11-'+day+'"] .calendar-day-text').evaluate(el=>{const b=el.getBoundingClientRect(),cell=el.closest('.cal-cell').getBoundingClientRect(),s=getComputedStyle(el);return {height:b.height,scroll:el.scrollHeight,client:el.clientHeight,bottom:b.bottom,cellBottom:cell.bottom,clamp:s.webkitLineClamp}});assert.ok(layout.height>36,JSON.stringify(layout));assert.ok(layout.scroll<=layout.client+1,JSON.stringify(layout));assert.ok(layout.bottom<=layout.cellBottom-5,JSON.stringify(layout));assert.equal(layout.clamp,'none');}
-  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-full-text-157.png'});
-  await page.locator('#cal-2026-11 [data-date="2026-11-15"]').screenshot({path:'/workspace/.planner-startup-review/calendar-date-inset-157.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/calendar-full-text-157.png'});
+  await page.locator('#cal-2026-11 [data-date="2026-11-15"]').screenshot({path:'work/ui-evidence/calendar-date-inset-157.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -865,7 +865,7 @@ test('betting operations and actual odds recalculate the bank without editing fi
   await confirmBet(page,'day','win','2');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1230000);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),123000);
   await page.locator('[data-betting-operation=withdraw]').tap();await page.locator('#betting-bank-form [name=amount]').fill('20000');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.locator('#betting-operation-error').isVisible(),true);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1230000);await page.locator('#betting-bank-form [name=amount]').fill('300');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1200000);
   await page.locator('[data-betting-operation=correction]').tap();await page.locator('#betting-bank-form [name=amount]').fill('12050,50');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1205050);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),120500);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).current.stake),100000);
-  await page.screenshot({path:'/workspace/.planner-startup-review/betting-calculator-159.png'});assert.deepEqual(errors,[]);
+  await page.screenshot({path:'work/ui-evidence/betting-calculator-159.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
 
@@ -876,7 +876,7 @@ test('betting forms are readable in all themes and invalid odds do not change th
    await page.evaluate(variant=>{state.prefs.variant=variant;applyTheme();navigate(selected,'betting')},variant);
    if(!await page.evaluate(()=>!!state.betting)){await page.locator('#betting-setup [name=bank]').fill('10000');await page.locator('#betting-setup [type=submit]').tap()}
    await assertReadableControl(page.locator('[data-betting-operation=correction]'));await assertReadableControl(page.locator('[data-betting-result=night] [type=submit]'));
-   await page.screenshot({path:'/workspace/.planner-startup-review/betting-'+variant+'-159.png'});
+   await page.screenshot({path:'work/ui-evidence/betting-'+variant+'-159.png'});
   }
   const before=await page.evaluate(()=>JSON.stringify(state.betting));const form=page.locator('[data-betting-result=night]');await form.locator('[name=odds]').fill('0,5');await form.locator('[type=submit]').tap();assert.equal(await form.locator('[data-betting-form-error]').isVisible(),true);assert.equal(await page.evaluate(()=>JSON.stringify(state.betting)),before);
   await confirmBet(page,'night','return');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1000000);await confirmBet(page,'day','loss');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),900000);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),90000);assert.deepEqual(errors,[]);
@@ -889,7 +889,7 @@ test('betting compact completed day fits and full reset requires confirmation an
   await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();state.betting=BettingCore.create(1000000,iso());state.betting=BettingCore.settle(state.betting,'night','win',2000000);state.betting=BettingCore.settle(state.betting,'day','win',1500000);persist();navigate(selected,'betting');$('view').scrollTop=0});
   assert.equal(await page.locator('.betting-heading h1').count(),0);
   assert.equal(await page.evaluate(()=>document.querySelector('.betting-day-total').getBoundingClientRect().bottom<=document.querySelector('.tabs').getBoundingClientRect().top),true);
-  await page.screenshot({path:'/workspace/.planner-startup-review/betting-compact-violet-160.png'});
+  await page.screenshot({path:'work/ui-evidence/betting-compact-violet-160.png'});
   await page.locator('[data-betting-history]').tap();page.once('dialog',d=>d.dismiss());await page.locator('[data-betting-reset]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1150000);
   page.once('dialog',d=>d.accept());await page.locator('[data-betting-reset]').tap();assert.equal(await page.locator('#betting-setup').count(),1);assert.equal(await page.evaluate(()=>state.betting??null),null);
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await enterBetting(page);assert.equal(await page.locator('#betting-setup').count(),1);assert.deepEqual(errors,[]);
@@ -922,7 +922,7 @@ test('fresh install defaults to violet while blue header stays centered',async()
   assert.equal(await page.evaluate(()=>state.prefs.variant),'violet');
   await page.evaluate(()=>{state.prefs.variant='ice';applyTheme();render();persist()});
   const aligned=await page.evaluate(()=>{const a=document.querySelector('.ice-tribute').getBoundingClientRect(),b=document.querySelector('.ice-tupac-photo').getBoundingClientRect();return Math.abs((a.left+a.right)-(b.left+b.right))<2&&Math.abs(a.width-b.width)<2});assert.equal(aligned,true);
-  await page.screenshot({path:'/workspace/.planner-startup-review/blue-header-163.png'});
+  await page.screenshot({path:'work/ui-evidence/blue-header-163.png'});
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>state.prefs.variant),'ice');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
