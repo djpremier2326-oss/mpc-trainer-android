@@ -71,3 +71,7 @@ body[data-view=betting] .toolbar{display:none!important}
 .betting-heading:empty{display:none}
 
 .betting-heading{justify-content:space-between}
+
+.betting-bank{grid-template-columns:1fr;gap:4px}
+#betting-balance{text-align:left;justify-self:start}
+.betting-bank-actions{margin-top:3px}
