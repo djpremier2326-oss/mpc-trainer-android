@@ -435,7 +435,7 @@ test('more menu excludes bottom sections, exposes all remaining sections and ope
   for(const menu of [['day','calendar','notes'],['notes','workout','savings'],['events','wishes','week']]){
    await page.evaluate(menu=>{state.prefs.mainMenu=menu;render()},menu);await page.locator('#ice-add').tap();
    const sections=await page.locator('[data-more-menu]').evaluateAll(els=>els.filter(el=>el.parentElement.id==='ice-tools-list').map(el=>el.dataset.moreMenu));
-   const all=['day','week','calendar','notes','savings','events','wishes','workout','photos','calculator','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
+   const all=['day','week','calendar','notes','savings','events','wishes','workout','photos','calculator','betting','settings'];assert.deepEqual([...sections].sort(),all.filter(id=>!menu.includes(id)).sort());assert.equal(new Set(sections).size,sections.length);
    await page.locator('[data-close="ice-menu-dialog"]').tap();
   }
   await page.evaluate(()=>{state.prefs.mainMenu=['day','calendar','notes'];render()});await page.locator('#ice-add').tap();await page.locator('[data-more-menu=events]').tap();assert.equal(await page.evaluate(()=>tab),'events');assert.equal(await page.locator('#ice-menu-dialog').isVisible(),false);assert.deepEqual(errors,[]);
@@ -839,5 +839,46 @@ test('calendar day text uses all lines without ellipsis, with or without icons',
   for(const day of ['12','13']){const layout=await page.locator('#cal-2026-11 [data-date="2026-11-'+day+'"] .calendar-day-text').evaluate(el=>{const b=el.getBoundingClientRect(),cell=el.closest('.cal-cell').getBoundingClientRect(),s=getComputedStyle(el);return {height:b.height,scroll:el.scrollHeight,client:el.clientHeight,bottom:b.bottom,cellBottom:cell.bottom,clamp:s.webkitLineClamp}});assert.ok(layout.height>36,JSON.stringify(layout));assert.ok(layout.scroll<=layout.client+1,JSON.stringify(layout));assert.ok(layout.bottom<=layout.cellBottom-5,JSON.stringify(layout));assert.equal(layout.clamp,'none');}
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-full-text-157.png'});
   await page.locator('#cal-2026-11 [data-date="2026-11-15"]').screenshot({path:'/workspace/.planner-startup-review/calendar-date-inset-157.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+async function enterBetting(page){await page.locator('#ice-add').tap();await page.locator('[data-more-menu=betting]').tap();assert.equal(await page.evaluate(()=>tab),'betting')}
+async function confirmBet(page,slot,status,odds){const form=page.locator('[data-betting-result='+slot+']');await form.locator('[name=status]').selectOption(status);if(odds!==undefined)await form.locator('[name=odds]').fill(odds);page.once('dialog',dialog=>dialog.accept());await form.locator('[type=submit]').tap()}
+test('betting updates the bank immediately, fixes both stakes, and shows tomorrow only after the second result',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await enterBetting(page);await page.locator('#betting-setup [name=bank]').fill('10000');await page.locator('#betting-setup [type=submit]').tap();assert.equal(await page.locator('#betting-next').count(),0);assert.equal(await page.locator('[data-betting-result=day] [type=submit]').isDisabled(),true);
+  await confirmBet(page,'night','win','2,00');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1100000);assert.match(await page.locator('#betting-balance').innerText(),/11\s?000/);assert.equal(await page.locator('#betting-next').count(),0);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).current.stake),100000);assert.equal(await page.locator('[data-betting-result=night]').count(),0);
+  await confirmBet(page,'day','skip');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),110000);assert.equal(await page.locator('#betting-next').isVisible(),true);assert.equal(await page.locator('[data-betting-result]').count(),0);
+  const saved=await page.evaluate(()=>JSON.stringify(state.betting));await page.locator('[data-betting-history]').tap();assert.equal(await page.locator('.betting-history-result').count(),2);await page.locator('[data-betting-history]').tap();assert.equal(await page.evaluate(()=>JSON.stringify(state.betting)),saved);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await enterBetting(page);assert.equal(await page.evaluate(()=>JSON.stringify(state.betting)),saved);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1100000);
+  const next=await page.evaluate(()=>addDays(BettingCore.read(state.betting).current.date,1));await page.clock.install({time:new Date(next+'T12:00:00Z')});await page.evaluate(()=>renderBetting());await page.locator('[data-betting-open]').tap();const current=await page.evaluate(()=>BettingCore.read(state.betting).current);assert.equal(current.date,next);assert.equal(current.stake,110000);assert.equal(current.night,null);assert.equal(await page.locator('#betting-next').count(),0);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+test('betting operations and actual odds recalculate the bank without editing fixed stakes',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await enterBetting(page);await page.locator('#betting-setup [name=bank]').fill('10000');await page.locator('#betting-setup [type=submit]').tap();
+  const form=page.locator('[data-betting-result=night]');await form.locator('[name=odds]').fill('1,8');page.once('dialog',dialog=>dialog.dismiss());await form.locator('[type=submit]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1000000);assert.equal(await form.count(),1);
+  await confirmBet(page,'night','win','1,8');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1080000);
+  await page.locator('[data-betting-operation=deposit]').tap();await page.locator('#betting-bank-form [name=amount]').fill('500');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1130000);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).current.stake),100000);assert.equal(await page.locator('#betting-next').count(),0);
+  await confirmBet(page,'day','win','2');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1230000);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),123000);
+  await page.locator('[data-betting-operation=withdraw]').tap();await page.locator('#betting-bank-form [name=amount]').fill('20000');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.locator('#betting-operation-error').isVisible(),true);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1230000);await page.locator('#betting-bank-form [name=amount]').fill('300');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1200000);
+  await page.locator('[data-betting-operation=correction]').tap();await page.locator('#betting-bank-form [name=amount]').fill('12050,50');await page.locator('#betting-bank-form [type=submit]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1205050);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),120500);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).current.stake),100000);
+  await page.screenshot({path:'/workspace/.planner-startup-review/betting-calculator-159.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('betting forms are readable in all themes and invalid odds do not change the ledger',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  for(const variant of Object.keys(palettes)){
+   await page.evaluate(variant=>{state.prefs.variant=variant;applyTheme();navigate(selected,'betting')},variant);
+   if(!await page.evaluate(()=>!!state.betting)){await page.locator('#betting-setup [name=bank]').fill('10000');await page.locator('#betting-setup [type=submit]').tap()}
+   await assertReadableControl(page.locator('[data-betting-operation=correction]'));await assertReadableControl(page.locator('[data-betting-result=night] [type=submit]'));
+   await page.screenshot({path:'/workspace/.planner-startup-review/betting-'+variant+'-159.png'});
+  }
+  const before=await page.evaluate(()=>JSON.stringify(state.betting));const form=page.locator('[data-betting-result=night]');await form.locator('[name=odds]').fill('0,5');await form.locator('[type=submit]').tap();assert.equal(await form.locator('[data-betting-form-error]').isVisible(),true);assert.equal(await page.evaluate(()=>JSON.stringify(state.betting)),before);
+  await confirmBet(page,'night','return');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1000000);await confirmBet(page,'day','loss');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),900000);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),90000);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
