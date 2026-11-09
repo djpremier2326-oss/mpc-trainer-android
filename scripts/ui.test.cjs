@@ -825,8 +825,18 @@ test('calendar numbers sit at top right with reminder bell beside them in every 
   for(const variant of Object.keys(palettes)){
    await page.evaluate(variant=>{state.prefs.variant=variant;applyTheme();navigate('2026-11-12','calendar')},variant);
    const layout=await page.locator('#cal-2026-11 [data-date="2026-11-12"]').evaluate(el=>{const cell=el.getBoundingClientRect(),number=el.querySelector('.calendar-date-number').getBoundingClientRect(),bell=el.querySelector('.cal-reminder').getBoundingClientRect(),text=el.querySelector('.calendar-day-text').getBoundingClientRect();return {right:cell.right-number.right,top:number.top-cell.top,centers:Math.abs((number.top+number.bottom-bell.top-bell.bottom)/2),bellRight:bell.right,numberLeft:number.left,textTop:text.top,headerBottom:number.bottom}});
-   assert.ok(layout.right>=1&&layout.right<=5,JSON.stringify(layout));assert.ok(layout.top>=0&&layout.top<=4);assert.ok(layout.centers<1);assert.ok(layout.bellRight<layout.numberLeft);assert.ok(layout.textTop>=layout.headerBottom);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-13"] .cal-reminder').count(),0);
+   assert.ok(layout.right>=4&&layout.right<=8,JSON.stringify(layout));assert.ok(layout.top>=0&&layout.top<=4);assert.ok(layout.centers<1);assert.ok(layout.bellRight<layout.numberLeft);assert.ok(layout.textTop>=layout.headerBottom);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-13"] .cal-reminder').count(),0);
   }
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-right-corner-155.png'});assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('calendar day text uses all lines without ellipsis, with or without icons',async()=>{
+ const {page,context,errors}=await open();
+ try{
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();const text='Больница утром потом магазин и прогулка вечером после работы';state.prefs.calendarDayNotes={'2026-11-12':{text,icons:[]},'2026-11-13':{text,icons:['hospital']}};navigate('2026-11-12','calendar')});
+  for(const day of ['12','13']){const layout=await page.locator('#cal-2026-11 [data-date="2026-11-'+day+'"] .calendar-day-text').evaluate(el=>{const b=el.getBoundingClientRect(),cell=el.closest('.cal-cell').getBoundingClientRect(),s=getComputedStyle(el);return {height:b.height,scroll:el.scrollHeight,client:el.clientHeight,bottom:b.bottom,cellBottom:cell.bottom,clamp:s.webkitLineClamp}});assert.ok(layout.height>36,JSON.stringify(layout));assert.ok(layout.scroll<=layout.client+1,JSON.stringify(layout));assert.ok(layout.bottom<=layout.cellBottom-5,JSON.stringify(layout));assert.equal(layout.clamp,'none');}
+  await page.screenshot({path:'/workspace/.planner-startup-review/calendar-full-text-157.png'});
+  await page.locator('#cal-2026-11 [data-date="2026-11-15"]').screenshot({path:'/workspace/.planner-startup-review/calendar-date-inset-157.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
