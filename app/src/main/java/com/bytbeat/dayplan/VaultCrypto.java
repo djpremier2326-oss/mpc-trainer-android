@@ -10,7 +10,7 @@ import java.util.Arrays;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
-/** AES-GCM authenticates all backup bytes; portable keys use PBKDF2-HMAC-SHA256. */
+/** Offline authenticated storage; portable copies require an explicit user-entered password. */
 final class VaultCrypto {
     private static final byte[] MAGIC={'B','D','V','1'};
     private static final int ITERATIONS=310000;
@@ -27,27 +27,16 @@ final class VaultCrypto {
         generator.init(new KeyGenParameterSpec.Builder(alias,KeyProperties.PURPOSE_ENCRYPT|KeyProperties.PURPOSE_DECRYPT).setBlockModes(KeyProperties.BLOCK_MODE_GCM).setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE).setKeySize(256).build());
         return generator.generateKey();
     }
-    boolean configured(){return context.getSharedPreferences("vault-crypto",0).contains("wrapped");}
     private static SecretKey derive(char[] password,byte[] salt)throws Exception{
         PBEKeySpec spec=new PBEKeySpec(password,salt,ITERATIONS,256);
         try{return new SecretKeySpec(SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded(),"AES");}finally{spec.clearPassword();}
     }
-    synchronized void configure(char[] password)throws Exception{
-        try{
-            byte[] salt=new byte[16];new SecureRandom().nextBytes(salt);SecretKey key=derive(password,salt);
-            ByteArrayOutputStream wrapped=new ByteArrayOutputStream();seal(new ByteArrayInputStream(key.getEncoded()),wrapped,false);
-            if(!context.getSharedPreferences("vault-crypto",0).edit().putString("salt",Base64.encodeToString(salt,Base64.NO_WRAP)).putString("wrapped",Base64.encodeToString(wrapped.toByteArray(),Base64.NO_WRAP)).commit())throw new IOException("Ключ не сохранён");
-        }finally{Arrays.fill(password,'\0');}
-    }
-    private byte[] salt(){return Base64.decode(context.getSharedPreferences("vault-crypto",0).getString("salt",""),Base64.NO_WRAP);}
-    private SecretKey portableKey()throws Exception{
-        byte[] bytes=Base64.decode(context.getSharedPreferences("vault-crypto",0).getString("wrapped",""),Base64.NO_WRAP);
-        ByteArrayOutputStream raw=new ByteArrayOutputStream();open(new ByteArrayInputStream(bytes),raw,null);
-        return new SecretKeySpec(raw.toByteArray(),"AES");
-    }
     synchronized void seal(InputStream in,OutputStream out,boolean portable)throws Exception{
-        byte[] salt=portable?salt():new byte[16];if(salt.length!=16)throw new IOException("Неверный ключ копий");
-        SecretKey key=portable?portableKey():deviceKey();byte[] header=new byte[21];System.arraycopy(MAGIC,0,header,0,4);header[4]=(byte)(portable?2:1);System.arraycopy(salt,0,header,5,16);out.write(header);
+        if(portable)throw new IOException("Переносная копия создаётся только по запросу пользователя");
+        sealWithKey(in,out,deviceKey(),new byte[16],false);
+    }
+    synchronized void sealPortable(InputStream in,OutputStream out,char[] password)throws Exception{try{byte[] salt=new byte[16];new SecureRandom().nextBytes(salt);sealWithKey(in,out,derive(password,salt),salt,true);}finally{Arrays.fill(password,'\0');}}
+    private void sealWithKey(InputStream in,OutputStream out,SecretKey key,byte[] salt,boolean portable)throws Exception{byte[] header=new byte[21];System.arraycopy(MAGIC,0,header,0,4);header[4]=(byte)(portable?2:1);System.arraycopy(salt,0,header,5,16);out.write(header);
         DataOutputStream target=new DataOutputStream(out);byte[] block=new byte[196608];long index=0;
         while(true){int n=0;while(n<block.length){int got=in.read(block,n,block.length-n);if(got<0)break;n+=got;}
             Cipher cipher=Cipher.getInstance("AES/GCM/NoPadding");cipher.init(Cipher.ENCRYPT_MODE,key);byte[] iv=cipher.getIV();if(iv.length!=12)throw new IOException("Неверный вектор шифрования");
@@ -61,7 +50,6 @@ final class VaultCrypto {
             int mode=header[4];byte[] salt=Arrays.copyOfRange(header,5,21);SecretKey key;
             if(mode==1)key=deviceKey();else if(mode==2){
                 if(password!=null)key=derive(password,salt);
-                else if(configured()&&Arrays.equals(salt,salt()))key=portableKey();
                 else throw new PasswordRequired();
             }else throw new IOException("Неподдерживаемая версия шифрования");
             long index=0;while(true){int n=source.readInt();if(n<0||n>196608)throw new IOException("Повреждён блок копии");byte[] iv=new byte[12],encrypted=new byte[n+16];source.readFully(iv);source.readFully(encrypted);

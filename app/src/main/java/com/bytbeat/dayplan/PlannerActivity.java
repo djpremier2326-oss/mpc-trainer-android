@@ -28,7 +28,8 @@ import org.json.JSONObject;
 public class PlannerActivity extends Activity {
     private WebView web;
     private DataVault vault;
-    private static final int VAULT_FOLDER=105, VAULT_OPEN=106, VAULT_CLOUD_A=107, VAULT_CLOUD_B=108;
+    private java.io.File pendingVaultExport;
+    private static final int VAULT_EXPORT=105, VAULT_IMPORT=106;
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
     private android.webkit.ValueCallback<Uri[]> photoCallback;
     private String pendingBackup;
@@ -140,6 +141,8 @@ public class PlannerActivity extends Activity {
         root.addView(web,0,new android.widget.FrameLayout.LayoutParams(-1,-1));
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
+        settings.setBlockNetworkLoads(true);
+        settings.setBlockNetworkImage(true);
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT,false);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
@@ -277,7 +280,7 @@ public class PlannerActivity extends Activity {
         if(web!=null)web.onPause();
         super.onPause();
     }
-    private void openExternalLink(String value){runOnUiThread(()->{try{if(value==null||value.length()>10000)return;Uri uri=Uri.parse(value);if(!("https".equalsIgnoreCase(uri.getScheme())||"http".equalsIgnoreCase(uri.getScheme()))||uri.getHost()==null){message("Нужна ссылка http или https");return;}Intent intent=new Intent(Intent.ACTION_VIEW,uri);intent.addCategory(Intent.CATEGORY_BROWSABLE);startActivity(intent);}catch(Exception e){message("Не удалось открыть ссылку");}});}
+    private void openExternalLink(String value){runOnUiThread(()->message("Приложение работает офлайн. Интернет-ссылки отключены"));}
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingWorkout=intent.getBooleanExtra("openWorkout",false);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingWorkout){pendingWorkout=false;web.evaluateJavascript("window.openWorkout&&window.openWorkout()",null);}if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
     public class BackupBridge {
@@ -292,14 +295,14 @@ public class PlannerActivity extends Activity {
         @JavascriptInterface public void vaultAbort(){vault.abort();}
         @JavascriptInterface public String vaultRead(String name,long offset,int length){return vault.restoreChunk(name,offset,length);}
         @JavascriptInterface public void vaultCloseRestore(){vault.closeRestore();}
-        @JavascriptInterface public void vaultFolder(){runOnUiThread(()->{try{if(!vault.crypto.configured()){message("Сначала задай пароль облачной копии");return;}Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);startActivityForResult(i,VAULT_FOLDER);}catch(Exception e){message("Не удалось выбрать папку копий");}});}
-        @JavascriptInterface public void vaultPassword(){runOnUiThread(()->{
+        @JavascriptInterface public void vaultExport(){runOnUiThread(()->{
+            java.io.File[] snapshots=vault.snapshots();if(snapshots.length==0){message("Сначала создай защищённую копию");return;}
             android.widget.LinearLayout box=new android.widget.LinearLayout(PlannerActivity.this);box.setOrientation(android.widget.LinearLayout.VERTICAL);box.setPadding(36,12,36,12);
             android.widget.EditText first=new android.widget.EditText(PlannerActivity.this),second=new android.widget.EditText(PlannerActivity.this);first.setHint("Пароль — минимум 10 символов");second.setHint("Повтори пароль");first.setInputType(129);second.setInputType(129);box.addView(first);box.addView(second);
-            AlertDialog dialog=new AlertDialog.Builder(PlannerActivity.this).setTitle("Пароль облачных копий").setMessage("Пароль нужен для восстановления после переустановки. Сохрани его отдельно: без него открыть копию невозможно. При смене пароля старые копии открываются старым паролем.").setView(box).setPositiveButton("Сохранить",null).setNegativeButton("Отмена",null).create();dialog.setOnShowListener(x->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{String password=first.getText().toString();if(password.length()<10||!password.equals(second.getText().toString())){second.setError("Пароли должны совпадать, минимум 10 символов");return;}first.setText("");second.setText("");dialog.dismiss();new Thread(()->{try{vault.crypto.configure(password.toCharArray());runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.vaultPasswordConfigured&&window.vaultPasswordConfigured()",null);message("Пароль сохранён. Выбери папку облака для автокопий");});}catch(Exception e){runOnUiThread(()->message("Пароль не сохранён: "+e.getMessage()));}}).start();}));dialog.show();
+            AlertDialog dialog=new AlertDialog.Builder(PlannerActivity.this).setTitle("Пароль переносной копии").setMessage("Копия включает скрытые папки и все записи. Для открытия на новом телефоне нужен этот пароль. Сохрани его отдельно: без пароля восстановить копию нельзя. Приложение не отправляет файл в Интернет.").setView(box).setPositiveButton("Создать файл",null).setNegativeButton("Отмена",null).create();
+            dialog.setOnShowListener(x->dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(v->{String value=first.getText().toString();if(value.length()<10||!value.equals(second.getText().toString())){second.setError("Пароли должны совпадать, минимум 10 символов");return;}char[] password=value.toCharArray();first.setText("");second.setText("");dialog.dismiss();new Thread(()->{try{java.io.File ready=vault.prepareExport(snapshots[0],password);runOnUiThread(()->{if(isFinishing()||isDestroyed()){ready.delete();return;}if(pendingVaultExport!=null)pendingVaultExport.delete();pendingVaultExport=ready;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/octet-stream");i.putExtra(Intent.EXTRA_LOCAL_ONLY,true);i.putExtra(Intent.EXTRA_TITLE,"black-deeds-backup-"+System.currentTimeMillis()+".bdvault");startActivityForResult(i,VAULT_EXPORT);}catch(Exception error){ready.delete();pendingVaultExport=null;message("Не удалось выбрать место сохранения");}});}catch(Exception error){runOnUiThread(()->message("Копия не создана: "+error.getMessage()));}}).start();}));dialog.show();dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);
         });}
-        @JavascriptInterface public void vaultCloudFiles(){runOnUiThread(()->{if(!vault.crypto.configured()){message("Сначала задай пароль облачных копий");return;}createCloudFile(VAULT_CLOUD_A);});}
-        @JavascriptInterface public void vaultOpen(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");startActivityForResult(i,VAULT_OPEN);}catch(Exception e){message("Не удалось открыть копию");}});}
+        @JavascriptInterface public void vaultOpen(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");i.putExtra(Intent.EXTRA_LOCAL_ONLY,true);startActivityForResult(i,VAULT_IMPORT);}catch(Exception e){message("Не удалось открыть файл копии");}});}
         @JavascriptInterface public void vaultLocal(){runOnUiThread(()->{java.io.File[] files=vault.snapshots();if(files.length==0){message("Полных локальных копий пока нет");return;}String[] labels=new String[files.length];for(int n=0;n<files.length;n++)labels[n]=new java.text.SimpleDateFormat("dd.MM.yyyy HH:mm:ss",java.util.Locale.getDefault()).format(new java.util.Date(files[n].lastModified()));new AlertDialog.Builder(PlannerActivity.this).setTitle("Восстановить локальную копию").setItems(labels,(d,n)->new Thread(()->{try{stageVaultFile(files[n],null);}catch(Exception e){runOnUiThread(()->message("Копия не открыта: "+e.getMessage()));}}).start()).setNegativeButton("Отмена",null).show();});}
 
         @JavascriptInterface public void startupMetrics(String metrics){if(metrics!=null&&metrics.length()<1500)android.util.Log.i("PlannerStartup","DOM: "+metrics);}
@@ -338,7 +341,7 @@ public class PlannerActivity extends Activity {
             runOnUiThread(()->{pendingBackup=json;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name);startActivityForResult(i,SAVE);}catch(Exception e){pendingBackup=null;message("Не удалось открыть выбор файла");}});
         }
         @JavascriptInterface public void openLink(String url){openExternalLink(url);}
-        @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
+        @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");i.putExtra(Intent.EXTRA_LOCAL_ONLY,true);startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
     }
     static Uri[] photoUris(int result,Intent data){
         if(result!=RESULT_OK||data==null)return null;
@@ -351,16 +354,13 @@ public class PlannerActivity extends Activity {
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
         if(request==103){android.webkit.ValueCallback<Uri[]> callback=photoCallback;photoCallback=null;if(callback!=null)callback.onReceiveValue(photoUris(result,data));return;}
-        if(result!=RESULT_OK||data==null||data.getData()==null){if(request==SAVE)pendingBackup=null;return;}
+        if(result!=RESULT_OK||data==null||data.getData()==null){if(request==SAVE)pendingBackup=null;if(request==VAULT_EXPORT&&pendingVaultExport!=null){pendingVaultExport.delete();pendingVaultExport=null;}return;}
         Uri uri=data.getData();
-        if(request==VAULT_FOLDER){try{if(isPhoneStorage(uri)){message("Выбери облачный диск, а не папку телефона");return;}getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);getSharedPreferences("vault",MODE_PRIVATE).edit().putString("folder",uri.toString()).remove("cloudA").remove("cloudB").putLong("externalAt",0).commit();web.evaluateJavascript("window.vaultFolderSelected&&window.vaultFolderSelected()",null);}catch(Exception e){message("Папка не подключена: "+e.getMessage());}return;}
-        if(request==VAULT_CLOUD_A||request==VAULT_CLOUD_B){try{
-            if(isPhoneStorage(uri)){message("Выбери облачный диск, а не память телефона");return;}
-            getContentResolver().takePersistableUriPermission(uri,Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
-            if(request==VAULT_CLOUD_A){getSharedPreferences("vault",MODE_PRIVATE).edit().putString("pendingCloudA",uri.toString()).commit();createCloudFile(VAULT_CLOUD_B);}
-            else{String first=getSharedPreferences("vault",MODE_PRIVATE).getString("pendingCloudA",null);if(first==null||first.equals(uri.toString())){message("Для защиты нужны два разных облачных файла");return;}getSharedPreferences("vault",MODE_PRIVATE).edit().putString("cloudA",first).putString("cloudB",uri.toString()).putInt("nextCloud",0).putLong("externalAt",0).remove("folder").remove("pendingCloudA").commit();web.evaluateJavascript("window.vaultFolderSelected&&window.vaultFolderSelected()",null);}
-        }catch(Exception e){message("Облако не подключено: "+e.getMessage());}return;}
-        if(request==VAULT_OPEN){new Thread(()->{try{stageVaultUri(uri,null);}catch(Exception e){runOnUiThread(()->message("Копия не открыта: "+e.getMessage()));}}).start();return;}
+        if(request==VAULT_EXPORT){java.io.File ready=pendingVaultExport;pendingVaultExport=null;if(ready==null){message("Повтори создание переносной копии");return;}new Thread(()->{try{
+            try(InputStream in=new java.io.FileInputStream(ready);OutputStream out=getContentResolver().openOutputStream(uri,"wt")){if(out==null)throw new java.io.IOException("Файл недоступен");DataVault.copy(in,out);}
+            String before=vaultDigest(new java.io.FileInputStream(ready)),after=vaultDigest(getContentResolver().openInputStream(uri));if(!before.equals(after))throw new java.io.IOException("Проверка копии не пройдена");runOnUiThread(()->message("Зашифрованная копия сохранена и проверена. Перенеси файл на новый телефон"));
+        }catch(Exception e){runOnUiThread(()->message("Копия не сохранена полностью: "+e.getMessage()));}finally{ready.delete();}}).start();return;}
+        if(request==VAULT_IMPORT){new Thread(()->{try{stageVault(()->getContentResolver().openInputStream(uri),null);}catch(Exception e){runOnUiThread(()->message("Копия не открыта: "+e.getMessage()));}}).start();return;}
 
         if(request==SAVE){String json=pendingBackup;pendingBackup=null;if(json==null){message("Повтори сохранение копии");return;}new Thread(()->{try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")){if(out==null)throw new Exception();out.write(json.getBytes(StandardCharsets.UTF_8));runOnUiThread(()->message("Копия сохранена"));}catch(Exception e){runOnUiThread(()->message("Не удалось сохранить копию"));}}).start();}
         if(request==OPEN)new Thread(()->{try(InputStream in=getContentResolver().openInputStream(uri);ByteArrayOutputStream out=new ByteArrayOutputStream()){
@@ -370,14 +370,12 @@ public class PlannerActivity extends Activity {
             runOnUiThread(()->web.evaluateJavascript(script,null));
         }catch(Exception e){runOnUiThread(()->message("Не удалось прочитать копию"));}}).start();
     }
-    private boolean isPhoneStorage(Uri uri){String authority=uri.getAuthority();return "com.android.externalstorage.documents".equals(authority)||"com.android.providers.downloads.documents".equals(authority)||"com.android.providers.media.documents".equals(authority);}
-    private void createCloudFile(int request){try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/octet-stream");i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION|Intent.FLAG_GRANT_WRITE_URI_PERMISSION|Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);i.putExtra(Intent.EXTRA_TITLE,"black-deeds-backup-"+(request==VAULT_CLOUD_A?"A":"B")+".bdvault");startActivityForResult(i,request);}catch(Exception e){message("Не удалось открыть облачный диск");}}
+    private static String vaultDigest(InputStream source)throws Exception{if(source==null)throw new java.io.IOException("Файл недоступен");try(InputStream in=source){java.security.MessageDigest hash=java.security.MessageDigest.getInstance("SHA-256");byte[] bytes=new byte[65536];int n;while((n=in.read(bytes))!=-1)hash.update(bytes,0,n);return android.util.Base64.encodeToString(hash.digest(),android.util.Base64.NO_WRAP);}}
     private interface VaultInput { InputStream open()throws Exception; }
-    private void stageVaultUri(Uri uri,char[] password)throws Exception{stageVault(()->getContentResolver().openInputStream(uri),password);}
     private void stageVaultFile(java.io.File file,char[] password)throws Exception{stageVault(()->new java.io.FileInputStream(file),password);}
     private void stageVault(VaultInput source,char[] password)throws Exception{
         try{String manifest=vault.stage(source.open(),password);runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.restoreVaultArchive&&window.restoreVaultArchive("+JSONObject.quote(manifest)+")",null);});}
-        catch(VaultCrypto.PasswordRequired e){runOnUiThread(()->{android.widget.EditText field=new android.widget.EditText(PlannerActivity.this);field.setInputType(129);field.setHint("Пароль этой копии");new AlertDialog.Builder(PlannerActivity.this).setTitle("Расшифровать копию").setView(field).setPositiveButton("Открыть",(d,w)->{char[] entered=field.getText().toString().toCharArray();field.setText("");new Thread(()->{try{stageVault(source,entered);}catch(Exception error){runOnUiThread(()->message("Копия не открыта: неверный пароль или повреждённый файл"));}}).start();}).setNegativeButton("Отмена",null).show();});}
+        catch(VaultCrypto.PasswordRequired e){runOnUiThread(()->{android.widget.EditText field=new android.widget.EditText(PlannerActivity.this);field.setInputType(129);field.setHint("Пароль этой копии");AlertDialog dialog=new AlertDialog.Builder(PlannerActivity.this).setTitle("Расшифровать копию").setView(field).setPositiveButton("Открыть",(d,w)->{char[] entered=field.getText().toString().toCharArray();field.setText("");new Thread(()->{try{stageVault(source,entered);}catch(Exception error){runOnUiThread(()->message("Копия не открыта: неверный пароль или повреждённый файл"));}}).start();}).setNegativeButton("Отмена",null).create();dialog.show();dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);});}
     }
     @Override public void onBackPressed(){if(web==null||!pageReady){moveTaskToBack(true);return;}web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
     @Override protected void onDestroy(){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}

@@ -1,8 +1,6 @@
 package com.bytbeat.dayplan;
 
 import android.content.Context;
-import android.net.Uri;
-import android.provider.DocumentsContract;
 import android.util.AtomicFile;
 import android.util.Base64;
 import org.json.JSONArray;
@@ -57,7 +55,7 @@ final class DataVault {
     synchronized boolean endEntry(){try{if(zip==null||!entryOpen)return false;zip.closeEntry();entryOpen=false;return true;}catch(Exception e){error=e.getMessage();return false;}}
     synchronized void abort(){try{if(zip!=null)zip.close();}catch(Exception ignored){}zip=null;zipFile=null;if(pending!=null)pending.delete();pending=null;entryOpen=false;}
     String finish(){
-        File complete;String folder,cloudA,cloudB;int nextCloud;
+        File complete;
         try{
           synchronized(this){
             finishing=true;
@@ -67,7 +65,7 @@ final class DataVault {
             complete=new File(dir,"black-deeds-"+System.currentTimeMillis()+"-"+UUID.randomUUID()+".bdvault");
             File sealedFile=new File(complete.getPath()+".partial");
             try{
-                try(InputStream input=new FileInputStream(pending);FileOutputStream sealed=new FileOutputStream(sealedFile)){crypto.seal(input,sealed,crypto.configured());sealed.getFD().sync();}
+                try(InputStream input=new FileInputStream(pending);FileOutputStream sealed=new FileOutputStream(sealedFile)){crypto.seal(input,sealed,false);sealed.getFD().sync();}
                 try(InputStream check=new FileInputStream(sealedFile)){crypto.open(check,new OutputStream(){@Override public void write(int b){}@Override public void write(byte[] b,int start,int count){}},null);}
                 if(!sealedFile.renameTo(complete))throw new IOException("Не удалось завершить защищённую копию");
             }catch(Exception e){sealedFile.delete();throw e;}
@@ -75,9 +73,7 @@ final class DataVault {
             context.getSharedPreferences("vault",0).edit().putInt("mediaCount",statistics.optJSONArray("media")==null?0:statistics.getJSONArray("media").length()).putInt("notesCount",statistics.getJSONObject("state").optJSONArray("notes")==null?0:statistics.getJSONObject("state").getJSONArray("notes").length()).commit();
             pending.delete();pending=null;pruneLocalSnapshots();
             context.getSharedPreferences("vault",0).edit().putLong("localAt",System.currentTimeMillis()).commit();
-            folder=context.getSharedPreferences("vault",0).getString("folder",null);cloudA=context.getSharedPreferences("vault",0).getString("cloudA",null);cloudB=context.getSharedPreferences("vault",0).getString("cloudB",null);nextCloud=context.getSharedPreferences("vault",0).getInt("nextCloud",0);
           }
-            if(folder!=null||(cloudA!=null&&cloudB!=null)){if(!crypto.configured())throw new IOException("Задай пароль облачной копии");try(InputStream header=new FileInputStream(complete)){byte[] prefix=new byte[5];if(header.read(prefix)!=5||prefix[4]!=2)throw new IOException("Облачная копия ожидает шифрования паролем");}if(folder!=null)publish(complete,Uri.parse(folder));else{publishToFile(complete,Uri.parse(nextCloud==0?cloudA:cloudB));context.getSharedPreferences("vault",0).edit().putInt("nextCloud",1-nextCloud).putLong("externalAt",System.currentTimeMillis()).commit();}}
             synchronized(this){error="";return status();}
         }catch(Exception e){synchronized(this){abort();error="Копия не завершена: "+e.getMessage();return status();}}finally{synchronized(this){finishing=false;}}
     }
@@ -92,25 +88,18 @@ final class DataVault {
             }
         }if(!manifest)throw new IOException("В копии нет описания");
     }
-    private void publish(File file,Uri tree)throws IOException{
-        Uri parent=DocumentsContract.buildDocumentUriUsingTree(tree,DocumentsContract.getTreeDocumentId(tree));Uri created=null;
-        try{
-            created=DocumentsContract.createDocument(context.getContentResolver(),parent,"application/octet-stream",file.getName()+".partial");if(created==null)throw new IOException("Папка недоступна");
-            try(InputStream in=new FileInputStream(file);OutputStream out=context.getContentResolver().openOutputStream(created,"wt")){if(out==null)throw new IOException("Папка недоступна");copy(in,out);}
-            // Re-read the provider's bytes before reporting an external backup as saved.
-            String before=digest(new FileInputStream(file)),after=digest(context.getContentResolver().openInputStream(created));
-            if(!before.equals(after))throw new IOException("Проверка внешней копии не пройдена");
-            if(DocumentsContract.renameDocument(context.getContentResolver(),created,file.getName())==null)throw new IOException("Не удалось завершить облачную копию");
-            context.getSharedPreferences("vault",0).edit().putLong("externalAt",System.currentTimeMillis()).commit();
-        }catch(Exception e){if(created!=null)try{DocumentsContract.deleteDocument(context.getContentResolver(),created);}catch(Exception ignored){}throw new IOException("Внешняя копия не сохранена. Локальная сохранена. "+e.getMessage(),e);}
-    }
-    private void publishToFile(File file,Uri destination)throws Exception{
-        try(InputStream in=new FileInputStream(file);OutputStream out=context.getContentResolver().openOutputStream(destination,"wt")){if(out==null)throw new IOException("Облачный файл недоступен");copy(in,out);}
-        if(!digest(new FileInputStream(file)).equals(digest(context.getContentResolver().openInputStream(destination))))throw new IOException("Проверка облачного файла не пройдена; другая копия сохранена");
-    }
-    private static String digest(InputStream stream)throws Exception{if(stream==null)throw new IOException("Файл недоступен");try(InputStream in=stream){java.security.MessageDigest hash=java.security.MessageDigest.getInstance("SHA-256");byte[] b=new byte[65536];int n;while((n=in.read(b))!=-1)hash.update(b,0,n);return Base64.encodeToString(hash.digest(),Base64.NO_WRAP);}}
     static void copy(InputStream in,OutputStream out)throws IOException{byte[] b=new byte[65536];int n;while((n=in.read(b))!=-1)out.write(b,0,n);}
-    synchronized String status(){try{return new JSONObject().put("folder",context.getSharedPreferences("vault",0).contains("folder")||(context.getSharedPreferences("vault",0).contains("cloudA")&&context.getSharedPreferences("vault",0).contains("cloudB"))).put("files",context.getSharedPreferences("vault",0).contains("cloudA")&&context.getSharedPreferences("vault",0).contains("cloudB")).put("localAt",context.getSharedPreferences("vault",0).getLong("localAt",0)).put("externalAt",context.getSharedPreferences("vault",0).getLong("externalAt",0)).put("mediaCount",context.getSharedPreferences("vault",0).getInt("mediaCount",0)).put("notesCount",context.getSharedPreferences("vault",0).getInt("notesCount",0)).put("password",crypto.configured()).put("error",error).toString();}catch(Exception e){return "{}";}}
+    synchronized String status(){try{return new JSONObject().put("localAt",context.getSharedPreferences("vault",0).getLong("localAt",0)).put("mediaCount",context.getSharedPreferences("vault",0).getInt("mediaCount",0)).put("notesCount",context.getSharedPreferences("vault",0).getInt("notesCount",0)).put("error",error).toString();}catch(Exception e){return "{}";}}
+    File prepareExport(File snapshot,char[] password)throws Exception{
+        File plain=new File(dir,"export-"+UUID.randomUUID()+".tmp"),portable=new File(dir,"export-"+UUID.randomUUID()+".bdvault");boolean success=false;
+        try{
+            try(InputStream in=new FileInputStream(snapshot);OutputStream out=new FileOutputStream(plain)){crypto.open(in,out,null);}
+            verify(plain);
+            try(InputStream in=new FileInputStream(plain);FileOutputStream out=new FileOutputStream(portable)){crypto.sealPortable(in,out,password.clone());out.getFD().sync();}
+            try(InputStream in=new FileInputStream(portable)){crypto.open(in,new OutputStream(){@Override public void write(int b){}@Override public void write(byte[] b,int at,int count){}},password.clone());}
+            success=true;return portable;
+        }finally{Arrays.fill(password,'\0');plain.delete();if(!success)portable.delete();}
+    }
     private void pruneLocalSnapshots(){File[] files=snapshots();Set<String> days=new HashSet<>();long earliest=System.currentTimeMillis()-7L*86400000L;for(int i=0;i<files.length;i++){String day=new java.text.SimpleDateFormat("yyyy-MM-dd",java.util.Locale.ROOT).format(new Date(files[i].lastModified()));boolean daily=files[i].lastModified()>=earliest&&days.add(day);if(i>=3&&!daily)files[i].delete();}}
     synchronized File[] snapshots(){File[] files=dir.listFiles((d,n)->n.startsWith("black-deeds-")&&n.endsWith(".bdvault"));if(files==null)return new File[0];Arrays.sort(files,(a,b)->Long.compare(b.lastModified(),a.lastModified()));return files;}
     synchronized String stage(InputStream source)throws Exception{return stage(source,null);}
