@@ -825,7 +825,7 @@ test('calendar numbers sit at top right with reminder bell beside them in every 
   for(const variant of Object.keys(palettes)){
    await page.evaluate(variant=>{state.prefs.variant=variant;applyTheme();navigate('2026-11-12','calendar')},variant);
    const layout=await page.locator('#cal-2026-11 [data-date="2026-11-12"]').evaluate(el=>{const cell=el.getBoundingClientRect(),number=el.querySelector('.calendar-date-number').getBoundingClientRect(),bell=el.querySelector('.cal-reminder').getBoundingClientRect(),text=el.querySelector('.calendar-day-text').getBoundingClientRect();return {right:cell.right-number.right,top:number.top-cell.top,centers:Math.abs((number.top+number.bottom-bell.top-bell.bottom)/2),bellRight:bell.right,numberLeft:number.left,textTop:text.top,headerBottom:number.bottom}});
-   assert.ok(layout.right>=4&&layout.right<=10,JSON.stringify(layout));assert.ok(layout.top<12);assert.ok(layout.centers<1);assert.ok(layout.bellRight<layout.numberLeft);assert.ok(layout.textTop>=layout.headerBottom);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-13"] .cal-reminder').count(),0);
+   assert.ok(layout.right>=1&&layout.right<=5,JSON.stringify(layout));assert.ok(layout.top>=0&&layout.top<=4);assert.ok(layout.centers<1);assert.ok(layout.bellRight<layout.numberLeft);assert.ok(layout.textTop>=layout.headerBottom);assert.equal(await page.locator('#cal-2026-11 [data-date="2026-11-13"] .cal-reminder').count(),0);
   }
   await page.screenshot({path:'/workspace/.planner-startup-review/calendar-right-corner-155.png'});assert.deepEqual(errors,[]);
  }finally{await context.close()}
