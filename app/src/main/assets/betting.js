@@ -9,7 +9,7 @@ const signed=value=>(value>0?'+':'')+rub(value);
 const odds=value=>value===null?'':String(value/engine.SCALE).replace('.',',');
 const statuses={win:'Зашла',loss:'Не зашла',skip:'Пропущена',return:'Возврат'};
 function status(result){return result.status==='win'&&result.odds===engine.SCALE?'Возврат':statuses[result.status]}
-function commit(book){const old=state.betting;state.betting=book;if(persist())return true;if(old===undefined)delete state.betting;else state.betting=old;toast('Не удалось сохранить расчёт. Освободи место и повтори.');return false}
+function commit(book){const old=state.betting;if(book==null)delete state.betting;else state.betting=book;if(persist())return true;if(old===undefined)delete state.betting;else state.betting=old;toast('Не удалось сохранить расчёт. Освободи место и повтори.');return false}
 function error(message){const el=$('betting-error');if(el){el.textContent=message;el.hidden=false}else toast(message)}
 function resultLine(result,label){return '<div class="betting-history-result"><strong>'+label+'</strong><span>'+(!result?'Не отмечена':status(result)+(result.odds!==null&&result.status!=='skip'?' · '+odds(result.odds):'')+' · '+signed(result.profit))+'</span></div>'}
 function slot(day,id,label){const result=day[id],locked=id==='day'&&!day.night;

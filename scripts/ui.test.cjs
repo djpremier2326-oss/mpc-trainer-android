@@ -891,7 +891,7 @@ test('betting compact completed day fits and full reset requires confirmation an
   assert.equal(await page.evaluate(()=>document.querySelector('.betting-day-total').getBoundingClientRect().bottom<=document.querySelector('.tabs').getBoundingClientRect().top),true);
   await page.screenshot({path:'/workspace/.planner-startup-review/betting-compact-violet-160.png'});
   await page.locator('[data-betting-history]').tap();page.once('dialog',d=>d.dismiss());await page.locator('[data-betting-reset]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1150000);
-  page.once('dialog',d=>d.accept());await page.locator('[data-betting-reset]').tap();assert.equal(await page.locator('#betting-setup').count(),1);assert.equal(await page.evaluate(()=>state.betting),null);
+  page.once('dialog',d=>d.accept());await page.locator('[data-betting-reset]').tap();assert.equal(await page.locator('#betting-setup').count(),1);assert.equal(await page.evaluate(()=>state.betting??null),null);
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await enterBetting(page);assert.equal(await page.locator('#betting-setup').count(),1);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
@@ -904,5 +904,25 @@ test('betting hidden calculator entry ignores keys and preserves data on return'
   const screen=page.locator('#calculator-dialog .calc-screen');await screen.tap();await screen.tap();assert.notEqual(await page.evaluate(()=>tab),'betting');await screen.tap();assert.equal(await page.evaluate(()=>tab),'betting');
   await page.locator('#betting-setup [name=bank]').fill('10000');await page.locator('#betting-setup [type=submit]').tap();const before=await page.evaluate(()=>JSON.stringify(state.betting));
   await page.locator('[data-work-calculator]').tap();assert.equal(await page.locator('#calculator-dialog').evaluate(d=>d.open),true);await screen.tap();await screen.tap();await screen.tap();assert.equal(await page.evaluate(()=>JSON.stringify(state.betting)),before);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+
+test('legacy work reset keeps violet theme and notes after relaunch',async()=>{
+ const {page,context,errors}=await open();try{
+  await page.evaluate(()=>{state.prefs.variant='violet';state.prefs.workTrialReset160=true;state.betting=null;state.days[iso()]=blank();state.days[iso()][0].text='Сохранённое дело';applyTheme();persist()});
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');
+  assert.equal(await page.evaluate(()=>state.prefs.variant),'violet');assert.equal(await page.evaluate(()=>state.days[iso()][0].text),'Сохранённое дело');assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+
+test('fresh install defaults to violet while blue header stays centered',async()=>{
+ const {page,context,errors}=await open();try{
+  assert.equal(await page.evaluate(()=>state.prefs.variant),'violet');
+  await page.evaluate(()=>{state.prefs.variant='ice';applyTheme();render();persist()});
+  const aligned=await page.evaluate(()=>{const a=document.querySelector('.ice-tribute').getBoundingClientRect(),b=document.querySelector('.ice-tupac-photo').getBoundingClientRect();return Math.abs((a.left+a.right)-(b.left+b.right))<2&&Math.abs(a.width-b.width)<2});assert.equal(aligned,true);
+  await page.screenshot({path:'/workspace/.planner-startup-review/blue-header-163.png'});
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>state.prefs.variant),'ice');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

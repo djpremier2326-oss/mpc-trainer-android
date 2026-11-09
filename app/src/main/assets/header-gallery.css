@@ -11,3 +11,7 @@ body[data-design=ice][data-variant=violet][data-view=day] .ice-tribute[data-head
 
 /* Let the city panorama fill the phone width without enlarging the header. */
 .header-artwork-image[data-artwork-id="header-06"]{width:calc(100% - 4px);max-width:390px;top:-8px;-webkit-mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent);mask-image:linear-gradient(to right,transparent,#000 3%,#000 97%,transparent)}
+
+/* The shared timeline must not inherit the old half-width portrait layout. */
+body[data-design=ice][data-variant=ice] .ice-tribute .ice-tupac-photo{left:0;right:0;top:0;width:100%;height:100%;mask-image:none;-webkit-mask-image:none}
+body[data-design=ice][data-variant=ice] .ice-tribute .ice-tupac-photo img{object-position:50% 58%}
