@@ -1,7 +1,7 @@
 /* Three quick taps toggle a normally hidden album; this is a display gesture, not encryption. */
 let photosHiddenVisible=false;
 function photosRecordVisible(record){return photosHiddenVisible||!mediaFolderList().some(folder=>folder.id===record.folder&&folder.hidden===true)}
-function mediaVisibleFolders(){return mediaFolderList().filter(folder=>photosHiddenVisible||folder.hidden!==true).sort((a,b)=>Number(b.hidden===true)-Number(a.hidden===true))}
+function mediaVisibleFolders(){return mediaFolderList().filter(folder=>photosHiddenVisible||folder.hidden!==true).sort((a,b)=>Number(a.hidden===true)-Number(b.hidden===true))}
 (()=>{
 'use strict';
 function hiddenFolder(){return mediaFolderList().find(folder=>folder.hidden===true)}
@@ -12,7 +12,7 @@ function toggle(){
  }
  photosHiddenVisible=!photosHiddenVisible;
  if(mediaFolderList().some(folder=>folder.id===mediaFolderActive&&folder.hidden===true))mediaFolderActive=null;
- const view=$('view'),overflow=view.style.overflowY;view.style.overflowY='hidden';renderPhotos();if(photosHiddenVisible)view.scrollTop=0;requestAnimationFrame(()=>{view.style.overflowY=overflow});document.dispatchEvent(new Event('planner-media-changed'));navigator.vibrate?.(25);
+ const view=$('view'),top=view.scrollTop;renderPhotos();view.scrollTop=top;document.dispatchEvent(new Event('planner-media-changed'));navigator.vibrate?.(25);
 }
 let down=null,taps=[];
 function eligible(target){return tab==='photos'&&(!mediaFolderActive||mediaFolderList().some(f=>f.id===mediaFolderActive&&f.hidden===true))&&!document.querySelector('dialog[open],#notes-media-viewer,#notes-media-sheet')&&target?.closest('#view')&&!target.closest('button,input,textarea,select,a,[contenteditable]')}

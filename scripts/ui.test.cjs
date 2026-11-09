@@ -806,10 +806,14 @@ test('single and double taps do not reveal the hidden folder',async()=>{
  }finally{await context.close()}
 });
 
-test('three taps on Photos title reveal the hidden album first even with many albums',async()=>{
+test('hidden album appears last without moving other albums or resetting scroll',async()=>{
  const {page,context,errors}=await open();
  try{
   await page.evaluate(()=>{state.mediaFolders=Array.from({length:20},(_,i)=>({id:'visible-'+i,name:'Альбом '+i}));navigate(selected,'photos')});
-  const title=page.locator('.photos-tools>strong');await title.tap();await title.tap();await title.tap();assert.equal(await page.evaluate(()=>photosHiddenVisible),true);const first=await page.locator('[data-album-id]').first().getAttribute('data-album-id');assert.equal(await page.evaluate(id=>mediaFolderList().find(f=>f.id===id).hidden,first),true);assert.equal(await page.locator('#view').evaluate(el=>el.scrollTop),0);await title.tap();await title.tap();await title.tap();assert.equal(await page.evaluate(()=>photosHiddenVisible),false);assert.deepEqual(errors,[]);
+  await page.addStyleTag({content:'.notes-media-folder-grid::after{content:"";grid-column:1/-1;height:300px}'});await page.locator('#view').evaluate(el=>el.scrollTop=el.scrollHeight);
+  const layout=()=>page.locator('[data-album-id]').evaluateAll(els=>els.filter(el=>el.dataset.albumId.startsWith('visible-')).map(el=>{const r=el.getBoundingClientRect();return {id:el.dataset.albumId,x:r.x,y:r.y}}));const before=await layout(),scroll=await page.locator('#view').evaluate(el=>el.scrollTop);
+  async function triple(){for(let i=0;i<3;i++){await page.touchscreen.tap(190,600);await page.waitForTimeout(80)}}
+  await triple();assert.equal(await page.evaluate(()=>photosHiddenVisible),true);const last=await page.locator('[data-album-id]').last().getAttribute('data-album-id');assert.equal(await page.evaluate(id=>mediaFolderList().find(f=>f.id===id).hidden,last),true);assert.equal(await page.locator('#view').evaluate(el=>el.scrollTop),scroll);assert.deepEqual(await layout(),before);
+  await triple();assert.equal(await page.evaluate(()=>photosHiddenVisible),false);assert.deepEqual(await layout(),before);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
