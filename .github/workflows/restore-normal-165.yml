@@ -5,7 +5,7 @@ on:
     paths: [.github/workflows/restore-normal-165.yml]
   workflow_dispatch:
 permissions:
-  contents: read
+  contents: write
 jobs:
   renumber:
     runs-on: ubuntu-latest
@@ -91,3 +91,15 @@ jobs:
         with:
           name: black-deeds-2.3.165-normal-apk
           path: signed/raspisanie-2.3.165-aligned-signed.apk
+      - name: Publish the requested direct APK download
+        shell: bash
+        run: |
+          cp signed/raspisanie-2.3.165-aligned-signed.apk /tmp/raspisanie-2.3.165.apk
+          git fetch origin apk-downloads
+          git checkout apk-downloads
+          cp /tmp/raspisanie-2.3.165.apk downloads/raspisanie-2.3.165.apk
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add downloads/raspisanie-2.3.165.apk
+          git commit -m 'Provide requested direct APK download for normal planner 2.3.165'
+          git push origin apk-downloads
