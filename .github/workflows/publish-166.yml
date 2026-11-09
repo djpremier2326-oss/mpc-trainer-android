@@ -1,55 +1,10 @@
-name: Publish offline planner 2.3.166
+name: Offline planner 2.3.166 publication completed
 on:
-  push:
-    branches: [data-protection-166]
-    paths: [.github/workflows/publish-166.yml]
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
-  publish:
+  notice:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    permissions:
-      contents: write
-      actions: read
     steps:
-      - name: Require the exact tested offline source
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          gh run watch 42711974898 --exit-status --repo djpremier2326-oss/mpc-trainer-android
-          test "$(gh api repos/djpremier2326-oss/mpc-trainer-android/actions/runs/42711974898 --jq '.head_sha')" = "a5473115aca1e7c7d8b8a15b01472c561d88598a"
-      - uses: actions/checkout@v4
-        with:
-          ref: apk-downloads
-      - uses: actions/download-artifact@v4
-        with:
-          name: black-deeds-2.3.166-apk
-          run-id: 42711974898
-          github-token: ${{ github.token }}
-          path: verified-apk
-      - name: Verify signature, package, version and offline permissions
-        run: |
-          signers=("$ANDROID_HOME"/build-tools/*/apksigner)
-          tools="$(dirname "${signers[-1]}")"
-          "$tools/apksigner" verify --print-certs verified-apk/black-deeds-2.3.166.apk > certificate.txt
-          "$tools/aapt" dump permissions verified-apk/black-deeds-2.3.166.apk > permissions.txt
-          "$tools/aapt" dump badging verified-apk/black-deeds-2.3.166.apk > package.txt
-          python3 - <<'PY'
-          from pathlib import Path
-          assert '6645df89cad1a0aa1980c20bd846e9c7dcfcffd5814057b83d491a9547c82d03' in Path('certificate.txt').read_text()
-          assert 'android.permission.INTERNET' not in Path('permissions.txt').read_text()
-          package=Path('package.txt').read_text().splitlines()[0]
-          assert "name='com.bytbeat.dayplan'" in package
-          assert "versionCode='10064'" in package and "versionName='2.3.166'" in package
-          PY
-      - name: Add the requested direct APK download
-        run: |
-          cp verified-apk/black-deeds-2.3.166.apk downloads/raspisanie-2.3.166.apk
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add downloads/raspisanie-2.3.166.apk
-          git commit -m 'Publish offline planner 2.3.166 with protected storage and manual encrypted transfer'
-          git push origin apk-downloads
+      - run: echo 'The verified offline APK 2.3.166 is published in the apk-downloads branch. Automatic publishing and repository-write permission have been removed.'
