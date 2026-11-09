@@ -926,3 +926,10 @@ test('fresh install defaults to violet while blue header stays centered',async()
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');assert.equal(await page.evaluate(()=>state.prefs.variant),'ice');assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('unreadable state is never replaced with an empty planner during startup',async()=>{
+ const {page,context}=await open();try{
+  const raw=await page.evaluate(()=>{const data={...state,betting:{broken:true},notes:[{id:'important',title:'Важная заметка',text:'Не удалять',created:new Date().toISOString(),updated:new Date().toISOString()}]};const raw=JSON.stringify(data);localStorage.setItem(KEY,raw);return raw});
+  for(let i=0;i<2;i++){await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await page.evaluate(()=>{persist();window.onAndroidReady?.()});assert.equal(await page.evaluate(()=>localStorage.getItem(KEY)),raw);assert.equal(await page.evaluate(()=>window.__plannerLoadFailed),true)}
+ }finally{await context.close()}
+});

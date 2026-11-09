@@ -49,7 +49,7 @@ public class PlannerActivity extends Activity {
     private boolean pendingWorkout;
     private String pendingReminderId;
     private static final int STARTUP_BACKGROUND=0xff121214;
-    private static final int SAVE=101, OPEN=102, MAX_BYTES=50_000_000;
+    private static final int SAVE=101, OPEN=102, RECOVERY_SAVE=104, MAX_BYTES=50_000_000;
     @Override public void onCreate(Bundle saved) {
         launchStarted=android.os.SystemClock.elapsedRealtime();
         android.content.SharedPreferences appearance=getSharedPreferences("appearance",MODE_PRIVATE);
@@ -237,7 +237,7 @@ public class PlannerActivity extends Activity {
         web.evaluateJavascript("window.onAndroidReady&&window.onAndroidReady()",null);
         root.invalidate();
         openPendingDate();
-        workoutQueue.execute(()->ReminderScheduler.restore(getApplicationContext()));
+        if(!BuildConfig.RECOVERY_ONLY)workoutQueue.execute(()->ReminderScheduler.restore(getApplicationContext()));
         web.postOnAnimation(()->{if(!isFinishing()&&!isDestroyed())reportFullyDrawn();});
     }
     private void message(String s){Toast.makeText(this,s,Toast.LENGTH_LONG).show();}
@@ -278,6 +278,8 @@ public class PlannerActivity extends Activity {
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingWorkout=intent.getBooleanExtra("openWorkout",false);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingWorkout){pendingWorkout=false;web.evaluateJavascript("window.openWorkout&&window.openWorkout()",null);}if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
     public class BackupBridge {
+        @JavascriptInterface public void saveRecoveryArchive(){if(!BuildConfig.RECOVERY_ONLY)return;runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/zip");i.putExtra(Intent.EXTRA_TITLE,"planner-recovery-"+java.time.LocalDate.now()+".zip");startActivityForResult(i,RECOVERY_SAVE);}catch(Exception e){message("Не удалось открыть сохранение архива");}});}
+
         @JavascriptInterface public void startupMetrics(String metrics){if(metrics!=null&&metrics.length()<1500)android.util.Log.i("PlannerStartup","DOM: "+metrics);}
         @JavascriptInterface public boolean friendSchedule(){return BuildConfig.FRIEND_SHIFT;}
         @JavascriptInterface public void workoutTimer(String token,long end,String title){if(token==null||token.length()>100||title==null||title.length()>100)return;workoutQueue.execute(()->WorkoutTimer.schedule(getApplicationContext(),token,end,title));}
@@ -329,6 +331,7 @@ public class PlannerActivity extends Activity {
         if(request==103){android.webkit.ValueCallback<Uri[]> callback=photoCallback;photoCallback=null;if(callback!=null)callback.onReceiveValue(photoUris(result,data));return;}
         if(result!=RESULT_OK||data==null||data.getData()==null){if(request==SAVE)pendingBackup=null;return;}
         Uri uri=data.getData();
+        if(request==RECOVERY_SAVE){if(!BuildConfig.RECOVERY_ONLY)return;new Thread(()->{try(OutputStream out=getContentResolver().openOutputStream(uri,"wt");java.util.zip.ZipOutputStream zip=new java.util.zip.ZipOutputStream(out)){java.io.File base=new java.io.File(getApplicationInfo().dataDir).getCanonicalFile();for(String dir:new String[]{"app_webview","databases","shared_prefs","files"})archiveRecoveryTree(zip,base,new java.io.File(base,dir));zip.finish();runOnUiThread(()->message("Архив сохранён. Передай его для проверки"));}catch(Exception e){runOnUiThread(()->message("Архив не сохранён полностью: "+e.getMessage()));}}).start();return;}
         if(request==SAVE){String json=pendingBackup;pendingBackup=null;if(json==null){message("Повтори сохранение копии");return;}new Thread(()->{try(OutputStream out=getContentResolver().openOutputStream(uri,"wt")){if(out==null)throw new Exception();out.write(json.getBytes(StandardCharsets.UTF_8));runOnUiThread(()->message("Копия сохранена"));}catch(Exception e){runOnUiThread(()->message("Не удалось сохранить копию"));}}).start();}
         if(request==OPEN)new Thread(()->{try(InputStream in=getContentResolver().openInputStream(uri);ByteArrayOutputStream out=new ByteArrayOutputStream()){
             if(in==null)throw new Exception();byte[] buffer=new byte[8192];int n;while((n=in.read(buffer))!=-1){if(out.size()+n>MAX_BYTES)throw new Exception();out.write(buffer,0,n);}String json=out.toString("UTF-8");String name="backup.json";
@@ -336,6 +339,14 @@ public class PlannerActivity extends Activity {
             String script="window.importAndroidBackup("+JSONObject.quote(name)+","+JSONObject.quote(json)+");";
             runOnUiThread(()->web.evaluateJavascript(script,null));
         }catch(Exception e){runOnUiThread(()->message("Не удалось прочитать копию"));}}).start();
+    }
+    private void archiveRecoveryTree(java.util.zip.ZipOutputStream zip,java.io.File base,java.io.File file) throws java.io.IOException {
+        if(!file.exists())return;
+        String root=base.getCanonicalPath()+java.io.File.separator,path=file.getCanonicalPath();
+        if(!path.startsWith(root)||!file.getAbsolutePath().equals(path))return;
+        if(file.isDirectory()){java.io.File[] children=file.listFiles();if(children==null)throw new java.io.IOException("Не удалось прочитать "+file.getName());for(java.io.File child:children)archiveRecoveryTree(zip,base,child);return;}
+        if(!file.isFile())return;
+        try(InputStream in=new java.io.FileInputStream(file)){zip.putNextEntry(new java.util.zip.ZipEntry(path.substring(root.length())));byte[] buffer=new byte[65536];int count;while((count=in.read(buffer))!=-1)zip.write(buffer,0,count);zip.closeEntry();}
     }
     @Override public void onBackPressed(){if(web==null||!pageReady){moveTaskToBack(true);return;}web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
     @Override protected void onDestroy(){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}

@@ -1,17 +1,19 @@
 plugins { id 'com.android.application' }
+def recoveryPlanner = project.hasProperty('recoveryPlanner')
 def friendPlanner = project.hasProperty('friendPlanner')
 android {
     namespace 'com.bytbeat.dayplan'
     compileSdk 36
     defaultConfig {
         applicationId friendPlanner ? 'com.bytbeat.dayplan.friend' : 'com.bytbeat.dayplan'
+        buildConfigField 'boolean', 'RECOVERY_ONLY', recoveryPlanner ? 'true' : 'false'
         buildConfigField 'boolean', 'FRIEND_SHIFT', friendPlanner ? 'true' : 'false'
         resValue 'string', 'app_name', 'Чёрные дела'
         manifestPlaceholders = [launcherIcon: '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 10061
-        versionName '2.3.163'
+        versionCode 10062
+        versionName '2.3.164'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
@@ -45,10 +47,11 @@ dependencies {
 def plannerAssets=layout.buildDirectory.dir('generated/plannerAssets')
 android.sourceSets.main.assets.setSrcDirs([plannerAssets])
 def preparePlannerAssets=tasks.register('preparePlannerAssets',Exec){
+    inputs.property('recoveryPlanner',recoveryPlanner)
     inputs.dir('src/main/assets')
     inputs.files(rootProject.fileTree('scripts'){include '*.py'})
     outputs.dir(plannerAssets)
     workingDir rootProject.projectDir
-    commandLine 'python3',rootProject.file('scripts/prepare-assets.py'),plannerAssets.get().asFile
+    commandLine 'python3',rootProject.file('scripts/prepare-assets.py'),plannerAssets.get().asFile,(recoveryPlanner ? '--recovery' : '--normal')
 }
 tasks.named('preBuild').configure{dependsOn preparePlannerAssets}
