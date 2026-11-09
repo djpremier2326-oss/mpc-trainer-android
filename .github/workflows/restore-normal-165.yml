@@ -1,0 +1,93 @@
+name: Restore normal planner 2.3.165
+on:
+  push:
+    branches: [restore-normal-2.3.165]
+    paths: [.github/workflows/restore-normal-165.yml]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  renumber:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Preserve original app and change manifest version only
+        shell: bash
+        run: |
+          echo '7e688f1e924b015b7e759b2b8f27a23d9ece57258bd255398403cbfc588c0982  downloads/raspisanie-2.3.163.apk' | sha256sum -c -
+          python3 - <<'PY'
+          """Change only the two manifest version fields in the original release APK."""
+          import struct, zipfile, hashlib, json
+          from pathlib import Path
+          src=Path('downloads/raspisanie-2.3.163.apk')
+          dst=Path('raspisanie-2.3.165-unsigned.apk')
+          with zipfile.ZipFile(src) as z:
+              manifest=bytearray(z.read('AndroidManifest.xml'))
+              strings=[]; positions=[]; offset=8
+              def length(at,utf8):
+                  if utf8:
+                      n=manifest[at];return ((n&127)<<8|manifest[at+1],at+2) if n&128 else (n,at+1)
+                  n=struct.unpack_from('<H',manifest,at)[0]
+                  return ((n&32767)<<16|struct.unpack_from('<H',manifest,at+2)[0],at+4) if n&32768 else (n,at+2)
+              patched_code=False;patched_name=False
+              while offset<len(manifest):
+                  kind,header,size=struct.unpack_from('<HHI',manifest,offset)
+                  assert size>=header and size>0
+                  if kind==1:
+                      count,styles,flags,start=struct.unpack_from('<IIII',manifest,offset+8)
+                      utf8=bool(flags&256)
+                      for i in range(count):
+                          at=offset+start+struct.unpack_from('<I',manifest,offset+header+4*i)[0]
+                          n,at=length(at,utf8)
+                          if utf8:n,at=length(at,True)
+                          byte_count=n if utf8 else n*2
+                          strings.append(bytes(manifest[at:at+byte_count]).decode('utf-8' if utf8 else 'utf-16-le'))
+                          positions.append((at,byte_count,utf8))
+                  elif kind==0x102:
+                      ns,name,attr_start,attr_size,attr_count=struct.unpack_from('<IIHHH',manifest,offset+16)
+                      if strings[name]=='manifest':
+                          for i in range(attr_count):
+                              at=offset+16+attr_start+i*attr_size
+                              ans,aname,raw=struct.unpack_from('<III',manifest,at)
+                              if strings[aname]=='versionCode':
+                                  assert struct.unpack_from('<I',manifest,at+16)[0]==10061
+                                  struct.pack_into('<I',manifest,at+16,10063);patched_code=True
+                              if strings[aname]=='versionName':
+                                  index=struct.unpack_from('<I',manifest,at+16)[0]
+                                  assert strings[index]=='2.3.163'
+                                  pos,n,utf8=positions[index]
+                                  value='2.3.165'.encode('utf-8' if utf8 else 'utf-16-le')
+                                  assert len(value)==n
+                                  manifest[pos:pos+n]=value;patched_name=True
+                  offset+=size
+              assert patched_code and patched_name
+              with zipfile.ZipFile(dst,'w') as out:
+                  for info in z.infolist():
+                      if info.filename.startswith('META-INF/'):continue
+                      out.writestr(info,manifest if info.filename=='AndroidManifest.xml' else z.read(info.filename))
+          print(dst)
+          PY
+      - name: Sign with the existing planner certificate
+        shell: bash
+        run: |
+          curl -fLsS --retry 2 -o signer.jar https://github.com/patrickfav/uber-apk-signer/releases/download/v1.3.0/uber-apk-signer-1.3.0.jar
+          echo 'e1299fd6fcf4da527dd53735b56127e8ea922a321128123b9c32d619bba1d835  signer.jar' | sha256sum -c -
+          base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
+          java -jar signer.jar -a raspisanie-2.3.165-unsigned.apk --ks planner-debug.keystore --ksAlias androiddebugkey --ksPass android --ksKeyPass android --out signed
+          java -jar signer.jar -a signed/raspisanie-2.3.165-aligned-signed.apk --onlyVerify --verifySha256 6645df89cad1a0aa1980c20bd846e9c7dcfcffd5814057b83d491a9547c82d03
+          python3 - <<'PY'
+          import zipfile
+          with zipfile.ZipFile('downloads/raspisanie-2.3.163.apk') as a, zipfile.ZipFile('signed/raspisanie-2.3.165-aligned-signed.apk') as b:
+              names={n for n in a.namelist() if n!='AndroidManifest.xml' and not n.startswith('META-INF/')}
+              assert names=={n for n in b.namelist() if n!='AndroidManifest.xml' and not n.startswith('META-INF/')}
+              assert all(a.read(n)==b.read(n) for n in names)
+              print('Original code and assets verified byte-for-byte')
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: black-deeds-2.3.165-normal-apk
+          path: signed/raspisanie-2.3.165-aligned-signed.apk
