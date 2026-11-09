@@ -84,16 +84,28 @@ window.restoreVaultArchive=async text=>{
  }catch(error){toast('Восстановление не завершено: '+notifyError(error),8000)}finally{restoring=false;window.__vaultRestoring=false;native.vaultCloseRestore()}
 };
 const settings=document.querySelector('#settings .settings-buttons');
-if(settings){const block=document.createElement('section');block.innerHTML='<h3>Защита данных · офлайн</h3><p id="vault-status" role="status" class="dialog-note"></p><button class="btn" id="vault-export">Создать зашифрованную копию для переноса</button><button class="btn" id="vault-open">Загрузить копию с другого телефона</button><button class="btn" id="vault-now">Создать внутреннюю защищённую копию</button><button class="btn" id="vault-local">Восстановить внутреннюю копию</button><p class="dialog-note">Без Интернета и автоматической отправки файлов. Внутренняя защита хранится только в закрытом хранилище приложения и не появляется в галерее или общих папках. Переносной файл .bdvault создаётся вручную и шифруется заданным тобой паролем, включая скрытые папки и имена файлов. Перенеси его по USB или Bluetooth. На новом телефоне выбери «Загрузить копию» и введи пароль. Без пароля открыть файл невозможно. Удаление приложения или очистка данных удаляет внутреннюю защиту: для переустановки нужна заранее сохранённая переносная копия.</p>';settings.append(block);
+if(settings){
+ const style=document.createElement('style');style.textContent=`
+ #settings .vault-panel{display:grid;gap:20px;margin-top:16px;padding:20px 0 8px;border-top:1px solid var(--border);grid-column:1/-1}
+ #settings .vault-panel h3{margin:0;font-size:18px;line-height:1.35;color:var(--text)}
+ #settings .vault-action{display:grid;gap:9px;padding:0;margin:0}
+ #settings .vault-panel .btn{display:block;width:100%;min-height:50px;padding:14px 16px;font-size:14px;line-height:1.4;text-align:center;white-space:normal;overflow-wrap:anywhere}
+ #settings .vault-panel p{margin:0;font-size:13px;line-height:1.6;color:var(--muted)}
+ #settings .vault-recovery{padding-top:16px;border-top:1px solid var(--border)}
+ #settings .vault-recovery summary{padding:8px 0;font-size:14px;font-weight:650;cursor:pointer;color:var(--text)}
+ #settings .vault-recovery-content{display:grid;gap:14px;padding-top:12px}
+ #settings .vault-panel #vault-status{font-size:12px;line-height:1.5}
+ `;document.head.append(style);
+ const block=document.createElement('section');block.className='vault-panel';block.innerHTML='<h3>Резервная копия</h3><div class="vault-action"><button class="btn" id="vault-export">Сохранить копию в файл</button><p>Для переноса на новый телефон или переустановки. Все данные, включая скрытые папки, защищены паролем.</p></div><div class="vault-action"><button class="btn" id="vault-open">Восстановить из файла</button><p>Выбери ранее сохранённую копию и введи её пароль.</p></div><p>Приложение работает без Интернета. Файл создаётся только по твоему нажатию. Перед удалением приложения сохрани файл и пароль отдельно.</p><details class="vault-recovery"><summary>Восстановление после сбоя</summary><div class="vault-recovery-content"><p>Приложение автоматически сохраняет версии в своём закрытом хранилище. Они не видны в галерее, но удаляются вместе с приложением.</p><button class="btn" id="vault-local">Выбрать сохранённую версию</button><button class="btn" id="vault-now">Сохранить версию сейчас</button><p id="vault-status" role="status"></p></div></details>';settings.append(block);
  document.getElementById('vault-export').onclick=async()=>{try{await checkpoint(true,true);native.vaultExport()}catch(error){toast(notifyError(error),8000)}};
  document.getElementById('vault-now').onclick=async()=>{try{await checkpoint(true,true);toast('Внутренняя копия сохранена')}catch(error){toast(notifyError(error),8000)}};document.getElementById('vault-local').onclick=()=>native.vaultLocal();document.getElementById('vault-open').onclick=()=>native.vaultOpen();
 
  const settingsDialog=document.getElementById('settings');new MutationObserver(status).observe(settingsDialog,{attributes:true,attributeFilter:['open']});
 }
-const legacyImport=document.getElementById('import');if(legacyImport)legacyImport.textContent='Загрузить прежнюю JSON-копию';
+const legacyImport=document.getElementById('import');if(legacyImport){legacyImport.textContent='Открыть копию старого формата';document.querySelector('.vault-recovery-content')?.append(legacyImport);}
 const oldExport=document.getElementById('export');if(oldExport){oldExport.hidden=true;oldExport.onclick=async()=>{try{await checkpoint(true,true);native.vaultExport()}catch(error){toast(notifyError(error),8000)}};}
 status();dirty();
-if(window.__plannerLoadFailed||window.__vaultStorageRecovered){const warning=document.createElement('div');warning.setAttribute('role','alert');warning.style.cssText='padding:16px;margin:12px;border:2px solid #c94747;border-radius:12px;background:var(--surface);color:var(--text)';warning.textContent=window.__vaultStorageRecovered?'Записи восстановлены из независимого хранилища. Автокопирование приостановлено: восстанови полную копию с фото и видео в Настройках → Защита данных · офлайн.':'Данные не удалось прочитать. Исходные файлы сохранены, запись поверх них заблокирована. Открой Настройки → Защита данных · офлайн, чтобы восстановить копию.';document.querySelector('main')?.prepend(warning);}
+if(window.__plannerLoadFailed||window.__vaultStorageRecovered){const warning=document.createElement('div');warning.setAttribute('role','alert');warning.style.cssText='padding:16px;margin:12px;border:2px solid #c94747;border-radius:12px;background:var(--surface);color:var(--text)';warning.textContent=window.__vaultStorageRecovered?'Записи восстановлены из независимого хранилища. Автокопирование приостановлено: восстанови полную копию с фото и видео в Настройках → Резервная копия.':'Данные не удалось прочитать. Исходные файлы сохранены, запись поверх них заблокирована. Открой Настройки → Резервная копия, чтобы восстановить копию.';document.querySelector('main')?.prepend(warning);}
 // Request a backup at background transition as well as through the debounce timer.
 document.addEventListener('visibilitychange',()=>{if(document.hidden&&!running&&!window.__plannerLoadFailed&&!window.__vaultStorageRecovered)checkpoint().catch(notifyError)});
 })();

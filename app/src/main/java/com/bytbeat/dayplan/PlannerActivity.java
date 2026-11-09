@@ -142,7 +142,8 @@ public class PlannerActivity extends Activity {
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
         settings.setBlockNetworkLoads(true);
-        settings.setBlockNetworkImage(true);
+        settings.setBlockNetworkImage(false);
+        settings.setLoadsImagesAutomatically(true);
         web.setRendererPriorityPolicy(WebView.RENDERER_PRIORITY_IMPORTANT,false);
         settings.setDomStorageEnabled(true);
         settings.setAllowFileAccess(false);
@@ -284,6 +285,14 @@ public class PlannerActivity extends Activity {
     @Override protected void onNewIntent(Intent intent){super.onNewIntent(intent);setIntent(intent);pendingWorkout=intent.getBooleanExtra("openWorkout",false);pendingOpenDate=intent.getStringExtra("openDate");pendingReminderId=intent.getStringExtra("openReminderId");openPendingDate();}
     private void openPendingDate(){if(pageReady&&pendingWorkout){pendingWorkout=false;web.evaluateJavascript("window.openWorkout&&window.openWorkout()",null);}if(pageReady&&pendingOpenDate!=null){String date=pendingOpenDate;pendingOpenDate=null;web.evaluateJavascript("window.openReminderDate&&window.openReminderDate("+JSONObject.quote(date)+","+JSONObject.quote(pendingReminderId)+")",null);}}
     public class BackupBridge {
+        @JavascriptInterface public String headerArtwork(String path){
+            if(path==null||!path.matches("header-images/header_[0-9]{2}\\.png"))return "";
+            try(InputStream in=getAssets().open(path);ByteArrayOutputStream out=new ByteArrayOutputStream()){
+                byte[] buffer=new byte[65536];int n;while((n=in.read(buffer))!=-1){if(out.size()+n>10000000)return "";out.write(buffer,0,n);}
+                return "data:image/png;base64,"+android.util.Base64.encodeToString(out.toByteArray(),android.util.Base64.NO_WRAP);
+            }catch(Exception e){return "";}
+        }
+
         @JavascriptInterface public String vaultStates(){return vault.candidates();}
         @JavascriptInterface public boolean vaultSaveState(String json){return vault.save(json);}
         @JavascriptInterface public String vaultStatus(){return vault.status();}
