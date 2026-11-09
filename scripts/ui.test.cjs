@@ -842,7 +842,7 @@ test('calendar day text uses all lines without ellipsis, with or without icons',
  }finally{await context.close()}
 });
 
-async function enterBetting(page){await page.locator('#ice-add').tap();await page.locator('[data-more-menu=betting]').tap();assert.equal(await page.evaluate(()=>tab),'betting')}
+async function enterBetting(page){await page.locator('#ice-add').tap();assert.equal(await page.locator('[data-more-menu=betting]').count(),0);await page.locator('[data-more-menu=calculator]').tap();const screen=page.locator('#calculator-dialog .calc-screen');await screen.tap();await screen.tap();await screen.tap();assert.equal(await page.evaluate(()=>tab),'betting')}
 async function confirmBet(page,slot,status,odds){const form=page.locator('[data-betting-result='+slot+']');await form.locator('[name=status]').selectOption(status);if(odds!==undefined)await form.locator('[name=odds]').fill(odds);page.once('dialog',dialog=>dialog.accept());await form.locator('[type=submit]').tap()}
 test('betting updates the bank immediately, fixes both stakes, and shows tomorrow only after the second result',async()=>{
  const {page,context,errors}=await open();
@@ -893,5 +893,16 @@ test('betting compact completed day fits and full reset requires confirmation an
   await page.locator('[data-betting-history]').tap();page.once('dialog',d=>d.dismiss());await page.locator('[data-betting-reset]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1150000);
   page.once('dialog',d=>d.accept());await page.locator('[data-betting-reset]').tap();assert.equal(await page.locator('#betting-setup').count(),1);assert.equal(await page.evaluate(()=>state.betting),null);
   await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await enterBetting(page);assert.equal(await page.locator('#betting-setup').count(),1);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});
+
+test('betting hidden calculator entry ignores keys and preserves data on return',async()=>{
+ const {page,context,errors}=await open();try{
+  await page.evaluate(()=>{state.prefs.moreMenuOrder=['betting','calculator'];persist()});
+  await page.locator('#ice-add').tap();assert.equal(await page.locator('[data-more-menu=betting]').count(),0);await page.locator('[data-more-menu=calculator]').tap();
+  const key=page.locator('#calculator-dialog [data-calc-key="7"]');await key.tap();await key.tap();await key.tap();assert.equal(await page.locator('#calculator-dialog').evaluate(d=>d.open),true);assert.notEqual(await page.evaluate(()=>tab),'betting');
+  const screen=page.locator('#calculator-dialog .calc-screen');await screen.tap();await screen.tap();assert.notEqual(await page.evaluate(()=>tab),'betting');await screen.tap();assert.equal(await page.evaluate(()=>tab),'betting');
+  await page.locator('#betting-setup [name=bank]').fill('10000');await page.locator('#betting-setup [type=submit]').tap();const before=await page.evaluate(()=>JSON.stringify(state.betting));
+  await page.locator('[data-work-calculator]').tap();assert.equal(await page.locator('#calculator-dialog').evaluate(d=>d.open),true);await screen.tap();await screen.tap();await screen.tap();assert.equal(await page.evaluate(()=>JSON.stringify(state.betting)),before);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });

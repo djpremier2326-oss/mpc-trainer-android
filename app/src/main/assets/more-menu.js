@@ -1,7 +1,7 @@
 /* All sections remain reachable. Only the bottom-panel duplicates are filtered. */
 (()=>{
 'use strict';
-const defaults=['wishes','workout','calculator','betting','photos','notes','savings','day','week','calendar','events','settings'];
+const defaults=['wishes','workout','calculator','photos','notes','savings','day','week','calendar','events','settings'];
 const icons={wishes:'speaker',workout:'workout',calculator:'calculator',betting:'calculator',notes:'notes',savings:'savings',day:'today',week:'week',calendar:'calendar',settings:'gear'};
 const titles={...MAIN_SECTIONS,calculator:'Калькулятор',betting:'Работа',settings:'Настройки'};
 const list=$('ice-tools-list'),dialog=$('ice-menu-dialog');

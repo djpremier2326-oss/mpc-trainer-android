@@ -69,3 +69,5 @@ body[data-view=betting] .toolbar{display:none!important}
 
 .betting-heading{justify-content:flex-end}
 .betting-heading:empty{display:none}
+
+.betting-heading{justify-content:space-between}
