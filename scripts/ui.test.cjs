@@ -882,3 +882,16 @@ test('betting forms are readable in all themes and invalid odds do not change th
   await confirmBet(page,'night','return');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1000000);await confirmBet(page,'day','loss');assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),900000);assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).nextStake),90000);assert.deepEqual(errors,[]);
  }finally{await context.close()}
 });
+
+test('betting compact completed day fits and full reset requires confirmation and persists',async()=>{
+ const {page,context,errors}=await open();try{
+  await page.setViewportSize({width:360,height:770});
+  await page.evaluate(()=>{state.prefs.variant='violet';applyTheme();state.betting=BettingCore.create(1000000,iso());state.betting=BettingCore.settle(state.betting,'night','win',2000000);state.betting=BettingCore.settle(state.betting,'day','win',1500000);persist();navigate(selected,'betting');$('view').scrollTop=0});
+  assert.equal(await page.locator('.betting-heading h1').count(),0);
+  assert.equal(await page.evaluate(()=>document.querySelector('.betting-day-total').getBoundingClientRect().bottom<=document.querySelector('.tabs').getBoundingClientRect().top),true);
+  await page.screenshot({path:'/workspace/.planner-startup-review/betting-compact-violet-160.png'});
+  await page.locator('[data-betting-history]').tap();page.once('dialog',d=>d.dismiss());await page.locator('[data-betting-reset]').tap();assert.equal(await page.evaluate(()=>BettingCore.read(state.betting).bank),1150000);
+  page.once('dialog',d=>d.accept());await page.locator('[data-betting-reset]').tap();assert.equal(await page.locator('#betting-setup').count(),1);assert.equal(await page.evaluate(()=>state.betting),null);
+  await page.reload();await page.waitForFunction(()=>document.documentElement.dataset.appReady==='true');await enterBetting(page);assert.equal(await page.locator('#betting-setup').count(),1);assert.deepEqual(errors,[]);
+ }finally{await context.close()}
+});

@@ -32,3 +32,40 @@ body[data-view=betting] .toolbar{display:none!important}
 #betting-bank-dialog{width:min(420px,calc(100% - 24px))}
 #betting-error{position:sticky;bottom:0;padding:10px;border:1px solid currentColor;border-radius:10px;background:var(--card,var(--surface));color:var(--text)}
 #betting-error[hidden]{display:none}
+
+/* Compact daily view: two short result cards or two-column entry forms. */
+.betting-heading{min-height:40px;margin-bottom:6px}
+.betting-bank,.betting-slot,.betting-day-total,.betting-history-item{padding:10px 12px;margin-bottom:8px;border-radius:14px}
+.betting-page h2{font-size:15px;margin-bottom:6px}
+.betting-bank{display:grid;grid-template-columns:1fr auto;align-items:center;gap:6px}
+.betting-bank>small{font-size:12px}
+#betting-balance{font-size:25px;line-height:1.2;margin:0}
+.betting-bank-actions{grid-column:1/-1;gap:6px}
+.betting-bank-actions .btn{min-height:34px;padding:5px 8px;font-size:12px}
+.betting-day-heading{margin:10px 0 8px}
+.betting-day-heading h2{font-size:16px;margin-bottom:2px}
+.betting-day-heading>small{font-size:11px}
+.betting-card-title{margin-bottom:7px;gap:8px}
+.betting-card-title h2{margin:0}
+.betting-stake{font-size:19px}
+.betting-slot form,.betting-slot fieldset{gap:8px}
+.betting-slot fieldset{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end}
+.betting-slot fieldset>.btn,.betting-slot fieldset>.form-error{grid-column:1/-1}
+.betting-page .field{font-size:11px;gap:4px}
+.betting-page :is(input,select){min-height:38px;padding:7px 8px;font-size:13px}
+.betting-slot .btn{min-height:36px;padding:6px 9px;font-size:12px}
+.betting-recorded{grid-template-columns:1fr auto;gap:4px;font-size:12px;line-height:1.4}
+.betting-final-odds{text-align:right}
+.betting-result-profit{grid-column:1/-1}
+.betting-note{font-size:11px;line-height:1.4;margin:6px 0}
+.betting-day-total p{font-size:12px;line-height:1.4;margin:4px 0}
+#betting-next{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:5px;margin-top:8px;padding-top:8px}
+#betting-next .betting-next-bank{width:100%}
+#betting-next small{font-size:11px}
+#betting-next strong{font-size:22px}
+.betting-day-total>.btn{margin-top:8px;min-height:36px;padding:6px;font-size:12px}
+.betting-history-item p{margin:5px 0}
+.betting-history-result{padding:5px 0}
+
+.betting-heading{justify-content:flex-end}
+.betting-heading:empty{display:none}

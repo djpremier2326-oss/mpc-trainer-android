@@ -3,7 +3,7 @@
 'use strict';
 const defaults=['wishes','workout','calculator','betting','photos','notes','savings','day','week','calendar','events','settings'];
 const icons={wishes:'speaker',workout:'workout',calculator:'calculator',betting:'calculator',notes:'notes',savings:'savings',day:'today',week:'week',calendar:'calendar',settings:'gear'};
-const titles={...MAIN_SECTIONS,calculator:'Калькулятор',betting:'Ставки',settings:'Настройки'};
+const titles={...MAIN_SECTIONS,calculator:'Калькулятор',betting:'Работа',settings:'Настройки'};
 const list=$('ice-tools-list'),dialog=$('ice-menu-dialog');
 function order(){const saved=state.prefs.moreMenuOrder;return [...new Set([...(Array.isArray(saved)?saved.filter(id=>defaults.includes(id)):[]),...defaults])]}
 function visible(){const bottom=state.prefs.mainMenu||[];return order().filter(id=>!bottom.includes(id))}
