@@ -32,6 +32,7 @@ PATCHES = [
     'scripts/apply-indigo-theme.py',
     'scripts/apply-plum-theme.py',
     'scripts/apply-theme-lifecycle.py',
+    'scripts/apply-silver-theme.py',
 ]
 
 def prepare():
