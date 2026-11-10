@@ -6,10 +6,10 @@ def replace(old,new):
  global s
  assert old in s,old
  s=s.replace(old,new,1)
-replace("bg=appearance?.colorTheme==='plum'", "bg=appearance?.colorTheme==='silver'&&variant==='violet'?'#e9eaec':appearance?.colorTheme==='plum'")
+replace("bg=appearance?.colorTheme==='plum'", "bg=appearance?.colorTheme==='silver'&&variant==='violet'?'#e5e5e5':appearance?.colorTheme==='plum'")
 replace("const plum=p.variant==='violet'", "const silver=p.variant==='violet'&&p.colorTheme==='silver',plum=p.variant==='violet'")
-replace("t=plum?", "t=silver?['Серебро','#e9eaec','#fafbfc','#202124','#66696e','#c6c9ce','#d4e3fd',false]:plum?")
-replace("l=plum?", "l=silver?['#303030','#fafbfc','#d4e3fd','#202124','#b6bbc3','#f2f3f5','#c6c9ce']:plum?")
+replace("t=plum?", "t=silver?['Серебро','#e5e5e5','#fafbfc','#202124','#66696e','#c6c9ce','#d4e3fd',false]:plum?")
+replace("l=plum?", "l=silver?['#2b2b2b','#fafbfc','#d4e3fd','#202124','#b6bbc3','#f2f3f5','#c6c9ce']:plum?")
 replace("document.body.dataset.colorTheme=plum?", "document.body.dataset.colorTheme=silver?'silver':plum?")
 replace("$('theme-current').textContent=plum?", "$('theme-current').textContent=silver?'Серебро':plum?")
 replace("['plum','Слива']].map", "['plum','Слива'],['silver','Серебро']].map")
