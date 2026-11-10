@@ -66,3 +66,9 @@ body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .tabs>.ice-compose::before{background:linear-gradient(#303030,#303030) top center/29px 3px no-repeat,linear-gradient(#303030,#303030) center/29px 3px no-repeat,linear-gradient(#303030,#303030) bottom center/29px 3px no-repeat!important}
 /* Outline the complete month, independent of per-day colors and selection. */
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .calendar-month{border:1px solid #303030!important}
+/* Neutral day tiles stay separate from the blue month panel. */
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .calendar-month .cal-cell{border:1px solid #9a9da2!important}
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .calendar-month .cal-cell[data-day-color=none]:not(.chosen){background:#f2f3f5!important;color:#202124!important}
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .calendar-month .cal-cell.chosen{border-color:#303030!important}
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .calendar-month .cal-cell.today{border-color:#202124!important}
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #ice-menu-dialog [data-close=ice-menu-dialog]{color:#66696e!important}
