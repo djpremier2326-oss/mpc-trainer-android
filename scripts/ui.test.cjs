@@ -604,14 +604,14 @@ test('calendar day settings open compact with collapsed colors and readily acces
  }finally{await context.close()}
 });
 
-test('section actions share light buttons, black text and top alignment; week retains date selection',async()=>{
+test('section actions retain top alignment and savings uses its contrasting goal header',async()=>{
  const {page,context,errors}=await open();
  try{
   const tops=[];
   for(const [section,selector] of [['calendar','#calendar-top-tools button'],['week','.toolbar .nav .btn'],['notes','.notes-tools .btn'],['workout','.workout-heading button'],['wishes','.wishes-heading-actions .btn'],['events','.events-tools .btn'],['savings','#savings-configure']]){
    await page.evaluate(section=>{state.prefs.variant='violet';applyTheme();navigate(selected,section)},section);
    const buttons=await page.locator(selector).evaluateAll(els=>els.map(el=>{const b=el.getBoundingClientRect(),s=getComputedStyle(el);return {top:b.top,height:b.height,bg:s.backgroundColor,ink:s.color,font:s.fontSize,family:s.fontFamily}}));
-   assert.ok(buttons.length>0,section);assert.ok(buttons.every(b=>b.height===36&&b.bg==='rgb(251, 248, 255)'&&b.ink==='rgb(23, 19, 34)'&&b.font==='12px'),JSON.stringify({section,buttons}));tops.push({section,top:buttons[0].top});
+   assert.ok(buttons.length>0,section);if(section==='savings'){assert.ok(buttons.every(b=>b.ink==='rgb(255, 255, 255)'),JSON.stringify({section,buttons}));assert.equal(await page.locator('.savings-top').evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(101, 55, 142)')}else{assert.ok(buttons.every(b=>b.height===36&&b.bg==='rgb(251, 248, 255)'&&b.ink==='rgb(23, 19, 34)'&&b.font==='12px'),JSON.stringify({section,buttons}));tops.push({section,top:buttons[0].top});}
    if(section==='calendar')assert.equal(await page.locator('#calendar-top-tools svg').count(),0);
    if(section==='week'){assert.equal(await page.locator('.app-heading').isVisible(),false);assert.equal(await page.locator('#date').isVisible(),true)}
   }
