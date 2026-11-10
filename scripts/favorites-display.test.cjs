@@ -33,5 +33,5 @@ test('Only a matching favorite ID is repaired and unrelated private database con
  state.prefs.wishDatabase='dayplan-wishes-restored-old';await wishPhoto('put','old-file','BYTES');
  const unrelated=await new Promise(r=>{const q=indexedDB.open('unrelated-private',1);q.onupgradeneeded=()=>q.result.createObjectStore('photos');q.onsuccess=()=>r(q.result)});await wishDatabaseOperation(unrelated,'put','not-a-favorite','SECRET');unrelated.close();
  state.prefs.wishDatabase='dayplan-wishes-restored-current';const repaired=await wishPhoto('get','old-file');const db=await wishPhotoDb();let copied;try{copied=await wishDatabaseOperation(db,'get','old-file')}finally{db.close()}
- const missing=await wishPhoto('get','not-a-favorite');return{repaired,copied,unrelated:missing===undefined,metadata:state.wishes.length};
+ const missing=await wishPhoto('get','not-a-favorite');return{repaired,copied,unrelated:missing===undefined,metadata:(state.wishes||[]).length};
  }),{repaired:'BYTES',copied:'BYTES',unrelated:true,metadata:0})}finally{await context.close()}});
