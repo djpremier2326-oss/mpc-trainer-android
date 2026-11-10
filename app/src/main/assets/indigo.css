@@ -1764,3 +1764,10 @@ body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .ice-date-line{background:none!important;color:#102146!important;text-shadow:none!important}
 
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell.today{border:1px solid #000!important;box-shadow:inset 0 0 0 1px #000!important;opacity:1!important}
+
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip{background:#4430ae!important;border-color:#4430ae!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]){color:#f5f3ff!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]) :is(span,strong,small){color:inherit!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button>i{background:#b9adef!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date]{background:#f5f3ff!important;color:#4430ae!important;box-shadow:0 3px 10px #25156440!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date] :is(span,strong,small){color:#4430ae!important}
