@@ -1,0 +1,13 @@
+/* Paid deposits and the goal card share a readable, darker theme accent. */
+body[data-design=ice]{--saving-tone:#175572}
+body[data-variant=graphite]{--saving-tone:#3f3f3f}
+body[data-variant=rhythm]{--saving-tone:#36372c}
+body[data-variant=violet]{--saving-tone:#65378e}
+body[data-color-theme=aurora]{--saving-tone:#17676d}
+body[data-color-theme=indigo]{--saving-tone:#4430ae}
+body[data-color-theme=plum]{--saving-tone:#624955}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .savings-top{margin-top:10px!important;background:var(--saving-tone)!important;color:#fff!important;border-color:var(--saving-tone)!important;box-shadow:0 4px 14px #00000014!important}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .savings-top :is(h2,strong,small,.saving-goal){color:#fff!important;opacity:1!important}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] #savings-configure{background:#ffffff18!important;color:#fff!important;border:1px solid #ffffff80!important;box-shadow:none!important}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .deposit[aria-pressed=true]{background:var(--saving-tone)!important;border-color:var(--saving-tone)!important;color:#fff!important}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .deposit[aria-pressed=true] :is(strong,small),body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .deposit[aria-pressed=true]::after{color:#fff!important;opacity:1!important}

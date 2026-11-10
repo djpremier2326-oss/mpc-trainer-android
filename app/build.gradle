@@ -10,8 +10,8 @@ android {
         manifestPlaceholders = [launcherIcon: '@mipmap/ic_black_deeds']
         minSdk 26
         targetSdk 34
-        versionCode 10079
-        versionName '2.3.181'
+        versionCode 10080
+        versionName '2.3.182'
     }
     buildFeatures { buildConfig true }
     signingConfigs {
