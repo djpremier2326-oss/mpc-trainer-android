@@ -148,6 +148,17 @@ public class PlannerStartupTest {
             assertEquals(View.VISIBLE,view.getVisibility());assertSame(view,get(a,"web"));
         }finally{c.pause().stop().destroy();}
     }
+    @Test public void runtimePlaceSurvivesActivityRecreationButUsesNoPersistentStorage()throws Exception{
+        Field memory=PlannerActivity.class.getDeclaredField("runtimePlace");memory.setAccessible(true);memory.set(null,null);
+        var first=Robolectric.buildActivity(LaunchOnlyActivity.class).setup();
+        try{var bridge=first.get().new BackupBridge();assertEquals("",bridge.runtimePlace());
+            bridge.rememberRuntimePlace("{\"tab\":\"workout\",\"exercise\":\"pull\",\"date\":\"2026-11-10\",\"scroll\":120}");
+            String saved=bridge.runtimePlace();assertEquals("workout",new org.json.JSONObject(saved).getString("tab"));
+            bridge.rememberRuntimePlace("{broken");assertEquals(saved,bridge.runtimePlace());
+            first.pause().stop().destroy();var second=Robolectric.buildActivity(LaunchOnlyActivity.class).setup();
+            try{assertEquals(saved,second.get().new BackupBridge().runtimePlace());memory.set(null,null);assertEquals("",second.get().new BackupBridge().runtimePlace());}finally{second.pause().stop().destroy();}
+        }finally{memory.set(null,null);}
+    }
     @Test public void photoPickerSupportsMultipleUrisAndCancellation(){
         android.net.Uri a=android.net.Uri.parse("content://photos/one"),b=android.net.Uri.parse("content://photos/two");
         android.content.Intent data=new android.content.Intent().setData(a);

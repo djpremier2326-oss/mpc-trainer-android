@@ -1,0 +1,2 @@
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=workout] #view .workout-set[aria-pressed=true]{background:var(--saving-tone)!important;border-color:var(--saving-tone)!important;color:#fff!important}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=workout] #view .workout-set[aria-pressed=true] :is(small,strong,span){color:#fff!important;opacity:1!important}

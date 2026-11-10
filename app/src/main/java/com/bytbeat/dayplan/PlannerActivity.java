@@ -27,6 +27,7 @@ import org.json.JSONObject;
 
 public class PlannerActivity extends Activity {
     private WebView web;
+    private static volatile String runtimePlace;
     private DataVault vault;
     private PhotoExportSession photoExport;
     private static final int PHOTO_EXPORT=107;
@@ -298,7 +299,7 @@ public class PlannerActivity extends Activity {
         resumeSurfaceGeneration++;
         rendererWasBackgrounded=true;
         WorkoutTimer.foreground=false;
-        if(web!=null)web.onPause();
+        if(web!=null){web.evaluateJavascript("window.onPlannerPause&&window.onPlannerPause()",null);web.onPause();}
         super.onPause();
     }
     private void openExternalLink(String value){runOnUiThread(()->message("Приложение работает офлайн. Интернет-ссылки отключены"));}
@@ -369,6 +370,17 @@ public class PlannerActivity extends Activity {
         @JavascriptInterface public void saveBackup(String name,String json){
             if(json==null||json.getBytes(StandardCharsets.UTF_8).length>MAX_BYTES)return;
             runOnUiThread(()->{pendingBackup=json;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name);startActivityForResult(i,SAVE);}catch(Exception e){pendingBackup=null;message("Не удалось открыть выбор файла");}});
+        }
+        @JavascriptInterface public String runtimePlace(){return runtimePlace==null?"":runtimePlace;}
+        @JavascriptInterface public void rememberRuntimePlace(String text){
+            if(text==null||text.length()>4096)return;
+            try{JSONObject input=new JSONObject(text);String tab=input.optString("tab");
+                if(!java.util.Arrays.asList("day","week","month","calendar","notes","photos","workout","savings","events","wishes","betting").contains(tab))return;
+                JSONObject safe=new JSONObject().put("tab",tab);
+                for(String key:new String[]{"date","exercise","note","folder"}){String value=input.optString(key,"");if(value.length()>120)return;safe.put(key,value);}
+                safe.put("scroll",Math.max(0,Math.min(10000000,input.optDouble("scroll",0))));safe.put("paper",Math.max(0,Math.min(10000000,input.optDouble("paper",0))));
+                runtimePlace=safe.toString();
+            }catch(Exception ignored){}
         }
         @JavascriptInterface public boolean photoExportBegin(String name,String mime){return photoExport.begin(name,mime);}
         @JavascriptInterface public boolean photoExportChunk(String data){return photoExport.chunk(data);}
