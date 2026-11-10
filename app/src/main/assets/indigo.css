@@ -1771,3 +1771,6 @@ body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button>i{background:#b9adef!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date]{background:#f5f3ff!important;color:#4430ae!important;box-shadow:0 3px 10px #25156440!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date] :is(span,strong,small){color:#4430ae!important}
+
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]):nth-child(n){color:#f5f3ff!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]):nth-child(n) :is(span,strong,small){color:#f5f3ff!important}
