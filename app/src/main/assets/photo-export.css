@@ -4,3 +4,7 @@
 body[data-design=ice][data-view=wishes] .wish-grid{gap:12px!important}
 body[data-design=ice][data-view=wishes] .wish-card .wish-image{width:100%;height:auto!important;aspect-ratio:4/3;overflow:hidden}
 body[data-design=ice][data-view=wishes] .wish-card .wish-image img{width:100%!important;height:100%!important;max-width:none!important;max-height:none!important;object-fit:cover!important}
+
+/* Give unloaded WebView images a definite box as well as decoded thumbnails. */
+body[data-design=ice][data-view=wishes] .wish-card .wish-image img{position:absolute;inset:0}
+.wish-media-status{position:absolute;inset:12px;display:flex;align-items:center;justify-content:center;color:var(--text);font-size:13px;line-height:1.5;text-align:center;pointer-events:none}
