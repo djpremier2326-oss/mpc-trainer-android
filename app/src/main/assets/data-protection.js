@@ -37,7 +37,9 @@ async function checkpoint(force=false,allowReduction=false){
  try{
   const saved=JSON.parse(JSON.stringify(state));
   const db=await mediaDB();const media=await records(db,'media');
-  const wishDb=await wishPhotoDb();let wishes;try{wishes=await records(wishDb,'photos')}finally{wishDb.close()}
+  // Back up the same exact files the viewer reads, including references repaired
+  // from an earlier private database. Orphaned files are not active favorites.
+  const wishes=[];for(const wish of saved.wishes||[]){const value=await wishPhoto('get',wish.id);if(value===undefined)throw Error('Не найден файл избранного. Неполная копия не заменит прежнюю');wishes.push({key:wish.id,value})}
   if(started!==revision)throw Error('Записи изменились во время чтения. Повторю копирование');
   const last=JSON.parse(native.vaultStatus());const reduction=(last.mediaCount>0&&media.length===0)||(last.notesCount>0&&!(saved.notes||[]).length);
   if(reduction&&(!allowReduction||!confirm('В новой копии исчезли все фото/видео или все заметки. Если это не намеренное удаление, нажми «Отмена» и восстанови прежнюю копию. Подтверждаешь сохранение пустого раздела?')))throw Error('Резкое исчезновение данных: прежние копии защищены от перезаписи. Восстанови копию либо явно подтверди намеренное удаление через «Сохранить зашифрованную копию сейчас»');

@@ -33,3 +33,9 @@ test('unexpected disappearance of all notes preserves existing complete backups'
 test('portable export is manual and no cloud controls are exposed',async()=>{const {page,context}=await open();try{await note(page,'Офлайн');await page.evaluate(()=>vaultCheckpoint(true));assert.equal(await page.evaluate(()=>vaultTest.exports),0);assert.equal(await page.locator('#vault-cloud-files,#vault-folder,#vault-password').count(),0);await page.evaluate(()=>document.getElementById('vault-export').click());await page.waitForFunction(()=>vaultTest.exports===1);assert.equal(await page.evaluate(()=>vaultTest.exports),1)}finally{await context.close()}});
 
 test('an outdated screen cannot replace a complete snapshot after another screen saves',async()=>{const {page,context}=await open();try{await note(page,'До изменения');await page.evaluate(()=>{AndroidFiles.vaultCompareSaveState=()=>true;const latest=JSON.parse(window.__plannerPersistedBase);latest.notes[0].title='Новая запись';AndroidFiles.vaultStates=()=>JSON.stringify([JSON.stringify(latest),null])});await assert.rejects(page.evaluate(()=>vaultCheckpoint(true)),/устаревшая/);assert.equal(await page.evaluate(()=>vaultTest.archives.length),0)}finally{await context.close()}});
+
+test('A full backup includes favorites whose exact file reference was repaired across private stores',async()=>{const {page,context}=await open();try{const result=await page.evaluate(async()=>{
+ await wishPhoto('put','referenced','data:image/jpeg;base64,YWJj');await wishPhoto('put','orphan','data:image/jpeg;base64,b3JwaGFu');
+ state.wishes=[{id:'referenced',title:'',why:'',done:false}];state.prefs.wishDatabase='dayplan-wishes-restored-other';persist();await vaultCheckpoint(true);
+ return JSON.parse(new TextDecoder().decode(Uint8Array.from(vaultTest.archives.at(-1)['manifest.json'],c=>c.charCodeAt(0)))).wishes;
+ });assert.deepEqual(result,[{id:'referenced',value:'data:image/jpeg;base64,YWJj'}])}finally{await context.close()}});

@@ -25,10 +25,43 @@ async function prepareWishVideo(file){
  })}finally{video.pause();video.removeAttribute('src');video.load();URL.revokeObjectURL(url)}
 }
 
-function wishPhotoDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(state.prefs?.wishDatabase||'black-deeds-wish-photos',1);r.onupgradeneeded=()=>r.result.createObjectStore('photos');r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-async function wishPhoto(action,id,value){if(action==='put'&&value instanceof Blob){const bytes=await value.arrayBuffer();if(bytes.byteLength!==value.size)throw Error('Файл прочитан не полностью');value=new Blob([bytes],{type:value.type});}const db=await wishPhotoDb();return new Promise((resolve,reject)=>{const tx=db.transaction('photos',action==='get'?'readonly':'readwrite',action==='get'?{}:{durability:'strict'}),store=tx.objectStore('photos');const r=action==='get'?store.get(id):action==='put'?store.put(value,id):store.delete(id);let result;r.onsuccess=()=>result=r.result;tx.oncomplete=()=>{db.close();resolve(result)};tx.onerror=tx.onabort=()=>{db.close();reject(tx.error||Error('Фото не сохранено'))}})}
+// Keep the database identity captured throughout each operation. Metadata imports must
+// never redirect reads away from files that have already committed.
+function wishDatabaseName(){return state.prefs?.wishDatabase||'black-deeds-wish-photos'}
+function wishPhotoDb(name=wishDatabaseName()){return new Promise((resolve,reject)=>{const r=indexedDB.open(name,1);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('photos'))r.result.createObjectStore('photos')};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
+function wishDatabaseOperation(db,action,id,value){return new Promise((resolve,reject)=>{const tx=db.transaction('photos',action==='get'?'readonly':'readwrite',action==='get'?{}:{durability:'strict'}),store=tx.objectStore('photos');const r=action==='get'?store.get(id):action==='put'?store.put(value,id):store.delete(id);let result;r.onsuccess=()=>result=r.result;tx.oncomplete=()=>resolve(result);tx.onerror=tx.onabort=()=>reject(tx.error||Error('Фото не сохранено'))})}
+async function wishExistingDatabases(){
+ const names=new Set(['black-deeds-wish-photos']);
+ if(indexedDB.databases)for(const db of await indexedDB.databases())if(db.name?.startsWith('dayplan-wishes-restored-'))names.add(db.name);
+ return [...names];
+}
+function wishOpenExisting(name){return new Promise((resolve,reject)=>{const r=indexedDB.open(name);let absent=false;r.onupgradeneeded=()=>{absent=true;r.transaction.abort()};r.onerror=()=>absent?resolve(null):reject(r.error);r.onsuccess=()=>{const db=r.result;if(!db.objectStoreNames.contains('photos')){db.close();resolve(null)}else resolve(db)}})}
+async function wishPhoto(action,id,value){
+ if(action==='put'&&value instanceof Blob){const bytes=await value.arrayBuffer();if(bytes.byteLength!==value.size)throw Error('Файл прочитан не полностью');value=new Blob([bytes],{type:value.type})}
+ const name=wishDatabaseName(),db=await wishPhotoDb(name);
+ try{
+  const result=await wishDatabaseOperation(db,action,id,value);
+  if(action!=='get'||result!==undefined)return result;
+  // Resolve only this exact card ID in existing private favorite stores. Do not
+  // recreate cards, inspect public albums or change the selected database.
+  for(const otherName of await wishExistingDatabases()){
+   if(otherName===name)continue;
+   const other=await wishOpenExisting(otherName);if(!other)continue;
+   let found;try{found=await wishDatabaseOperation(other,'get',id)}finally{other.close()}
+   if(found!==undefined){await wishDatabaseOperation(db,'put',id,found);return found}
+  }
+  return undefined;
+ }finally{db.close()}
+}
 async function wishesForBackup(){const rows=[];let size=0;for(const wish of state.wishes||[]){const photo=await wishPhoto('get',wish.id);if(!photo)throw Error('Не удалось прочитать файл желания');size+=JSON.stringify(wish).length+(photo instanceof Blob?Math.ceil(photo.size/3)*4+100:photo.length);if(size>45000000)throw Error('Фото и видео слишком много для одной копии: предел 50 МБ');rows.push({...wish,photo:photo instanceof Blob?await wishAsDataUrl(photo):photo})}return rows}
-async function importWishPhotos(data){if(!data.wishes)return;for(const item of data.wishes){if(item.photo){item.id=crypto.randomUUID();const media=item.kind==='video'?await (await fetch(item.photo)).blob():item.photo;await wishPhoto('put',item.id,media);delete item.photo}else if(!await wishPhoto('get',item.id))throw Error('В копии отсутствуют фото желаний')}}
+async function importWishPhotos(data){
+ if(!data.wishes)return;
+ // Stage every file in one new store, including legacy rows without inline bytes.
+ // Publish its name only after all writes succeed; leave the current store intact.
+ const name='dayplan-wishes-restored-'+crypto.randomUUID(),db=await wishPhotoDb(name),rows=[];
+ try{for(const item of data.wishes){let media=item.photo;if(media&&item.kind==='video')media=await(await fetch(media)).blob();if(!media)media=await wishPhoto('get',item.id);if(!media)throw Error('В копии отсутствуют файлы избранного');const row={...item,id:crypto.randomUUID()};delete row.photo;await wishDatabaseOperation(db,'put',row.id,media);rows.push(row)}}finally{db.close()}
+ data.prefs={...data.prefs,wishDatabase:name};data.wishes=rows;
+}
 function wishCommit(rows){const old=state.wishes;state.wishes=rows;if(persist())return true;state.wishes=old;toast('Не удалось сохранить желания');return false}
 function wishDialogs(){if($('wish-editor'))return;const box=document.createElement('div');box.innerHTML=`<dialog id="wish-editor"><form id="wish-form"><div class="dialog-head"><h2>Моё желание</h2><button type="button" data-close="wish-editor" aria-label="Закрыть">×</button></div><label class="wish-photo-pick">Выбрать фото или видео с телефона<input id="wish-file" type="file" accept="image/*,video/*" multiple><img id="wish-draft-image" alt="Выбранное фото" hidden></label><video id="wish-draft-video" controls playsinline preload="metadata" hidden></video><label class="field">Название · необязательно<input name="title" maxlength="120" placeholder="Необязательно"></label><label class="field">Подпись · необязательно<textarea name="why" maxlength="2000" placeholder="Что изменится в моей жизни, когда это появится?"></textarea></label><p id="wish-error" role="status"></p><div class="dialog-actions"><button class="btn primary" id="wish-save">Сохранить</button></div></form></dialog><dialog id="wish-detail"><div id="wish-detail-content"></div></dialog>`;document.body.append(box)}
 async function editWish(id){wishDialogs();const version=++wishDraftVersion;++wishPhotoRequest;const item=(state.wishes||[]).find(x=>x.id===id);wishDraftId=item?.id||null;wishDraftPhoto=null;wishDraftKind=item?.kind||'photo';wishDraftPoster=item?.poster||null;wishDraftDuration=item?.duration||0;releaseWishUrl('draft');const draftVideo=$('wish-draft-video');draftVideo.pause();draftVideo.removeAttribute('src');draftVideo.hidden=true;const form=$('wish-form');form.elements.title.value=item?.title||'';form.elements.why.value=item?.why||'';$('wish-file').multiple=!item;$('wish-file').value='';$('wish-error').textContent='';$('wish-draft-image').hidden=true;$('wish-save').disabled=!!item;$('wish-editor').showModal();if(!item)$('wish-file').click();try{if(item){const photo=await wishPhoto('get',id);if(version!==wishDraftVersion)return;wishDraftPhoto=photo||null;if(photo){if(wishDraftKind==='video'){wishDraftUrl=photo instanceof Blob?URL.createObjectURL(photo):null;draftVideo.src=wishDraftUrl||photo;draftVideo.hidden=false}else{wishDraftUrl=photo instanceof Blob?URL.createObjectURL(photo):null;$('wish-draft-image').src=wishDraftUrl||photo;$('wish-draft-image').hidden=false}}}}catch{$('wish-error').textContent='Не удалось прочитать фото'}finally{if(version===wishDraftVersion)$('wish-save').disabled=false}}
