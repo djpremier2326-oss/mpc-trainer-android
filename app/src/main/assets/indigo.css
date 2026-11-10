@@ -1749,10 +1749,10 @@ body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .violet-event-card.is-black :is(strong,.violet-event-range,.violet-task-auto-icon){color:#fff!important}
 
 /* Indigo follow-up: visible calendar cells, purple navigation, and a clean header. */
-body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell{border-color:#8094b0!important;box-shadow:inset 0 0 0 1px #8094b0!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell{border:1px solid #d8dadd!important;box-shadow:none!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell[data-day-color=none]:not(.chosen):not(.has-work-shift){background:#fafdff!important;color:#102146!important}
-body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell.outside{background:#dbe5f0!important;color:#7b8ba1!important;opacity:1!important;box-shadow:inset 0 0 0 1px #b7c5d6!important}
-body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell.chosen{background:#5341c8!important;border-color:#5341c8!important;box-shadow:inset 0 0 0 1px #5341c8!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell.outside{background:#dbe5f0!important;color:#7b8ba1!important;opacity:1!important;border-color:#d8dadd!important;box-shadow:none!important}
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell.chosen{background:#5341c8!important;border-color:#5341c8!important;box-shadow:none!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .tabs{background:#4430ae!important;color:#f5f9ff!important;border-color:#4430ae!important;box-shadow:0 -3px 12px #4430ae20!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .tabs .tab{color:#d3deef!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .tabs .tab[aria-current=page]{color:#43d1ee!important}
@@ -1762,3 +1762,5 @@ body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute::before,
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute::after{content:none!important;background:none!important;box-shadow:none!important}
 body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .ice-date-line{background:none!important;color:#102146!important;text-shadow:none!important}
+
+body[data-color-theme=indigo][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell.today{border:1px solid #000!important;box-shadow:inset 0 0 0 1px #000!important;opacity:1!important}
