@@ -2,7 +2,7 @@
 (()=>{
 'use strict';
 const originalPictures=[{id:'swoosh',title:'Свуш'},...(window.plannerHeaderImages||[]).filter(item=>item&&typeof item.id==='string'&&typeof item.title==='string'&&typeof item.src==='string')];
-function aurora(){return state.prefs.colorTheme==='aurora'&&state.prefs.variant==='violet'}
+function aurora(){return ['aurora','indigo'].includes(state.prefs.colorTheme)&&state.prefs.variant==='violet'}
 function pictureList(){return aurora()?(window.plannerAuroraHeaderImages||[]):originalPictures}
 function pictureKey(){return aurora()?'auroraHeaderArtwork':'headerArtwork'}
 const originalHome=renderVioletTimelineDay;

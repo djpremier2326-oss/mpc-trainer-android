@@ -29,6 +29,7 @@ PATCHES = [
     'scripts/remove-auto-day-switch.py',
     'scripts/separate-photos.py',
     'scripts/apply-aurora-theme.py',
+    'scripts/apply-indigo-theme.py',
 ]
 
 def prepare():
