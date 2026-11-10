@@ -1,0 +1,79 @@
+name: Release offline planner 2.3.172
+on:
+  push:
+    branches: [indigo-purple-172]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.11.1'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Verify offline images and backup controls
+        env:
+          CHROMIUM_PATH: /usr/bin/google-chrome
+        run: |
+          npm ci
+          python3 scripts/prepare-assets.py
+          node --test --test-name-pattern='header|artwork' scripts/ui.test.cjs
+          node --test scripts/data-protection.test.cjs scripts/aurora.test.cjs scripts/indigo.test.cjs
+      - name: Test Android and assemble the existing signed app
+        run: |
+          base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
+          for attempt in 1 2 3; do
+            if gradle :app:testDebugUnitTest :app:lintDebug :app:assembleRelease --refresh-dependencies --stacktrace; then break; fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 10
+          done
+          cp app/build/outputs/apk/release/app-release.apk raspisanie-2.3.172.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: offline-planner-2.3.172
+          path: raspisanie-2.3.172.apk
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: apk-downloads
+      - uses: actions/download-artifact@v4
+        with:
+          name: offline-planner-2.3.172
+          path: verified
+      - name: Verify the original signature and offline package
+        run: |
+          signers=("$ANDROID_HOME"/build-tools/*/apksigner)
+          tools="$(dirname "${signers[-1]}")"
+          "$tools/apksigner" verify --print-certs verified/raspisanie-2.3.172.apk > certificate.txt
+          "$tools/aapt" dump permissions verified/raspisanie-2.3.172.apk > permissions.txt
+          "$tools/aapt" dump badging verified/raspisanie-2.3.172.apk > package.txt
+          python3 - <<'PY'
+          from pathlib import Path
+          assert '6645df89cad1a0aa1980c20bd846e9c7dcfcffd5814057b83d491a9547c82d03' in Path('certificate.txt').read_text()
+          assert 'android.permission.INTERNET' not in Path('permissions.txt').read_text()
+          p=Path('package.txt').read_text().splitlines()[0]
+          assert "name='com.bytbeat.dayplan'" in p and "versionCode='10070'" in p and "versionName='2.3.172'" in p
+          PY
+      - name: Publish the direct APK requested by the user
+        run: |
+          cp verified/raspisanie-2.3.172.apk downloads/raspisanie-2.3.172.apk
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add downloads/raspisanie-2.3.172.apk
+          git commit -m 'Improve Indigo calendar visibility and navigation in 2.3.172'
+          git push origin apk-downloads
