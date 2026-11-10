@@ -2,7 +2,7 @@
   "name": "black-deeds-ui-checks",
   "private": true,
   "scripts": {
-    "test": "python3 scripts/prepare-assets.py && node --test scripts/betting.test.cjs scripts/ui.test.cjs scripts/data-protection.test.cjs scripts/aurora.test.cjs scripts/indigo.test.cjs scripts/plum.test.cjs scripts/theme-gallery.test.cjs scripts/savings-theme.test.cjs scripts/favorites-storage.test.cjs scripts/favorites-batch.test.cjs scripts/photo-export.test.cjs scripts/calendar-color.test.cjs"
+    "test": "python3 scripts/prepare-assets.py && node --test scripts/betting.test.cjs scripts/ui.test.cjs scripts/data-protection.test.cjs scripts/aurora.test.cjs scripts/indigo.test.cjs scripts/plum.test.cjs scripts/theme-gallery.test.cjs scripts/savings-theme.test.cjs scripts/favorites-storage.test.cjs scripts/favorites-batch.test.cjs scripts/photo-export.test.cjs scripts/calendar-color.test.cjs scripts/calendar-text.test.cjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"
