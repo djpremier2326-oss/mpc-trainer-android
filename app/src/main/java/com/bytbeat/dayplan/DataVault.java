@@ -31,6 +31,12 @@ final class DataVault {
         try{out=atomic.startWrite();crypto.seal(new ByteArrayInputStream(value.getBytes(StandardCharsets.UTF_8)),out,false);atomic.finishWrite(out);if(!value.equals(read(file)))throw new IOException("Запись не прошла проверку");}catch(Exception e){atomic.failWrite(out);throw new IOException("Не сохранена защищённая запись",e);}
     }
     synchronized String candidates(){JSONArray a=new JSONArray();for(String name:new String[]{"state.json","previous.json"})try{String s=read(new File(dir,name));a.put(valid(s)?s:JSONObject.NULL);}catch(Exception ignored){a.put(JSONObject.NULL);}return a.toString();}
+    synchronized boolean compareSave(String expected,String value){
+        if(expected!=null&&expected.isEmpty())expected=null;
+        String current=null;try{String raw=read(new File(dir,"state.json"));if(valid(raw))current=raw;}catch(IOException ignored){}
+        if(!Objects.equals(expected,current)){error="Устаревшая копия экрана не может заменить новые данные";return false;}
+        return save(value);
+    }
     synchronized boolean save(String value){
         if(!valid(value)){error="Запись не прошла проверку";return false;}
         try{

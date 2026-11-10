@@ -312,6 +312,7 @@ public class PlannerActivity extends Activity {
 
         @JavascriptInterface public String vaultStates(){return vault.candidates();}
         @JavascriptInterface public boolean vaultSaveState(String json){return vault.save(json);}
+        @JavascriptInterface public boolean vaultCompareSaveState(String expected,String json){return vault.compareSave(expected,json);}
         @JavascriptInterface public String vaultStatus(){return vault.status();}
         @JavascriptInterface public boolean vaultBegin(){return vault.begin();}
         @JavascriptInterface public boolean vaultEntry(String name){return vault.entry(name);}

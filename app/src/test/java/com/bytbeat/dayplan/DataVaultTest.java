@@ -21,6 +21,12 @@ public class DataVaultTest {
  private final String one="{\"version\":1,\"days\":{},\"secret\":\"PRIVATE-NOTE-DO-NOT-EXPOSE\"}";
  @Before public void setup(){context=RuntimeEnvironment.getApplication();context.getSharedPreferences("vault",0).edit().clear().commit();context.getSharedPreferences("vault-crypto",0).edit().clear().commit();delete(new File(context.getFilesDir(),"data-vault-v1"));crypto=new VaultCrypto(context,new SecretKeySpec(new byte[32],"AES"));vault=new DataVault(context,crypto);}
  private static void delete(File f){File[] children=f.listFiles();if(children!=null)for(File x:children)delete(x);f.delete();}
+ @Test public void staleScreenCannotOverwriteNewFavoriteCards()throws Exception{
+  assertTrue(vault.compareSave(null,one));String newer=one.replace("PRIVATE-NOTE","NEW-PHOTO");
+  assertTrue(vault.compareSave(one,newer));assertFalse(vault.compareSave(one,one));
+  assertEquals(newer,new JSONArray(vault.candidates()).getString(0));
+  assertTrue(vault.compareSave(newer,newer));
+ }
  @Test public void appHasNoInternetPermission()throws Exception{String[] permissions=context.getPackageManager().getPackageInfo(context.getPackageName(),android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;if(permissions!=null)assertFalse(Arrays.asList(permissions).contains("android.permission.INTERNET"));}
  @Test public void mirrorIsEncryptedAndSurvivesInvalidNextWrite()throws Exception{
   assertTrue(vault.save(one));assertFalse(new String(Files.readAllBytes(new File(context.getFilesDir(),"data-vault-v1/state.json").toPath()),StandardCharsets.ISO_8859_1).contains("PRIVATE-NOTE"));

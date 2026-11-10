@@ -890,11 +890,12 @@ try{
  delete window.__plannerInitialState;
  let local=null,readError=null;try{local=localStorage.getItem(KEY)}catch(e){readError=e}
  let mirrors=[];if(window.AndroidFiles?.vaultStates)mirrors=JSON.parse(AndroidFiles.vaultStates());
+ window.__plannerPersistedBase=window.AndroidFiles?.vaultStates?(mirrors[0]||null):local;
  const candidates=[mirrors[0],local,mirrors[1]];let loaded=false;
  for(const raw of candidates){if(!raw)continue;try{const parsed=JSON.parse(raw);if(validState(parsed)){state=parsed;loaded=true;if(raw!==local&&(!local||(()=>{try{return !validState(JSON.parse(local))}catch(e){return true}})()))window.__vaultStorageRecovered=true;break}}catch(e){}}
  if(!loaded&&(candidates.some(Boolean)||readError))throw Error('Данные не прочитаны');
  // Save the unmodified pre-upgrade state before any normalization or new feature runs.
- if(loaded&&window.AndroidFiles?.vaultSaveState&&!AndroidFiles.vaultSaveState(JSON.stringify(state)))throw Error('Не удалось защитить исходную запись');
+ if(loaded&&window.AndroidFiles?.vaultSaveState){const text=JSON.stringify(state);const saved=AndroidFiles.vaultCompareSaveState?AndroidFiles.vaultCompareSaveState(window.__plannerPersistedBase||'',text):AndroidFiles.vaultSaveState(text);if(!saved)throw Error('Не удалось защитить исходную запись');window.__plannerPersistedBase=text;}
 }catch(e){window.__plannerLoadFailed=true;$('save-state').textContent='Данные не прочитаны. Сохранение заблокировано. Открой копию в настройках.';$('save-state').classList.add('error')}
 
 function blankHourlyRows(){return Array.from({length:24},(_,i)=>({text:'',color:'none',time:String(i).padStart(2,'0')+':00'}))}
@@ -914,8 +915,9 @@ function persist(){
  try{
   if(!validState(state))throw Error('Проверка данных не пройдена');
   const text=JSON.stringify(state);let mirrored=false;
-  if(window.AndroidFiles?.vaultSaveState){if(!AndroidFiles.vaultSaveState(text))throw Error('Независимая копия не записана');mirrored=true}
+  if(window.AndroidFiles?.vaultSaveState){const saved=AndroidFiles.vaultCompareSaveState?AndroidFiles.vaultCompareSaveState(window.__plannerPersistedBase||'',text):AndroidFiles.vaultSaveState(text);if(!saved)throw Error('Открыта устаревшая копия экрана. Закрой и открой приложение: новые данные сохранены');mirrored=true}else if(localStorage.getItem(KEY)!==(window.__plannerPersistedBase??null))throw Error('Открыта устаревшая копия экрана. Обнови страницу: новые данные сохранены');
   try{localStorage.setItem(KEY,text)}catch(error){if(!mirrored)throw error}
+  window.__plannerPersistedBase=text;
   $('save-state').textContent=mirrored?'Сохранено в приложении и независимом хранилище':'Сохранено на этом устройстве';$('save-state').classList.remove('error');
   if(!window.__plannerBooting)syncAndroidReminders();window.vaultDirty?.();return true;
  }catch(e){$('save-state').textContent='Не удалось сохранить. '+e.message;$('save-state').classList.add('error');return false}
