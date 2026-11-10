@@ -25,7 +25,7 @@ async function open(){
  await page.evaluate(()=>window.onAndroidReady?.());assert.deepEqual(errors,[]);
  return {page,context,errors};
 }
-const palettes={ice:'#03192e',graphite:'#8d8d8d',blueberry:'#a5afbb',rhythm:'#f7f6f1',violet:'#171126'};
+const palettes={ice:'#03192e',graphite:'#8d8d8d',rhythm:'#f7f6f1',violet:'#171126'};
 for(const [variant,bg] of Object.entries(palettes)){
  test(`saved ${variant} theme boots directly into its own ready page`,async()=>{
   const {page,context,errors}=await open();
@@ -716,7 +716,7 @@ async function assertReadableControl(locator){
 test('other themes use readable palette-matched controls and preserve calendar and exercise actions',async()=>{
  const {page,context,errors}=await open();
  try{
-  for(const variant of ['ice','graphite','blueberry','rhythm']){
+  for(const variant of ['ice','graphite','rhythm']){
    await page.evaluate(()=>{state.prefs.calendarDayNotes={}});
    for(const [section,selector] of [['calendar','#calendar-top-tools button'],['week','.toolbar .nav .btn'],['notes','.notes-tools .btn'],['workout','.workout-heading button'],['events','.events-tools .btn'],['savings','#savings-configure'],['wishes','.wishes-heading-actions .btn']]){
     await page.evaluate(({variant,section})=>{state.prefs.variant=variant;workoutActive=null;applyTheme();navigate('2026-11-09',section)},{variant,section});

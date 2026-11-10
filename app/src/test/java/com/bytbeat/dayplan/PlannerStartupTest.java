@@ -115,6 +115,7 @@ public class PlannerStartupTest {
     public static class FrameControlledWebView extends android.webkit.WebView {
         final java.util.List<VisualStateCallback> frames=new java.util.ArrayList<>();
         FrameControlledWebView(Context context){super(context);}
+        @Override public void evaluateJavascript(String script,android.webkit.ValueCallback<String> callback){if(callback!=null)callback.onReceiveValue("true");}
         @Override public void postVisualStateCallback(long id,VisualStateCallback callback){frames.add(callback);}
     }
     @Test public void statusBarWaitsForCommittedPageAndIgnoresStaleNavigation()throws Exception{
@@ -135,6 +136,16 @@ public class PlannerStartupTest {
             assertEquals(0xff000000,a.getWindow().getStatusBarColor());
             view.frames.get(2).onComplete(2);
             assertEquals(0xffe9ddf7,a.getWindow().getStatusBarColor());
+        }finally{c.pause().stop().destroy();}
+    }
+    @Test public void resumeRevealsOnlyACommittedCurrentFrame()throws Exception{
+        theme(0xffe8e4e5);var c=Robolectric.buildActivity(LaunchOnlyActivity.class).setup();var a=c.get();
+        try{
+            FrameControlledWebView view=new FrameControlledWebView(a);set(a,"web",view);set(a,"pageReady",true);
+            c.pause().resume();assertEquals(View.INVISIBLE,view.getVisibility());assertEquals(1,view.frames.size());
+            c.pause();view.frames.get(0).onComplete(0);assertEquals(View.INVISIBLE,view.getVisibility());
+            c.resume();assertEquals(2,view.frames.size());view.frames.get(1).onComplete(1);
+            assertEquals(View.VISIBLE,view.getVisibility());assertSame(view,get(a,"web"));
         }finally{c.pause().stop().destroy();}
     }
     @Test public void photoPickerSupportsMultipleUrisAndCancellation(){

@@ -37,6 +37,7 @@ public class PlannerActivity extends Activity {
     private boolean activityResumed;
     private long launchStarted;
     private boolean startupRequested;
+    private long resumeSurfaceGeneration;
     private final RendererRecoveryPolicy rendererRecovery=new RendererRecoveryPolicy();
     private boolean pendingRendererRecovery;
     private boolean rendererWasBackgrounded;
@@ -138,6 +139,7 @@ public class PlannerActivity extends Activity {
         rendererWasBackgrounded=false;
         web=new WebView(this);
         web.setBackgroundColor(background);
+        web.setVisibility(View.INVISIBLE);
         root.addView(web,0,new android.widget.FrameLayout.LayoutParams(-1,-1));
         WebSettings settings=web.getSettings();
         settings.setJavaScriptEnabled(true);
@@ -238,6 +240,7 @@ public class PlannerActivity extends Activity {
     private void finishStartup(){
         if(web==null||startupRequested||isFinishing()||isDestroyed())return;
         startupRequested=true;pageReady=true;
+        web.setVisibility(View.VISIBLE);
         if(recoveryButton!=null){root.removeView(recoveryButton);recoveryButton=null;}
         rendererRecovery.onReady(android.os.SystemClock.elapsedRealtime());
         android.util.Log.i("PlannerStartup","web frame: "+(android.os.SystemClock.elapsedRealtime()-launchStarted)+"ms");
@@ -271,11 +274,25 @@ public class PlannerActivity extends Activity {
         }
         if(web!=null&&pageReady){
             updateNotificationStatus();
-            web.evaluateJavascript("window.onPlannerResume&&window.onPlannerResume()",null);
+            final WebView resumed=web;
+            final long generation=++resumeSurfaceGeneration;
+            applyWindowTheme();
+            resumed.setVisibility(View.INVISIBLE);
+            resumed.evaluateJavascript("window.onPlannerResume&&window.onPlannerResume()",value->{
+                if(web!=resumed||!activityResumed||generation!=resumeSurfaceGeneration)return;
+                resumed.postVisualStateCallback(generation,new WebView.VisualStateCallback(){
+                    @Override public void onComplete(long id){
+                        if(web==resumed&&activityResumed&&pageReady&&generation==resumeSurfaceGeneration){
+                            resumed.setVisibility(View.VISIBLE);resumed.invalidate();
+                        }
+                    }
+                });
+            });
         }
     }
     @Override protected void onPause(){
         activityResumed=false;
+        resumeSurfaceGeneration++;
         rendererWasBackgrounded=true;
         WorkoutTimer.foreground=false;
         if(web!=null)web.onPause();
