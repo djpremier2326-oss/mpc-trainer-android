@@ -64,3 +64,5 @@ body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .deposit[aria-pressed=true]{background:#d4e3fd!important;color:#202124!important;border-color:#b6bbc3!important;box-shadow:none!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .deposit[aria-pressed=true] :is(strong,small),body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .deposit[aria-pressed=true]::after{color:#202124!important;opacity:1!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .tabs>.ice-compose::before{background:linear-gradient(#303030,#303030) top center/29px 3px no-repeat,linear-gradient(#303030,#303030) center/29px 3px no-repeat,linear-gradient(#303030,#303030) bottom center/29px 3px no-repeat!important}
+/* Outline the complete month, independent of per-day colors and selection. */
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] #view .calendar-month{border:1px solid #303030!important}
