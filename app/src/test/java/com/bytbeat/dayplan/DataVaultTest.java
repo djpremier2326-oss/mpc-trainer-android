@@ -25,7 +25,7 @@ public class DataVaultTest {
   assertTrue(vault.compareSave(null,one));String newer=one.replace("PRIVATE-NOTE","NEW-PHOTO");
   assertTrue(vault.compareSave(one,newer));assertFalse(vault.compareSave(one,one));
   assertEquals(newer,new JSONArray(vault.candidates()).getString(0));
-  assertTrue(vault.compareSave(newer,newer));
+  assertTrue(vault.compareSave(newer,newer));assertEquals("",new JSONObject(vault.status()).getString("error"));
  }
  @Test public void appHasNoInternetPermission()throws Exception{String[] permissions=context.getPackageManager().getPackageInfo(context.getPackageName(),android.content.pm.PackageManager.GET_PERMISSIONS).requestedPermissions;if(permissions!=null)assertFalse(Arrays.asList(permissions).contains("android.permission.INTERNET"));}
  @Test public void mirrorIsEncryptedAndSurvivesInvalidNextWrite()throws Exception{

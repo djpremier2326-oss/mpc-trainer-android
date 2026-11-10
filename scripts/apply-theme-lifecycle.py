@@ -11,7 +11,7 @@ start=s.index('function renderThemeVariants()');end=s.index('\n',start)
 line=s[start:end];line=re.sub(r'<img src="[^"]+"', '<img src="theme-previews/${id}-today.jpg"',line);s=s[:start]+line+s[end:]
 s=s.replace("if(!b)return;if(['aurora'", "if(!b||b.dataset.themeVariant==='blueberry')return;if(['aurora'",1)
 s=s.replace('<style>html:not([data-app-ready]) body', '<style>html:not([data-app-ready]) main{visibility:hidden!important}html:not([data-app-ready]) body',1)
-s=s.replace('</head>','<link rel="stylesheet" href="theme-gallery.css"><link rel="stylesheet" href="savings-theme.css"></head>',1)
+s=s.replace('</head>','<link rel="stylesheet" href="theme-gallery.css"><link rel="stylesheet" href="savings-theme.css"><link rel="stylesheet" href="photo-export.css"><link rel="stylesheet" href="calendar-color-fix.css"></head>',1)
 p.write_text(s)
 # Exclude the retired theme's stylesheet, artwork and old preview from the APK.
 import shutil

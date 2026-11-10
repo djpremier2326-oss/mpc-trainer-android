@@ -1,0 +1,5 @@
+/* A manually painted day keeps its color independently of date selection and theme. */
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme] #view .calendar-month .cal-cell[data-day-color]:not([data-day-color=none]){background:var(--day-tint)!important;color:var(--day-ink)!important}
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme] #view .calendar-month .cal-cell[data-day-color]:not([data-day-color=none]) :is(.calendar-cell-top,.calendar-date-number,.cal-count,.calendar-shift-label,.calendar-day-note,.calendar-day-text,.calendar-day-icons){color:var(--day-ink)!important}
+
+body[data-design=ice][data-theme=ice][data-variant][data-color-theme] #view .calendar-month .cal-cell[data-day-color]:not([data-day-color=none]) .calendar-day-icon{color:var(--calendar-icon-ink,var(--day-ink))!important}

@@ -41,7 +41,7 @@ final class DataVault {
         if(!valid(value)){error="Запись не прошла проверку";return false;}
         try{
             File current=new File(dir,"state.json");String old=null;try{old=read(current);}catch(IOException ignored){}
-            if(value.equals(old))return true;
+            if(value.equals(old)){error="";return true;}
             if(old!=null&&valid(old)){
                 atomic(new File(dir,"previous.json"),old);
                 // Keep an immutable checkpoint of the first state in each hour.

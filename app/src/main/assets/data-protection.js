@@ -25,12 +25,14 @@ async function writeEntry(name,blob){
  for(let at=0;at<blob.size;at+=196608){const bytes=new Uint8Array(await blob.slice(at,at+196608).arrayBuffer());if(!native.vaultChunk(await encode(bytes)))throw Error('Не хватает места для копии');await new Promise(r=>setTimeout(r,0))}
  if(!native.vaultEndEntry())throw Error('Не удалось записать файл копии');
 }
+function assertCurrentSnapshot(){if(native.vaultCompareSaveState&&native.vaultStates){const latest=JSON.parse(native.vaultStates())[0]||null;if(latest!==(window.__plannerPersistedBase||null))throw Error('Открыта устаревшая копия экрана. Новые данные и прежние резервные копии сохранены')}}
 async function checkpoint(force=false,allowReduction=false){
  if(window.__vaultStorageRecovered)throw Error('Записи восстановлены из защиты. Сначала восстанови полную копию с фото и видео: автокопирование приостановлено, чтобы не заменить прежние файлы');
  if(!force&&lastCompleted===revision)return true;
  if(window.__plannerLoadFailed)throw Error('Исходные данные не прочитаны. Автокопирование остановлено для их защиты');
  if(running)throw Error('Предыдущая копия ещё сохраняется');
  if(!validState(state))throw Error('Данные не прошли проверку');
+ assertCurrentSnapshot();
  running=true;again=false;clearTimeout(timer);timer=null;const started=revision;let retry=false;
  try{
   const saved=JSON.parse(JSON.stringify(state));
@@ -45,6 +47,7 @@ async function checkpoint(force=false,allowReduction=false){
   for(const row of media){const {blob,...metadata}=row.value;if(!(blob instanceof Blob))throw Error('Не прочитан файл альбома');const file='blobs/'+(blobId++)+'.bin';await writeEntry(file,blob);manifest.media.push({...metadata,file,mime:blob.type,bytes:blob.size})}
   for(const row of wishes){if(row.value instanceof Blob){const file='blobs/'+(blobId++)+'.bin';await writeEntry(file,row.value);manifest.wishes.push({id:row.key,file,mime:row.value.type,bytes:row.value.size})}else if(typeof row.value==='string')manifest.wishes.push({id:row.key,value:row.value});else throw Error('Не прочитан файл избранного')}
   if(started!==revision){again=true;throw Error('Записи изменились. Сохраняю новую копию')}
+  assertCurrentSnapshot();
   await writeEntry('manifest.json',new Blob([JSON.stringify(manifest)],{type:'application/json'}));
   const result=await new Promise(resolve=>{pendingFinish=resolve;const legacy=native.vaultFinish();if(typeof legacy==='string')window.vaultSnapshotDone(legacy)});if(result.error)throw Error(result.error);lastCompleted=started;retryDelay=30000;status();return true;
  }catch(error){native.vaultAbort();notifyError(error);retry=true;throw error}

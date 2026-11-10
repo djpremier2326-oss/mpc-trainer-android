@@ -28,6 +28,8 @@ import org.json.JSONObject;
 public class PlannerActivity extends Activity {
     private WebView web;
     private DataVault vault;
+    private PhotoExportSession photoExport;
+    private static final int PHOTO_EXPORT=107;
     private java.io.File pendingVaultExport;
     private static final int VAULT_EXPORT=105, VAULT_IMPORT=106;
     private final java.util.concurrent.ExecutorService workoutQueue=java.util.concurrent.Executors.newSingleThreadExecutor();
@@ -60,6 +62,7 @@ public class PlannerActivity extends Activity {
         setTheme(R.style.PlannerLaunchTheme);
         super.onCreate(saved);
         vault=new DataVault(getApplicationContext());
+        photoExport=new PhotoExportSession(getCacheDir());
         // Keep the OS launch surface neutral until the first complete planner frame.
         // Never persist a light/different appearance as the next system splash.
         if(Build.VERSION.SDK_INT>=31){
@@ -367,6 +370,13 @@ public class PlannerActivity extends Activity {
             if(json==null||json.getBytes(StandardCharsets.UTF_8).length>MAX_BYTES)return;
             runOnUiThread(()->{pendingBackup=json;try{Intent i=new Intent(Intent.ACTION_CREATE_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("application/json");i.putExtra(Intent.EXTRA_TITLE,name);startActivityForResult(i,SAVE);}catch(Exception e){pendingBackup=null;message("Не удалось открыть выбор файла");}});
         }
+        @JavascriptInterface public boolean photoExportBegin(String name,String mime){return photoExport.begin(name,mime);}
+        @JavascriptInterface public boolean photoExportChunk(String data){return photoExport.chunk(data);}
+        @JavascriptInterface public void photoExportAbort(){photoExport.clear();}
+        @JavascriptInterface public boolean photoExportFinish(){
+            if(!photoExport.finish())return false;
+            runOnUiThread(()->{try{Intent intent=new Intent(Intent.ACTION_CREATE_DOCUMENT);intent.addCategory(Intent.CATEGORY_OPENABLE);intent.setType(photoExport.mime());intent.putExtra(Intent.EXTRA_LOCAL_ONLY,true);intent.putExtra(Intent.EXTRA_TITLE,photoExport.name());startActivityForResult(intent,PHOTO_EXPORT);}catch(Exception error){photoExport.clear();message("Не удалось выбрать место сохранения");}});return true;
+        }
         @JavascriptInterface public void openLink(String url){openExternalLink(url);}
         @JavascriptInterface public void loadBackup(){runOnUiThread(()->{try{Intent i=new Intent(Intent.ACTION_OPEN_DOCUMENT);i.addCategory(Intent.CATEGORY_OPENABLE);i.setType("*/*");i.putExtra(Intent.EXTRA_LOCAL_ONLY,true);startActivityForResult(i,OPEN);}catch(Exception e){message("Не удалось открыть выбор файла");}});}
     }
@@ -381,6 +391,14 @@ public class PlannerActivity extends Activity {
     @Override protected void onActivityResult(int request,int result,Intent data){
         super.onActivityResult(request,result,data);
         if(request==103){android.webkit.ValueCallback<Uri[]> callback=photoCallback;photoCallback=null;if(callback!=null)callback.onReceiveValue(photoUris(result,data));return;}
+        if(request==PHOTO_EXPORT){
+            if(result!=RESULT_OK||data==null||data.getData()==null){photoExport.clear();return;}
+            final java.io.File source=photoExport.file();final Uri target=data.getData();
+            if(source==null){photoExport.clear();message("Повтори сохранение фотографии");return;}
+            new Thread(()->{try{try(InputStream in=new java.io.FileInputStream(source);OutputStream out=getContentResolver().openOutputStream(target,"wt")){
+                if(out==null)throw new java.io.IOException("Файл недоступен");DataVault.copy(in,out);out.flush();}runOnUiThread(()->message("Фотография сохранена на телефон"));
+            }catch(Exception error){runOnUiThread(()->message("Не удалось сохранить фотографию"));}finally{photoExport.clear();}}).start();return;
+        }
         if(result!=RESULT_OK||data==null||data.getData()==null){if(request==SAVE)pendingBackup=null;if(request==VAULT_EXPORT&&pendingVaultExport!=null){pendingVaultExport.delete();pendingVaultExport=null;}return;}
         Uri uri=data.getData();
         if(request==VAULT_EXPORT){java.io.File ready=pendingVaultExport;pendingVaultExport=null;if(ready==null){message("Повтори создание переносной копии");return;}new Thread(()->{try{
@@ -404,6 +422,6 @@ public class PlannerActivity extends Activity {
         try{String manifest=vault.stage(source.open(),password);runOnUiThread(()->{if(web!=null)web.evaluateJavascript("window.restoreVaultArchive&&window.restoreVaultArchive("+JSONObject.quote(manifest)+")",null);});}
         catch(VaultCrypto.PasswordRequired e){runOnUiThread(()->{android.widget.EditText field=new android.widget.EditText(PlannerActivity.this);field.setInputType(129);field.setHint("Пароль этой копии");AlertDialog dialog=new AlertDialog.Builder(PlannerActivity.this).setTitle("Расшифровать копию").setView(field).setPositiveButton("Открыть",(d,w)->{char[] entered=field.getText().toString().toCharArray();field.setText("");new Thread(()->{try{stageVault(source,entered);}catch(Exception error){runOnUiThread(()->message("Копия не открыта: неверный пароль или повреждённый файл"));}}).start();}).setNegativeButton("Отмена",null).create();dialog.show();dialog.getWindow().addFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE);});}
     }
-    @Override public void onBackPressed(){if(web==null||!pageReady){moveTaskToBack(true);return;}web.evaluateJavascript("(function(){const d=document.querySelector('dialog[open]');if(d){d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
-    @Override protected void onDestroy(){if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}
+    @Override public void onBackPressed(){if(web==null||!pageReady){moveTaskToBack(true);return;}web.evaluateJavascript("(function(){const d=document.activeElement?.closest('dialog[open]')||Array.from(document.querySelectorAll('dialog[open]')).pop();if(d){if(d.dispatchEvent(new Event('cancel',{cancelable:true})))d.close();return true;}if(window.handlePlannerBack&&window.handlePlannerBack())return true;return false;})()",closed->{if(!"true".equals(closed))moveTaskToBack(true);});}
+    @Override protected void onDestroy(){if(photoExport!=null)photoExport.clear();if(photoCallback!=null){photoCallback.onReceiveValue(null);photoCallback=null;}if(web!=null){web.removeJavascriptInterface("AndroidFiles");web.destroy();web=null;}workoutQueue.shutdown();super.onDestroy();}
 }

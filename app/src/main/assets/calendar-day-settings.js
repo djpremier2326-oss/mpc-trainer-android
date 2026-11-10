@@ -31,7 +31,7 @@ function decorate(cell){
  if(v.text){const text=document.createElement('span');text.className='calendar-day-text';text.textContent=v.text;el.append(text)}
  cell.append(el);cell.setAttribute('aria-description',[v.text,...v.icons.map(id=>shapes[id][0])].filter(Boolean).join(', '));
 }
-function contrast(){document.querySelectorAll('.calendar-day-icon').forEach(icon=>{const rgb=getComputedStyle(icon.closest('.cal-cell')).color.match(/\d+/g);if(rgb)icon.style.color=rgb.slice(0,3).map(Number).reduce((a,b)=>a+b,0)>382?'#fff':'#000'})}
+function contrast(){document.querySelectorAll('.calendar-day-icon').forEach(icon=>{const rgb=getComputedStyle(icon.closest('.cal-cell')).color.match(/\d+/g);if(rgb){const ink=rgb.slice(0,3).map(Number).reduce((a,b)=>a+b,0)>382?'#fff':'#000';icon.style.color=ink;icon.style.setProperty('--calendar-icon-ink',ink)}})}
 const originalMonth=calendarMonthMarkup;
 calendarMonthMarkup=function(month){const host=document.createElement('div');host.innerHTML=originalMonth(month);host.querySelectorAll('.cal-cell[data-date]').forEach(decorate);return host.innerHTML};
 const originalCalendar=renderCalendar;renderCalendar=function(){originalCalendar();contrast()};
