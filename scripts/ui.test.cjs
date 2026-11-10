@@ -710,7 +710,7 @@ test('exercise rest counts down in a stationary round button and signals once on
 });
 
 async function assertReadableControl(locator){
- const result=await locator.evaluate(el=>{const s=getComputedStyle(el),rgb=v=>v.match(/[\d.]+/g).slice(0,3).map(Number),l=v=>rgb(v).map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4}).reduce((a,n,i)=>a+n*[.2126,.7152,.0722][i],0),a=l(s.color),b=l(s.backgroundColor);return {contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),ink:s.color,bg:s.backgroundColor}});
+ const result=await locator.evaluate(el=>{const s=getComputedStyle(el),rgba=v=>{const a=v.match(/[\d.]+/g).map(Number);return[a[0],a[1],a[2],a[3]??1]};let bg=[0,0,0],alpha=0;for(let node=el;node&&alpha<1;node=node.parentElement){const c=rgba(getComputedStyle(node).backgroundColor);bg=bg.map((v,i)=>v+c[i]*c[3]*(1-alpha));alpha+=c[3]*(1-alpha)}bg=bg.map(v=>v+255*(1-alpha));const ink=rgba(s.color),fg=bg.map((v,i)=>ink[i]*ink[3]+v*(1-ink[3])),l=v=>v.map(n=>{n/=255;return n<=.04045?n/12.92:((n+.055)/1.055)**2.4}).reduce((a,n,i)=>a+n*[.2126,.7152,.0722][i],0),a=l(fg),b=l(bg);return {contrast:(Math.max(a,b)+.05)/(Math.min(a,b)+.05),ink:s.color,bg:s.backgroundColor}});
  assert.ok(result.contrast>=4.5,JSON.stringify(result));return result;
 }
 test('other themes use readable palette-matched controls and preserve calendar and exercise actions',async()=>{
