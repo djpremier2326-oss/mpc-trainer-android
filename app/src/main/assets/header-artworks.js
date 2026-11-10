@@ -111,3 +111,46 @@ window.plannerAuroraHeaderImages=[
     "src": "aurora-headers/header_10.png"
   }
 ];
+
+window.plannerIndigoHeaderImages = [
+  {
+    "id": "indigo-01",
+    "title": "Волна",
+    "src": "indigo-headers/header_01.png"
+  },
+  {
+    "id": "indigo-02",
+    "title": "Горы",
+    "src": "indigo-headers/header_02.png"
+  },
+  {
+    "id": "indigo-03",
+    "title": "Баскетбол",
+    "src": "indigo-headers/header_03.png"
+  },
+  {
+    "id": "indigo-04",
+    "title": "Пальмы",
+    "src": "indigo-headers/header_04.png"
+  },
+  {
+    "id": "indigo-05",
+    "title": "Карпы кои",
+    "src": "indigo-headers/header_05.png"
+  },
+  {
+    "id": "indigo-06",
+    "title": "Планета",
+    "src": "indigo-headers/header_06.png"
+  },
+  {
+    "id": "indigo-07",
+    "title": "Оригами",
+    "src": "indigo-headers/header_07.png"
+  },
+  {
+    "id": "indigo-08",
+    "title": "Купе",
+    "src": "indigo-headers/header_08.png"
+  }
+];
