@@ -15,7 +15,7 @@ calendarMonthMarkup=function(month){const html=previousMonth(month),c=config();i
 const previousCalendar=renderCalendar;
 renderCalendar=function(){previousCalendar();const jump=document.querySelector('.calendar-jump');if(jump){jump.hidden=true;jump.querySelector("button")?.remove();}document.querySelector('.calendar-hint')?.remove();let bar=$('calendar-top-tools');if(!bar){bar=document.createElement('nav');bar.id='calendar-top-tools';bar.setAttribute('aria-label','Инструменты календаря');bar.innerHTML='<button type="button" id="calendar-schedule-open"><span>График</span></button><button type="button" id="calendar-today"><span>Сегодня</span></button>';document.querySelector('main').prepend(bar)}requestAnimationFrame(()=>{const el=$('cal-'+selected.slice(0,7));if(el)$('view').scrollTop=Math.max(0,el.offsetTop-$('view').offsetTop)})};
 function syncCalendarChrome(){
- if(tab==='day'){const light=state.prefs.colorTheme==='indigo';window.AndroidFiles?.statusBarColor?.(light?'#e7eff7':'#000000',!light);return;}
+ if(tab==='day'){if(state.prefs.colorTheme==='plum'){window.AndroidFiles?.statusBarColor?.('#624955',true);return}const light=state.prefs.colorTheme==='indigo';window.AndroidFiles?.statusBarColor?.(light?'#e7eff7':'#000000',!light);return;}
  const view=$('view'),style=getComputedStyle(view);
  const source=style.backgroundColor;
  let rgb=source.match(/\d+(?:\.\d+)?/g);

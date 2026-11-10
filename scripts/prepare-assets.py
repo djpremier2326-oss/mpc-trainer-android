@@ -30,6 +30,7 @@ PATCHES = [
     'scripts/separate-photos.py',
     'scripts/apply-aurora-theme.py',
     'scripts/apply-indigo-theme.py',
+    'scripts/apply-plum-theme.py',
 ]
 
 def prepare():
