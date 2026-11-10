@@ -2,7 +2,7 @@
   "name": "black-deeds-ui-checks",
   "private": true,
   "scripts": {
-    "test": "python3 scripts/prepare-assets.py && node --test scripts/betting.test.cjs scripts/ui.test.cjs scripts/data-protection.test.cjs"
+    "test": "python3 scripts/prepare-assets.py && node --test scripts/betting.test.cjs scripts/ui.test.cjs scripts/data-protection.test.cjs scripts/aurora.test.cjs"
   },
   "devDependencies": {
     "playwright": "1.56.1"
