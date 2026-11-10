@@ -154,3 +154,36 @@ window.plannerIndigoHeaderImages = [
     "src": "indigo-headers/header_08.png"
   }
 ];
+
+window.plannerPlumHeaderImages = [
+  {
+    "id": "plum-01",
+    "title": "Отдых",
+    "src": "plum-headers/header_01.png"
+  },
+  {
+    "id": "plum-02",
+    "title": "За MPC",
+    "src": "plum-headers/header_02.png"
+  },
+  {
+    "id": "plum-03",
+    "title": "Привет",
+    "src": "plum-headers/header_03.png"
+  },
+  {
+    "id": "plum-04",
+    "title": "Тексты",
+    "src": "plum-headers/header_04.png"
+  },
+  {
+    "id": "plum-05",
+    "title": "Слушая музыку",
+    "src": "plum-headers/header_05.png"
+  },
+  {
+    "id": "plum-06",
+    "title": "Планы на листе",
+    "src": "plum-headers/header_06.png"
+  }
+];

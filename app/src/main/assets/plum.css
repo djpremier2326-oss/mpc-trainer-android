@@ -1781,7 +1781,7 @@ body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice
 
 /* Muted plum panels, warm paper and a compact calendar inspired by the reference. */
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute{background:#624955!important}
-body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute :is(.header-artwork-image,.header-artwork-swipe,.ice-tupac-photo,.ice-tribute-glow){display:none!important}
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute :is(.ice-tupac-photo,.ice-tribute-glow){display:none!important}
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .ice-date-line{color:#f8f3ef!important;background:none!important;text-shadow:none!important}
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .tabs,body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip{background:#624955!important;border-color:#624955!important;box-shadow:none!important}
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .tabs .tab{color:#ded2d8!important}
@@ -1821,3 +1821,7 @@ body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute{box-shadow:none!important;filter:none!important}
 
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .calendar-cell-top{justify-content:center!important}
+
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-image{display:block!important;width:100%;max-width:none;height:100%;aspect-ratio:auto;top:0;left:0;transform:none;object-fit:cover;object-position:center;-webkit-mask-image:none!important;mask-image:none!important}
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-swipe{display:block!important}
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .ice-date-line{background:linear-gradient(transparent,#e8e4e5ed)!important;color:#392f36!important;text-shadow:none!important}
