@@ -11,3 +11,13 @@ body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=
 body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] #savings-configure{background:#ffffff18!important;color:#fff!important;border:1px solid #ffffff80!important;box-shadow:none!important}
 body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .deposit[aria-pressed=true]{background:var(--saving-tone)!important;border-color:var(--saving-tone)!important;color:#fff!important}
 body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .deposit[aria-pressed=true] :is(strong,small),body[data-design=ice][data-theme=ice][data-variant][data-color-theme][data-view=savings] .deposit[aria-pressed=true]::after{color:#fff!important;opacity:1!important}
+
+/* Keep the complete progress track visible, including at zero progress. */
+body[data-variant=ice]{--saving-track:#25313f;--saving-track-edge:#7b8a9a;--saving-fill:#38d5ed}
+body[data-variant=graphite]{--saving-track:#333333;--saving-track-edge:#737373;--saving-fill:#dedede}
+body[data-variant=rhythm]{--saving-track:#2d2e28;--saving-track-edge:#85866b;--saving-fill:#dfff00}
+body[data-color-theme=aurora]{--saving-track:#152c33;--saving-track-edge:#72959d;--saving-fill:#42e4d4}
+body[data-color-theme=indigo]{--saving-track:#29213e;--saving-track-edge:#81709e;--saving-fill:#b9a0ff}
+body[data-color-theme=plum]{--saving-track:#392d35;--saving-track-edge:#9c8391;--saving-fill:#d8b4c9}
+body[data-design=ice][data-theme=ice][data-view=savings]:is(:not([data-variant=violet]),[data-color-theme=aurora],[data-color-theme=indigo],[data-color-theme=plum]) #view .saving-progress{background:var(--saving-track)!important;border:1px solid var(--saving-track-edge)!important;overflow:hidden;border-radius:999px}
+body[data-design=ice][data-theme=ice][data-view=savings]:is(:not([data-variant=violet]),[data-color-theme=aurora],[data-color-theme=indigo],[data-color-theme=plum]) #view .saving-progress i{background:var(--saving-fill)!important;box-shadow:none!important;border-radius:inherit}
