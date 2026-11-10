@@ -32,7 +32,11 @@ jobs:
       - name: Test Android and assemble the existing signed app
         run: |
           base64 --decode signing/planner-debug.keystore.b64 > planner-debug.keystore
-          gradle :app:testDebugUnitTest :app:lintDebug :app:assembleRelease --stacktrace
+          for attempt in 1 2 3; do
+            if gradle :app:testDebugUnitTest :app:lintDebug :app:assembleRelease --refresh-dependencies --stacktrace; then break; fi
+            if [ "$attempt" = 3 ]; then exit 1; fi
+            sleep 10
+          done
           cp app/build/outputs/apk/release/app-release.apk raspisanie-2.3.169.apk
       - uses: actions/upload-artifact@v4
         with:
