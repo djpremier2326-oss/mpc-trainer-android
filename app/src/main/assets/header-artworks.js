@@ -185,5 +185,6 @@ window.plannerPlumHeaderImages = [
     "id": "plum-06",
     "title": "Планы на листе",
     "src": "plum-headers/header_06.png"
-  }
+  },
+  {"id":"plum-07","title":"Большие планы","src":"plum-headers/header_07.png"}
 ];

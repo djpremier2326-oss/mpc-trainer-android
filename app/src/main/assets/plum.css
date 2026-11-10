@@ -1828,4 +1828,4 @@ body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice
 
 /* Blend every Plum header into the native status bar without blurring the artwork. */
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute{background:#e8e4e5!important}
-body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-image{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 36px,#000 100%)!important;mask-image:linear-gradient(to bottom,transparent 0,#000 36px,#000 100%)!important}
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-image{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 4px,#000 100%)!important;mask-image:linear-gradient(to bottom,transparent 0,#000 4px,#000 100%)!important}
