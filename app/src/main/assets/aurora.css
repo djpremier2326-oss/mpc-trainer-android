@@ -1716,3 +1716,7 @@ body[data-color-theme=aurora][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=aurora][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date]{background:linear-gradient(135deg,#22e6d4,#4aabe8)!important}
 body[data-color-theme=aurora][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]):nth-child(-n+5){color:#f2f7ff!important}
 body[data-color-theme=aurora][data-design=ice][data-variant=violet][data-theme=ice] .theme-variant{background:#fff!important;color:#0b1018!important}
+
+/* Fill the existing header edge to edge without changing its height or controls. */
+body[data-color-theme=aurora][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-image{width:100%;max-width:none;height:100%;aspect-ratio:auto;top:0;left:0;transform:none;object-fit:cover;object-position:center;-webkit-mask-image:none!important;mask-image:none!important}
+body[data-color-theme=aurora][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .ice-date-line{background:linear-gradient(transparent,#000b);color:#fff;text-shadow:0 1px 5px #000}
