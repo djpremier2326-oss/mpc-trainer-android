@@ -50,7 +50,7 @@ body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=i
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]),body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button:not([aria-current=date]) :is(span,strong,small){color:#202124!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date]{background:#303030!important;color:#d4e3fd!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .ice-week.home-date-strip>button[aria-current=date] :is(span,strong,small){color:#d4e3fd!important}
-body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month{padding:10px 4px!important;border:1px solid #c6c9ce!important;border-radius:16px!important}
+body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month{padding:10px 4px!important;border:1px solid #303030!important;border-radius:16px!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month h2{margin:0 0 9px!important;font-size:16px!important;font-weight:700!important;line-height:22px!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-grid{gap:1px!important}
 body[data-color-theme=silver][data-design=ice][data-variant=violet][data-theme=ice] .calendar-month .cal-cell{min-height:80px!important;padding:7px 1px!important;border-radius:10px!important}

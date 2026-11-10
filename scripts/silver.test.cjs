@@ -15,7 +15,7 @@ test('Silver has pale blue menus, a dark header and light paper and pale blue ca
  const color=selector=>page.locator(selector).first().evaluate(el=>getComputedStyle(el).backgroundColor);
  assert.equal(await color('.tabs'),'rgb(212, 227, 253)');assert.equal(await color('.home-date-strip'),'rgb(212, 227, 253)');assert.equal(await color('.ice-tribute'),'rgb(48, 48, 48)');assert.equal(await color('#violet-add-task'),'rgb(212, 227, 253)');assert.equal(await page.locator('.header-artwork-image,.ice-tupac-photo').count(),0);
  await page.evaluate(()=>{selected=addDays(iso(),1);navigate(selected,'calendar')});
- assert.equal(await color('.calendar-month'),'rgb(212, 227, 253)');assert.equal(await color('#view'),'rgb(233, 234, 236)');
+ assert.equal(await color('.calendar-month'),'rgb(212, 227, 253)');assert.equal(await page.locator('.calendar-month').first().evaluate(el=>getComputedStyle(el).borderColor),'rgb(48, 48, 48)');assert.equal(await color('#view'),'rgb(233, 234, 236)');
  const picked=page.locator('.calendar-month .cal-cell.chosen').first();assert.equal(await picked.evaluate(el=>getComputedStyle(el).backgroundColor),'rgb(48, 48, 48)');assert.equal(await picked.evaluate(el=>getComputedStyle(el).color),'rgb(255, 255, 255)');
  const today=page.locator('.calendar-month .cal-cell.today').first();assert.equal(await today.evaluate(el=>getComputedStyle(el).borderColor),'rgb(32, 33, 36)');
  await page.screenshot({path:'work/ui-evidence/silver-calendar-192.png'});
