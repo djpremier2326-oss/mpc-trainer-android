@@ -1825,3 +1825,7 @@ body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-image{display:block!important;width:100%;max-width:none;height:100%;aspect-ratio:auto;top:0;left:0;transform:none;object-fit:cover;object-position:center;-webkit-mask-image:none!important;mask-image:none!important}
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-swipe{display:block!important}
 body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .ice-date-line{background:linear-gradient(transparent,#e8e4e5ed)!important;color:#392f36!important;text-shadow:none!important}
+
+/* Blend every Plum header into the native status bar without blurring the artwork. */
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute{background:#e8e4e5!important}
+body[data-color-theme=plum][data-design=ice][data-variant=violet][data-theme=ice] .ice-tribute .header-artwork-image{-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 36px,#000 100%)!important;mask-image:linear-gradient(to bottom,transparent 0,#000 36px,#000 100%)!important}
